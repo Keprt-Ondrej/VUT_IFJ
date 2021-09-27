@@ -1,0 +1,5 @@
+*.o
+ifj-code*
+*.vscode
+html/
+*.zip
