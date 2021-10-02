@@ -6,10 +6,12 @@
 */
 
 #include "main.h"
+#include "symtable.h"
 
 int main(){
-    printf("Hello world\n");
-    scanner_hello();
-    symtable_hello();
+    //printf("Hello world\n");
+    //scanner_hello();
+    //symtable_hello();
+    wordcount();
     return 0;
 }

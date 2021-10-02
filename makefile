@@ -11,7 +11,10 @@ HFILES = main.h
 all: $(PROGS)
 
 $(PROGS): $(OFILES) $(HFILES)
-	$(CC) $(CFLAGS) -o  $(PROGS) $(OFILES)	
+	$(CC) $(CFLAGS) -o  $(PROGS) $(OFILES)
+
+run: $(PROGS)
+	./$(PROGS)
 
 doxygen:
 	doxygen
