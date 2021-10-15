@@ -16,11 +16,14 @@ $(PROGS): $(OFILES) $(HFILES)
 run: $(PROGS)
 	./$(PROGS)
 
+test: $(PROGS) #chmod +x tests.sh    -- aby se mohl script spustit jako program: ./tests.sh
+	sh tests.sh	
+
 doxygen:
 	doxygen
 
 pack:	#zkuste to psat zvrchu dolu, jak to mate napr ve VS code at v tom neni bordel :D
-	zip $(LOGIN).zip doxyfile main.c main.h makefile README.txt scanner.c scanner.h symtable.c symtable.h
+	zip $(LOGIN).zip doxyfile makefile README.txt *.c *.h
 
 clean:
 	rm -fr *.o html/ $(PROGS)
