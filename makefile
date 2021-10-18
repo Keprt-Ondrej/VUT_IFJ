@@ -22,8 +22,12 @@ test: $(PROGS) #chmod +x tests.sh    -- aby se mohl script spustit jako program:
 doxygen:
 	doxygen
 
-pack:	#zkuste to psat zvrchu dolu, jak to mate napr ve VS code at v tom neni bordel :D
-	zip $(LOGIN).zip doxyfile makefile README.txt *.c *.h
+pdf:
+	$(MAKE) -C dokumentace/
+
+pack: pdf	#zkuste to psat zvrchu dolu, jak to mate napr ve VS code at v tom neni bordel :D
+	zip $(LOGIN).zip doxyfile makefile README.txt *.c *.h dokumentace.pdf rozdeleni
 
 clean:
-	rm -fr *.o html/ $(PROGS)
+	$(MAKE) -C dokumentace/ clean
+	rm -fr *.o $(PROGS) dokumentace.pdf

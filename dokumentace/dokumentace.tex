@@ -1,0 +1,57 @@
+\documentclass[11pt]{article}
+\usepackage[czech]{babel}
+\usepackage[a4paper, left=1.5cm,top=2.5cm,textheight=25.0cm,textwidth=18.0cm]{geometry}
+\usepackage[IL2]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{times}
+
+\usepackage{enumitem}
+\usepackage{graphicx}
+
+\setlength{\parindent}{1em}
+\usepackage{hyperref}
+\usepackage{color}
+
+
+\hypersetup{
+    linktocpage,
+    colorlinks=true, %set true if you want colored links
+    linktoc=all,     %set to all if you want both sections and subsections linked
+    linkcolor=blue,  %choose some color if you want links to stand out
+}
+
+
+
+\begin{document}
+\begin{titlepage}
+    \begin{center}
+        \includegraphics[scale=0.8]{pics/fitlogo.pdf} \\
+    
+        \textsc{\Huge Projektová dokumentace}\\
+        
+        \vspace{\stretch{0.382}}
+        \LARGE
+            Implementace překladače IFJ21
+        \vspace{\stretch{0.618}}  
+    \end{center}
+    
+
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\thispagestyle{empty}
+\newpage
+\setcounter{page}{1}
+
+%end of uvod, write sections here:
+
+\section*{Úvod}
+Tohle je uvod
+
+\section{Lex analyza}
+lex analyze je hell
+
+
+
+\end{document} 
