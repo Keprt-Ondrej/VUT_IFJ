@@ -1,16 +1,20 @@
 \documentclass[11pt]{article}
 \usepackage[czech]{babel}
-\usepackage[a4paper, left=1.5cm,top=2.5cm,textheight=25.0cm,textwidth=18.0cm]{geometry}
+\usepackage[a4paper, left=0.5cm,top=2.5cm,textwidth=20cm]{geometry}
 \usepackage[IL2]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{times}
 
 \usepackage{enumitem}
 \usepackage{graphicx}
+\usepackage{xcolor}
 
 \setlength{\parindent}{1em}
 \usepackage{hyperref}
 \usepackage{color}
+
+\newcommand{\term}[1]{{\color{red}#1}}
+\newcommand{\arrow}{\;$\rightarrow$\;}
 
 
 \hypersetup{
@@ -49,9 +53,45 @@
 \section*{Úvod}
 Tohle je uvod
 
+
+
 \section{Lex analyza}
 lex analyze je hell
 
+\section{LL gramatika}
+%<prog> $$\rightarrow$$ <prolog> <fce_decl> <fce_def> <call_fce_no_ret>
 
+
+\begin{enumerate}  
+    {\color{red}}
+    \item \texttt{<intro>\arrow{}<prolog> <prog> }  
+    \item \texttt{<prog>\arrow{} <fce\_decl> <prog>}
+    \item \texttt{<prog>\arrow{} <fce\_def> <prog>}
+    \item \texttt{<prog>\arrow{} <call\_fce\_no\_ret> <prog>}
+    \item \texttt{<prog>\arrow{} $\epsilon$}    
+    \item \texttt{<prolog>\arrow{}\term{require} \term{''ifj21''}   }
+    \item \texttt{<fce\_decl>\arrow{}\term{global} \term{identif} \term{:} \term{function} \term{$($} <type\_list> \term{$)$} <ret\_list>}
+    \item \texttt{<type\_list>\arrow{}$\epsilon$}
+    \item \texttt{<type\_list>\arrow{}<type>}
+    \item \texttt{<type\_list>\arrow{}<type> \term{,} <type\_list>} 
+    \item \texttt{<ret\_list>\arrow{}\term{:} <type\_list>}
+    \item \texttt{<ret\_list>\arrow{}$\epsilon$}
+    \item \texttt{<fce\_def>\arrow{}\term{function} \term{identif} \term{$($} <param\_def\_list> \term{$)$} <ret\_list> <statement\_list> \term{end}}
+    \item \texttt{<param\_def\_list>\arrow{}$\epsilon$}
+    \item \texttt{<param\_def\_list>\arrow{}<param>}
+    \item \texttt{<param\_def\_list>\arrow{}<param> \term{,} <param\_def\_list>} 
+    \item \texttt{<param>\arrow{}\term{identif} \term{:} <type>}   
+    \item \texttt{<statement\_list>\arrow{}<call\_fce\_no\_ret> <statement\_list>}
+    \item \texttt{}
+    \item \texttt{}
+    \item \texttt{<call\_fce\_no\_ret>\arrow{}\term{identif} \term{$($} <value\_list> \term{$)$}}
+    \item \texttt{<value>\arrow{\term{integer\_value}}}
+
+
+
+    \item \texttt{<type>\arrow{}\term{integer}}
+    \item \texttt{<type>\arrow{}\term{number}}
+    \item \texttt{<type>\arrow{}\term{string}}    
+\end{enumerate}
 
 \end{document} 
