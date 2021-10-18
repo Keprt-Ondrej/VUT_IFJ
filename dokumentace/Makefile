@@ -10,4 +10,4 @@ all:
 
 .PHONY: 
 clean:
-	rm -rf *.dvi *.ps *.pdf *.aux *.log *fls *out *xmk *gz *toc
+	rm -rf *.dvi *.ps *.pdf *.aux *.log *fls *out *xmk *gz *toc html/

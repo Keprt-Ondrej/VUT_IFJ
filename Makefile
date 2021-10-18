@@ -26,7 +26,7 @@ pdf:
 	$(MAKE) -C dokumentace/
 
 pack: pdf	#zkuste to psat zvrchu dolu, jak to mate napr ve VS code at v tom neni bordel :D
-	zip $(LOGIN).zip doxyfile makefile README.txt *.c *.h dokumentace.pdf rozdeleni
+	zip $(LOGIN).zip doxyfile Makefile README.txt *.c *.h dokumentace.pdf rozdeleni
 
 clean:
 	$(MAKE) -C dokumentace/ clean
