@@ -1,31 +1,17 @@
 /**
  * @file symtable.c
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
- * @brief 
+ * @brief Definice funkcí pro operace s tabulkou symbolů
  * 
 */
 
 #include "symtable.h"
-
-// htab_bucket_count.c
-// Řešení IJC-DU2, příklad 2), 17.4.2021
-// Autor: Ondřej Keprt, FIT
-// Přeloženo: gcc 7.5
-// 
-
-
+#include <string.h>     // size_t
+#include <stdbool.h>    // bool
 
 size_t htab_bucket_count(const htab_t * t){
     return t->arr_size;
 }
-
-// htab_clear.c
-// Řešení IJC-DU2, příklad 2), 17.4.2021
-// Autor: Ondřej Keprt, FIT
-// Přeloženo: gcc 7.5
-// 
-
-
 
 void htab_clear(htab_t * t){
     size_t arr_size = htab_bucket_count(t);
@@ -38,15 +24,7 @@ void htab_clear(htab_t * t){
         }
 	}
     t->size = 0;
-}// htab_erase.c
-// Řešení IJC-DU2, příklad 2), 17.4.2021
-// Autor: Ondřej Keprt, FIT
-// Přeloženo: gcc 7.5
-// 
-
-
-
-
+}
 
 bool htab_erase(htab_t * t, htab_key_t key){
     size_t index = (htab_hash_function(key) % t->arr_size); //rychlejsi, nez volat funkci size_t htab_bucket_count(const htab_t * t), pokud se ale ukladani velikosti pole zmeni, bude se muset zmenit i zde, coz pri pouziti funkce nehrozi, ale zmena v tomto ukolu jiz nenastane...  
@@ -74,13 +52,7 @@ bool htab_erase(htab_t * t, htab_key_t key){
         else walking_item = walking_item->next ;
     }
     return false; //prosel jsem cely list a nenasel jsem
-}// htab_find.c
-// Řešení IJC-DU2, příklad 2), 17.4.2021
-// Autor: Ondřej Keprt, FIT
-// Přeloženo: gcc 7.5
-// 
-
-
+}
 
 htab_item * htab_find(htab_t * t, htab_key_t key){
     size_t index = (htab_hash_function(key) % t->arr_size);     //rychlejsi, nez volat funkci size_t htab_bucket_count(const htab_t * t), pokud se ale ukladani velikosti pole zmeni, bude se muset zmenit i zde, coz pri pouziti funkce nehrozi, ale zmena v tomto ukolu jiz nenastane... 
@@ -92,13 +64,7 @@ htab_item * htab_find(htab_t * t, htab_key_t key){
         else walking_item = walking_item->next;
     }
     return NULL; //prosel jsem cely list a nenasel jsem
-}// htab_for_each.c
-// Řešení IJC-DU2, příklad 2), 17.4.2021
-// Autor: Ondřej Keprt, FIT
-// Přeloženo: gcc 7.5
-// 
-
-
+}
 
 void htab_for_each(const htab_t * t, void (*f)(htab_item *data)){
     size_t arr_size = htab_bucket_count(t);
@@ -110,25 +76,12 @@ void htab_for_each(const htab_t * t, void (*f)(htab_item *data)){
             walking_item = walking_item->next;
         }        
     }
-}// htab_free.c
-// Řešení IJC-DU2, příklad 2), 17.4.2021
-// Autor: Ondřej Keprt, FIT
-// Přeloženo: gcc 7.5
-// 
-
-
+}
 
 void htab_free(htab_t * t){
     htab_clear(t);
     free(t);
-}// htab.h -- rozhraní knihovny htab (řešení IJC-DU2)
-// Licence: žádná (Public domain)
-
-
-
-#include <string.h>     // size_t
-#include <stdbool.h>    // bool
-
+}
 
 #ifdef HASHTEST
     size_t htab_hash_function(const char *str) {
@@ -255,10 +208,6 @@ void free_htab_item(struct htab_item * item){
     free(item);                     // ale k polozce uz by se nemelo pristupovat, mela by byt tedy smazana   
 }
 
-void symtable_hello(){
-    printf("Hello from symtable\n");
-}
-
 void print_htab_item_values(htab_item *data){    
     printf("%s\t%d\n",data->key,(int)data->value);    
 }
@@ -303,6 +252,12 @@ int read_word(char *s, int max, FILE *f){
     }
     return  0; //deathcode
 }
+
+/**
+ * @brief Testovací funkce pro kontrolu implementace tabulky
+ * 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 void wordcount(){    
     htab_t * storage = htab_init(TABLE_SIZE);    
     if (storage == NULL){
@@ -322,18 +277,7 @@ void wordcount(){
         result->value++;
     }
 
-    #ifdef MOVETEST
-        htab_t * movetest_tab = htab_move(TABLE_SIZE/2,storage);  
-        if (movetest_tab == NULL){
-            fprintf(stderr,"Chyba: nepodarilo se alokovat pamet pro tabulku\n");
-            exit(1);
-        } 
-        htab_for_each(movetest_tab,print_htab_item_values);
-        htab_free(movetest_tab);
-    #else
-        htab_for_each(storage,print_htab_item_values); 
-    #endif
-       
+    htab_for_each(storage,print_htab_item_values); 
     htab_free(storage);
     return;
 }

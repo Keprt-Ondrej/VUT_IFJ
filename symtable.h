@@ -1,7 +1,7 @@
 /**
  * @file symtable.h
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
- * @brief 
+ * @brief Deklarace rozhraní pro tanulku symbolů
  * 
 */
 
