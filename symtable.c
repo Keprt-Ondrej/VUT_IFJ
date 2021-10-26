@@ -52,7 +52,7 @@ bool htab_erase(htab_t * t, htab_key_t key){
     size_t index = (htab_hash_function(key) % t->arr_size); //rychlejsi, nez volat funkci size_t htab_bucket_count(const htab_t * t), pokud se ale ukladani velikosti pole zmeni, bude se muset zmenit i zde, coz pri pouziti funkce nehrozi, ale zmena v tomto ukolu jiz nenastane...  
     struct htab_item *deleting_item = NULL;
     if (t->array[index] != NULL){
-        if (strcmp((char *)key,(char *)t->array[index]->data.key) == 0){
+        if (strcmp((char *)key,(char *)t->array[index]->key) == 0){
             deleting_item = t->array[index];
             t->array[index] = t->array[index]->next;
             free_htab_item(deleting_item);
@@ -65,7 +65,7 @@ bool htab_erase(htab_t * t, htab_key_t key){
     struct htab_item *walking_item = t->array[index];
     while(walking_item->next != NULL){
         deleting_item = walking_item->next;
-        if (strcmp((char *)deleting_item->data.key,(char *)key) == 0){
+        if (strcmp((char *)deleting_item->key,(char *)key) == 0){
             walking_item->next = deleting_item->next;
             free_htab_item(deleting_item);
             t->size--;
@@ -82,12 +82,12 @@ bool htab_erase(htab_t * t, htab_key_t key){
 
 
 
-htab_pair_t * htab_find(htab_t * t, htab_key_t key){
+htab_item * htab_find(htab_t * t, htab_key_t key){
     size_t index = (htab_hash_function(key) % t->arr_size);     //rychlejsi, nez volat funkci size_t htab_bucket_count(const htab_t * t), pokud se ale ukladani velikosti pole zmeni, bude se muset zmenit i zde, coz pri pouziti funkce nehrozi, ale zmena v tomto ukolu jiz nenastane... 
     struct htab_item *walking_item = t->array[index];
     while (walking_item != NULL){
-        if (strcmp((char *)walking_item->data.key,(char *)key) == 0){
-            return &(walking_item->data);
+        if (strcmp((char *)walking_item->key,(char *)key) == 0){
+            return walking_item;
         }
         else walking_item = walking_item->next;
     }
@@ -100,13 +100,13 @@ htab_pair_t * htab_find(htab_t * t, htab_key_t key){
 
 
 
-void htab_for_each(const htab_t * t, void (*f)(htab_pair_t *data)){
+void htab_for_each(const htab_t * t, void (*f)(htab_item *data)){
     size_t arr_size = htab_bucket_count(t);
     struct htab_item * walking_item = NULL;
     for (size_t i = 0; i < arr_size;i++){
         walking_item = t->array[i];        
         while(walking_item != NULL){
-            f(&(walking_item->data));
+            f(walking_item);
             walking_item = walking_item->next;
         }        
     }
@@ -168,7 +168,7 @@ htab_t *htab_init(size_t n){
     return tab;
 }
 
-htab_pair_t * htab_lookup_add(htab_t * t, htab_key_t key){
+htab_item * htab_lookup_add(htab_t * t, htab_key_t key){
     size_t index = (htab_hash_function(key) % t->arr_size); //rychlejsi, nez volat funkci size_t htab_bucket_count(const htab_t * t), pokud se ale t->arr_size nejak zmeni, bude se muset zmenit i zde, coz pri pouziti funkce nehrozi, ale zmena v tomto ukolu jiz nenastane... 
     if (t->array[index] == NULL){
         t->array[index] = create_htab_item(key);
@@ -176,17 +176,17 @@ htab_pair_t * htab_lookup_add(htab_t * t, htab_key_t key){
             return NULL;
         }
         t->size++;       
-        return &(t->array[index]->data);
+        return t->array[index];
     }
 
-    if (strcmp((char *)t->array[index]->data.key,(char *)key) == 0){
-        return &(t->array[index]->data);
+    if (strcmp((char *)t->array[index]->key,(char *)key) == 0){
+        return t->array[index];
     }
 
     struct htab_item *walking_item = t->array[index];
     while (walking_item->next != NULL){        
-        if (strcmp((char *)walking_item->next->data.key,(char *)key) == 0){            
-            return &(walking_item->next->data);
+        if (strcmp((char *)walking_item->next->key,(char *)key) == 0){            
+            return walking_item->next;
         }
         walking_item = walking_item->next;
     }
@@ -197,8 +197,9 @@ htab_pair_t * htab_lookup_add(htab_t * t, htab_key_t key){
     }
     else{
         t->size++; 
-        return &(walking_item->next->data);
-    }     
+        return walking_item->next;
+    }   
+    return NULL; // death code??  
 }
 
 htab_t *htab_move(size_t n, htab_t *from){
@@ -211,14 +212,14 @@ htab_t *htab_move(size_t n, htab_t *from){
     for (size_t i = 0; i < old_arr_size;i++){
         moving_item = from->array[i];
         while(moving_item != NULL){ 
-            htab_pair_t *new_pair = htab_lookup_add(tab, moving_item->data.key);
+            htab_item *new_pair = htab_lookup_add(tab, moving_item->key);
             if (new_pair == NULL){
                 fprintf(stderr,"Chyba: nepodarilo se presunout tabulku\n");
                 htab_free(tab);
                 return NULL;
             }
             else{
-                new_pair->value = moving_item->data.value;  
+                new_pair->value = moving_item->value;  
                 moving_item = moving_item->next;
             }           
         }        
@@ -238,19 +239,19 @@ struct htab_item *create_htab_item(const htab_key_t key){
         return NULL;
     }
     item->next = NULL;
-    item->data.value = 0;    
+    item->value = 0;    
     char *new_key = malloc(strlen(key)+1); 
     if (new_key == NULL){
         free(item);
         return NULL;
     }
     strcpy(new_key,key);  //nastavim pole na hodnotu klice
-    item->data.key = new_key; //ukazatel nastavim na pole, kde je klic
+    item->key = new_key; //ukazatel nastavim na pole, kde je klic
     return item;
 }
 
 void free_htab_item(struct htab_item * item){    
-    free((void *)item->data.key);   // z const char delam void *,protoze prekladac haze warning,
+    free((void *)item->key);   // z const char delam void *,protoze prekladac haze warning,
     free(item);                     // ale k polozce uz by se nemelo pristupovat, mela by byt tedy smazana   
 }
 
@@ -258,7 +259,7 @@ void symtable_hello(){
     printf("Hello from symtable\n");
 }
 
-void print_htab_item_values(htab_pair_t *data){    
+void print_htab_item_values(htab_item *data){    
     printf("%s\t%d\n",data->key,(int)data->value);    
 }
 
@@ -309,7 +310,7 @@ void wordcount(){
         exit(1);
     } 
 
-    htab_pair_t *result = NULL;
+    htab_item *result = NULL;
     char s[WORD_MAX_LENGHT] = {'\0'};
     while (read_word(s,WORD_MAX_LENGHT,stdin) != EOF){
         result = htab_lookup_add(storage,s);

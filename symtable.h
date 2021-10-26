@@ -28,14 +28,9 @@ typedef struct htab{
     struct htab_item *array[];    
 }htab_t;
 
-// Dvojice dat v tabulce:
-typedef struct htab_pair {
+typedef struct htab_item{
     htab_key_t    key;          // klíč
     htab_value_t  value;        // asociovaná hodnota
-} htab_pair_t;                  // typedef podle zadání
-
-typedef struct htab_item{
-    htab_pair_t data;
     struct htab_item *next;
 }htab_item;
 
@@ -55,18 +50,18 @@ htab_t *htab_move(size_t n, htab_t *from);      // přesun dat do nové tabulky
 size_t htab_size(const htab_t * t);             // počet záznamů v tabulce
 size_t htab_bucket_count(const htab_t * t);     // velikost pole
 
-htab_pair_t * htab_find(htab_t * t, htab_key_t key);  // hledání
-htab_pair_t * htab_lookup_add(htab_t * t, htab_key_t key);
+htab_item * htab_find(htab_t * t, htab_key_t key);  // hledání
+htab_item * htab_lookup_add(htab_t * t, htab_key_t key);
 
 bool htab_erase(htab_t * t, htab_key_t key);    // ruší zadaný záznam
 
 // for_each: projde všechny záznamy a zavolá na ně funkci f
-void htab_for_each(const htab_t * t, void (*f)(htab_pair_t *data));
+void htab_for_each(const htab_t * t, void (*f)(htab_item *data));
 
 void htab_clear(htab_t * t);    // ruší všechny záznamy
 void htab_free(htab_t * t);     // destruktor tabulky
 
-void print_htab_item_values(htab_pair_t *data);  //tiskne data, ktera dostane v argumentu
+void print_htab_item_values(htab_item *data);  //tiskne data, ktera dostane v argumentu
 int read_word(char *s, int max, FILE *f);
 void wordcount();
 
