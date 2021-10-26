@@ -3,6 +3,11 @@
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
  * @brief Deklarace rozhraní pro tanulku symbolů
  * 
+ * Základní struktura je převzata z mého projektu z Jazyka C a upravena pro tento projekt
+ * Odkaz na zadání, platné asi jen do konce zimního semestru 2021:
+ * http://www.fit.vutbr.cz/study/courses/IJC/public/DU2.html.cs
+ * Odkaz na vypracovaný projekt Ondřejem Keprtem:
+ * https://github.com/KeprtOndrej/ICJ-projekt-2 //obsahuje i původní zadání v HTML
 */
 
 #ifndef __SYMTABLE_H__
@@ -20,6 +25,13 @@ void symtable_hello();
 // Typy:
 typedef const char * htab_key_t;        // typ klíče
 typedef int htab_value_t;               // typ hodnoty
+typedef enum{
+    function,
+    integer,
+    number,
+    string,
+} htab_record_type;
+
 
 // Tabulka:
 typedef struct htab{
@@ -31,14 +43,16 @@ typedef struct htab{
 typedef struct htab_item{
     htab_key_t    key;          // klíč
     htab_value_t  value;        // asociovaná hodnota
+    void * param_list;
+    void * return_list;
+    bool inicialized;
     struct htab_item *next;
 }htab_item;
 
+
+
 struct htab_item *create_htab_item(const htab_key_t key);
 void free_htab_item(struct htab_item * item);
-
-
-
 
 // Rozptylovací (hash) funkce (stejná pro všechny tabulky v programu)
 // Pokud si v programu definujete stejnou funkci, použije se ta vaše.
@@ -65,5 +79,7 @@ void print_htab_item_values(htab_item *data);  //tiskne data, ktera dostane v ar
 int read_word(char *s, int max, FILE *f);
 void wordcount();
 
+void htab_define_var(htab_key_t key);
+void htab_declare_var(htab_key_t key);
 
 #endif

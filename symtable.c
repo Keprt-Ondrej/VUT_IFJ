@@ -192,7 +192,12 @@ struct htab_item *create_htab_item(const htab_key_t key){
         return NULL;
     }
     item->next = NULL;
-    item->value = 0;    
+    item->value = 0;
+    item->param_list = NULL;
+    item->return_list = NULL;
+    item->inicialized = false;
+    //TODO INIT values
+
     char *new_key = malloc(strlen(key)+1); 
     if (new_key == NULL){
         free(item);
@@ -204,6 +209,7 @@ struct htab_item *create_htab_item(const htab_key_t key){
 }
 
 void free_htab_item(struct htab_item * item){    
+    //TODO uvolnit seznamy
     free((void *)item->key);   // z const char delam void *,protoze prekladac haze warning,
     free(item);                     // ale k polozce uz by se nemelo pristupovat, mela by byt tedy smazana   
 }
@@ -281,3 +287,12 @@ void wordcount(){
     htab_free(storage);
     return;
 }
+
+void htab_define_var(htab_key_t key){
+    printf("%s\n",key);
+}
+
+void htab_declare_var(htab_key_t key){
+    printf("%s\n",key);
+}
+
