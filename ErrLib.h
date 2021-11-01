@@ -17,7 +17,7 @@
 #define SEM_ERROR_ASSIGN_COMMAND 4  // Semantic error - assignment command
 #define SEM_ERROR_TYPE_INCORRECT 5  // Semantic error - incorrect number/parameter types
 #define SEM_ERROR_TYPE_COMPAT    6  // Semantic error - types uncompatible
-#define SEM_ERROR_OTHER		     7  // Semantic error - other
+#define SEM_ERROR_OTHER		       7  // Semantic error - other
 #define UNEXP_ZERO_VALUE_ERROR   8  // Startup error when working with an unexpected zero value
 #define INT_DIV_ERROR            9  // Error of integer division by zero constant
 #define INTERNAL_ERROR           99 // Internal error, eg. malloc error etc
