@@ -43,10 +43,12 @@ int str_add_char(String *s, char c) {
 }    
 
 char str_del_char(String *s) {
-	if (s->length) 
+	if (s->length){
         return INTERNAL_ERROR;
-    else
+    }else{
         return 0;
+    }
+        
 	return s->string[s->length--]; // return deleted char
 }
 
@@ -66,30 +68,28 @@ Token* get_token() {
     char c;
     // while(true) {
         switch(state) {
-            c = getc(stdin);
             case start: 
                 c = getc(stdin);
                 if(c == '\n') 
                     state = end_of_line;
                 else if(c >= '1' && c <= '9') {
                     buffer->string[buffer->length++] = c;
-                    state = integer;
-                    printf("%c", c);
+                    state = int_number;
+
+                    Token_data tokenData;
+                    tokenData = token->data;
+                    tokenData.type_integer = c;
+                    printf("%d", tokenData.type_integer);
                 }    
-                break;
+            break;
 
             case end_of_line:
                 state = start;
-                break;
+            break;
+            
             default:
                 printf("DEFAULT \n");
-                break;
-            // case integer:
-            //     if(c == '.') {
-            //         state = decimal_point;
-            //     }
-            //     break;
-    
+                break;    
         }
     // }
     token = NULL;    

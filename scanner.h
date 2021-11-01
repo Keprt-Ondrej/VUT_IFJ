@@ -109,7 +109,7 @@ typedef struct {
 typedef enum {
     start,                          //0
     end_of_file,                    //1
-    integer,                        //2
+    int_number,                     //2
     decimal_point,                  //3
     zero,                           //4
     double_point_value,             //5
