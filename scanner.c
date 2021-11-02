@@ -44,9 +44,10 @@ int str_add_char(String *s, char c) {
 }    
 
 char str_del_char(String *s) {
-	if (s->length){
+	if(s->length) {
         return INTERNAL_ERROR;
-    }else{
+    }
+    else {
         return 0;
     }
         
@@ -67,32 +68,74 @@ Token* get_token() {
 
     FSM_state state = start;
     char c;
-    // while(true) {
+    while(true) {
         switch(state) {
             case start: 
                 c = getc(stdin);
-                if(c == '\n') 
+                if(c == '\n') {
                     state = end_of_line;
+                }
                 else if(c >= '1' && c <= '9') {
-                    buffer.string[buffer.length++] = c;
+                    buffer.string[buffer.length++] = c; 
                     state = int_number;
-
-                    Token_data tokenData;
-                    tokenData = token->data;
-                    tokenData.type_integer = c;
-                    printf("%d i am here", tokenData.type_integer);
                 }    
+                else if(c == '0') {
+                    buffer.string[buffer.length++] = c;
+                    state = zero;
+                }
+                else if((('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z'))) {
+                    buffer.string[buffer.length++] = c;
+                    state = identif_and_kw;                    
+                }
+                else if(c == '/') {
+                    buffer.string[buffer.length++] = c;
+                    state = div_st;                        
+                }
             break;
 
             case end_of_line:
-                state = start;
+                token->type = token_type_EOF;
+                return token;
             break;
-            
-            default:
-                printf("DEFAULT \n");
-                break;    
+
+            case int_number:
+                c = getc(stdin);
+                if(c >= '1' && c <= '9') {
+                    buffer.string[buffer.length++] = c;
+                    state = int_number;
+                }   
+                else if(c == '.') {
+                    buffer.string[buffer.length++] = c;
+                    state = decimal_point;
+                }
+                else if ((c == 'e') || (c == 'E')){
+                    buffer.string[buffer.length++] = c;
+                    state = double_exponent_begin;
+                }
+                else {
+                    ungetc(c,stdin);
+                    buffer.string[buffer.length] = '\0';
+                    token->type = token_type_integer;
+                    token->data.type_integer = atoi(buffer.string);
+                    return token;                    
+                }
+            break;
+
+            case zero:
+                c = getc(stdin);
+                if(c == '.') {
+                    buffer.string[buffer.length++] = c;
+                    state = decimal_point;                             
+                }
+                else {
+                    ungetc(c,stdin);
+                    token->type = token_type_integer;
+                    token->data.type_integer = 0;
+                    return token;
+                }
+            break;                  
         }
-    // }
+    }
     token = NULL;    
     str_free(&buffer);
     return NULL;
