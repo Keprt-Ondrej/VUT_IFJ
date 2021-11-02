@@ -12,6 +12,7 @@ int main(){
     //printf("Hello world\n");
     //scanner_hello();
     //symtable_hello();
+    get_token();
     wordcount();
     return 0;
 }
