@@ -12,10 +12,11 @@
 
 int str_init(String *s) {
     s->string = (char *) malloc(size_of_length);
-    if(NULL == s->string) 
+    if(NULL == s->string){
         return INTERNAL_ERROR;
+    }
     s->length = 0;
-    s->string[s->length+1] = '\0';
+    s->string[s->length] = '\0';
     s->alloc_size = size_of_length;
     return 0;
 }
@@ -61,8 +62,8 @@ Token* create_token() {
 
 Token* get_token() {
     Token *token = create_token();
-    String *buffer = NULL;  
-    str_init(buffer);
+    String buffer;  
+    str_init(&buffer);
 
     FSM_state state = start;
     char c;
@@ -73,13 +74,13 @@ Token* get_token() {
                 if(c == '\n') 
                     state = end_of_line;
                 else if(c >= '1' && c <= '9') {
-                    buffer->string[buffer->length++] = c;
+                    buffer.string[buffer.length++] = c;
                     state = int_number;
 
                     Token_data tokenData;
                     tokenData = token->data;
                     tokenData.type_integer = c;
-                    printf("%d", tokenData.type_integer);
+                    printf("%d i am here", tokenData.type_integer);
                 }    
             break;
 
@@ -93,6 +94,6 @@ Token* get_token() {
         }
     // }
     token = NULL;    
-    str_free(buffer);
+    str_free(&buffer);
     return NULL;
 }
