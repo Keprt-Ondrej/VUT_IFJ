@@ -98,9 +98,10 @@ typedef union {
     Keyword key_word;
 } Token_data;
 
-typedef struct {
+typedef struct token{
     Token_type type;
     Token_data data;
+    struct token* next;
 } Token;
 
 /**
@@ -152,6 +153,6 @@ typedef enum {
 
 Token* create_token(); // Alocate memory for token
 
-Token* get_token();
+Token* read_token();
 
 #endif // __SCANNER_H__

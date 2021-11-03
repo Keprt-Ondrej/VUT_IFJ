@@ -8,19 +8,17 @@
 #include "parser.h"
 
 void get_token(parser_data_t *data){
-    //Token *token = read_token();
+    Token *token = read_token();
     data->token->next = token;
     data->token = token;
-
 }
 
-bool intro(parser_data_t *data){
-
-    return true;
+bool intro(parser_data_t *data){    
+    return (bool)data->token; //warning handler
 }
 
 void parser(){
-    parser_data_t data = {NULL, NULL};
+    parser_data_t data;    
     data.token = read_token();
     data.token_list_first = data.token;
     data.global_symtable = htab_init(TABLE_SIZE);

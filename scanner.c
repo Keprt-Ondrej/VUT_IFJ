@@ -58,10 +58,11 @@ Token* create_token() {
     Token *token = malloc(sizeof(Token));
     if (NULL == token)
         return NULL;
+    token->next = NULL;
     return token;    
 }
 
-Token* get_token() {
+Token* read_token() {
     Token *token = create_token();
     String buffer;  
     str_init(&buffer);

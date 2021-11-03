@@ -1,6 +1,6 @@
 PROGS = IFJ-Projekt-2021	#TODO je to spravne?
 CC = gcc
-CFLAGS = -std=c99 -pedantic -Wall -Wextra -g -Werror #-O2 #TODO verze C??
+CFLAGS = -std=c99 -pedantic -Wall -Wextra -g #-Werror #-O2 #TODO verze C??
 LOGIN = xkeprt03
 #CFLAGS += -fsanitize=address
 #LDFLAGS += -fsanitize=address
