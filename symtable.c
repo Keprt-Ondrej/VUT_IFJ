@@ -109,7 +109,7 @@ htab_t *htab_init(size_t n){
     htab_t *tab = calloc(1,sizeof(htab_t)+ sizeof(struct htab_item *[n]));
     if (tab == NULL){
         fprintf(stderr,"Chyba: nepodarilo se alokovat pamet pro novou hash table\n");
-        return NULL;
+        return NULL; //EXIT CODES TODO
     }
     tab->arr_size = n;
     tab->size = 0;  
@@ -217,9 +217,7 @@ void free_htab_item(struct htab_item * item){
 void print_htab_item_values(htab_item *data){    
     printf("%s\t%d\n",data->key,(int)data->value);    
 }
-
-
-#define TABLE_SIZE 1009 
+ 
 #define WORD_MAX_LENGHT 127
 int read_word(char *s, int max, FILE *f){  
     static bool was_err_msg = false;  
