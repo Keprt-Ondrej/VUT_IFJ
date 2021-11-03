@@ -86,7 +86,7 @@ lex analyze je hell
     \item \texttt{<init>\arrow{}\term{=}<init2>}
     \item \texttt{<init2>\arrow{}<call\_fce>}
     \item \texttt{<init2>\arrow{}<expression>}
-    \item \texttt{<statement>\arrow<identif\_list> \term{=} <expression\_list>}
+    \item \texttt{<statement>\arrow<identif\_list> \term{=} <assigment>}
     \item \texttt{<identif\_list>\arrow{}\term{identif}<identif\_list2>}
     \item \texttt{<identif\_list2>\arrow{}\term{,}<identif><identif\_list2>}
     \item \texttt{<identif\_list2>\arrow{}$\epsilon$}
@@ -95,7 +95,7 @@ lex analyze je hell
     \item \texttt{<expression\_list2>\arrow{}$\epsilon$}
     \item \texttt{<statement>\arrow{}\term{if}<expression>\term{then}<st\_list>\term{else}<st\_list>\term{end}}
     \item \texttt{<statement>\arrow{}\term{while}<expression>\term{do}<st\_list>\term{end}}     
-    \item \texttt{<statement>\arrow{}\term{return}<value\_list>}
+    \item \texttt{<statement>\arrow{}\term{return}<expression\_list>}
     \item \texttt{<statement>\arrow{}<call\_fce>}
     \item \texttt{<call\_fce>\arrow{}\term{identif} \term{$($} <value\_list> \term{$)$}}
     \item \texttt{<value\_list>\arrow{}$\epsilon$}
@@ -110,6 +110,9 @@ lex analyze je hell
     \item \texttt{<type>\arrow{}\term{integer}}
     \item \texttt{<type>\arrow{}\term{number}}
     \item \texttt{<type>\arrow{}\term{string}}
+    \item \texttt{<st\_list>\arrow{}$\epsilon$}
+    \item \texttt{<assigment>\arrow{}<expression\_list>}
+    \item \texttt{<assigment>\arrow{}<call\_fce>}
 \end{enumerate}
 
 \end{document} 
