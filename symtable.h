@@ -33,6 +33,7 @@ typedef enum{
 } htab_record_type;
 
 
+#define TABLE_SIZE 101
 // Tabulka:
 typedef struct htab{
     size_t size;
