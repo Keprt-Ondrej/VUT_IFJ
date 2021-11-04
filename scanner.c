@@ -58,7 +58,6 @@ Token* create_token() {
     Token *token = malloc(sizeof(Token));
     if (NULL == token)
         return NULL;
-    token->next = NULL;
     return token;    
 }
 
@@ -68,6 +67,7 @@ Token* read_token() {
     str_init(&buffer);
 
     FSM_state state = start;
+    char *endptr;
     char c;
     while(true) {
         switch(state) {
@@ -89,8 +89,13 @@ Token* read_token() {
                     state = identif_and_kw;                    
                 }
                 else if(c == '/') {
-                    buffer.string[buffer.length++] = c;
                     state = div_st;                        
+                }
+                else if(c == '+') {
+                    state = plus_st;
+                }
+                else if(c == '*') {
+                    state = mul_st;
                 }
             break;
 
@@ -134,7 +139,107 @@ Token* read_token() {
                     token->data.type_integer = 0;
                     return token;
                 }
-            break;                  
+            break;
+
+            case decimal_point:
+                c = getc(stdin);
+                if(c >= '0' && c <= '9') {
+                    buffer.string[buffer.length++] = c;
+                    state = double_point_value;
+                } 
+                else {
+                    return NULL;
+                }
+            break;    
+
+            case double_point_value:
+                c = getc(stdin);
+                if(c >= '0' && c <= '9') {
+                    buffer.string[buffer.length++] = c;
+                    state = double_point_value;
+                }
+                else if((c == 'e') || (c == 'E')) {
+                    buffer.string[buffer.length++] = c;
+                    state = double_exponent_begin;
+                }
+                else {
+                    ungetc(c, stdin);
+                    buffer.string[buffer.length++] = c;
+                    token->type = token_type_number;
+                    token->data.type_double = strtod(buffer.string, &endptr);      
+                    return token;              
+                }
+            break;
+
+            case double_exponent_begin:
+                c = getc(stdin);
+                if((c == '+') || (c == '-')) {
+                    buffer.string[buffer.length++] = c;
+                    state = double_exponent_sign;
+                }
+                else if(c >= '0' && c <= '9') {
+                    buffer.string[buffer.length++] = c;
+                    state = double_exponent_value;
+                }
+                else {
+                    return NULL;
+                }
+            break;
+
+            case double_exponent_sign:
+                c = getc(stdin);
+                if(c >= '0' && c <= '9') {
+                    buffer.string[buffer.length++] = c;
+                    state = double_exponent_value;
+                }
+                else {
+                    return NULL;
+                }
+            break;
+
+            case double_exponent_value:
+                c = getc(stdin);
+                if(c >= '0' && c <= '9') {
+                    buffer.string[buffer.length++] = c;
+                    state = double_exponent_value;
+                }
+                else {
+                    ungetc(c, stdin);
+                    token->type = token_type_number;
+                    token->data.type_double = strtod(buffer.string, &endptr);
+                    return token;
+                }
+            break;
+
+            case div_st:
+                c = getc(stdin);
+                if(c == '/') {
+                    state = floor_div_st;                    
+                }
+                else {
+                    ungetc(c,stdin);
+                    token->type = token_type_div;
+                    return token;
+                }    
+            break;
+
+            case floor_div_st:
+                token->type = token_type_floor_div;
+                return token;
+            break;
+
+            case plus_st:
+                token->type = token_type_plus;
+                return token;   
+            break;
+
+            case mul_st:
+                token->type = token_type_mul;
+                return token;
+            break;
+            default:
+                printf("NICE!");
+            break;
         }
     }
     token = NULL;    
