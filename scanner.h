@@ -91,6 +91,12 @@ typedef enum {
     token_type_comma,                 // (,)   comma
 } Token_type;
 
+
+/**
+ * @union Data, which token contains
+ * 
+ * Data stored in token depends on his type
+ */
 typedef union {
     int type_integer;      
     double type_double;     
@@ -98,10 +104,10 @@ typedef union {
     Keyword key_word;
 } Token_data;
 
-typedef struct token{
+
+typedef struct {
     Token_type type;
     Token_data data;
-    struct token* next;
 } Token;
 
 /**
@@ -110,14 +116,14 @@ typedef struct token{
 typedef enum {
     start,                          //0
     end_of_file,                    //1
-    int_number,                     //2
-    decimal_point,                  //3
-    zero,                           //4
-    double_point_value,             //5
-    double_exponent_begin,          //6
-    double_exponent_sign,           //7
-    double_exponent_value,          //8
-    end_of_line,                    //9
+    end_of_line,                    //2
+    int_number,                     //3
+    decimal_point,                  //4
+    zero,                           //5
+    double_point_value,             //6
+    double_exponent_begin,          //7
+    double_exponent_sign,           //8
+    double_exponent_value,          //9                 
     minus_st,                       //10
     line_comment,                   //11
     block_comment_begin,            //12
