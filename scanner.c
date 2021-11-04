@@ -97,6 +97,40 @@ Token* read_token() {
                 else if(c == '*') {
                     state = mul_st;
                 }
+                else if(c == ':') {
+                    state = colon_st;
+                }
+                else if(c == ')') {
+                    state = bracket_right_st;
+                }
+                else if(c == '(') {
+                    state = bracket_left_st;
+                }
+                else if(c == ',') {
+                    state = comma_st;
+                }
+                else if(c == '#') {
+                    state = length_st;
+                }
+                else if(c == '~') {
+                    state = ineq_begin_st;
+                }
+                else if(c == '=') {
+                    state = assignment_st;
+                }
+                else if(isspace(c)) {
+                    state = start; // Нужно ли что-то добавить в return?
+                }
+                else if(c == '<') {
+                    state = less_st;
+                }
+                else if(c == '>') {
+                    state = greater_st;
+                }
+                else if(c == '.') {
+                    state = dot_st;
+                }
+
             break;
 
             case end_of_line:
@@ -114,7 +148,7 @@ Token* read_token() {
                     buffer.string[buffer.length++] = c;
                     state = decimal_point;
                 }
-                else if ((c == 'e') || (c == 'E')){
+                else if((c == 'e') || (c == 'E')){
                     buffer.string[buffer.length++] = c;
                     state = double_exponent_begin;
                 }
@@ -164,7 +198,7 @@ Token* read_token() {
                 }
                 else {
                     ungetc(c, stdin);
-                    buffer.string[buffer.length++] = c;
+                    buffer.string[buffer.length++] = '\0';
                     token->type = token_type_number;
                     token->data.type_double = strtod(buffer.string, &endptr);      
                     return token;              
@@ -205,6 +239,7 @@ Token* read_token() {
                 }
                 else {
                     ungetc(c, stdin);
+                    buffer.string[buffer.length++] = '\0';
                     token->type = token_type_number;
                     token->data.type_double = strtod(buffer.string, &endptr);
                     return token;
@@ -237,6 +272,113 @@ Token* read_token() {
                 token->type = token_type_mul;
                 return token;
             break;
+
+            case colon_st:
+                token->type = token_type_colon;
+                return token;
+            break;
+
+            case bracket_right_st:
+                token->type = token_type_right_bracket;
+                return token;
+            break;
+
+            case bracket_left_st:
+                token->type = token_type_left_bracket;
+                return token;
+            break;        
+
+            case comma_st:
+                token->type = token_type_comma;
+                return token;
+            break;
+
+            case length_st:
+                token->type = token_type_length;
+                return token;
+            break;
+
+            case ineq_begin_st:
+                c = getc(stdin);
+                if(c == '=') {
+                    state = ineq_end_st;
+                }
+                else {
+                    return NULL;
+                }
+            break;
+
+            case ineq_end_st:
+                token->type = token_type_ineq;
+                return token;
+            break;    
+
+            case assignment_st:
+                c = getc(stdin);
+                if(c == '=') {
+                    state = equal_st;
+                }
+                else {
+                    ungetc(c, stdin);
+                    token->type = token_type_assign;
+                    return token;
+                }
+            break;
+
+            case equal_st:
+                token->type = token_type_equal;
+                return token;
+            break;
+
+            case less_st:
+                c = getc(stdin);
+                if(c == '=') {
+                    state = less_eq_st;
+                }
+                else {
+                    ungetc(c, stdin);
+                    token->type = token_type_lth;
+                    return token;
+                }
+            break;
+
+            case less_eq_st:
+                token->type = token_type_leq;
+                return token;
+            break;    
+            
+            case greater_st:
+                c = getc(stdin);
+                if(c == '=') {
+                    state = greater_eq_st;
+                }
+                else {
+                    ungetc(c, stdin);
+                    token->type = token_type_gth;
+                    return token;
+                }
+            break;
+
+            case greater_eq_st:
+                token->type = token_type_geq;
+                return token;
+            break;   
+
+            case dot_st:
+                c = getc(stdin);
+                if(c == '.') {
+                    state = concat_st;
+                }         
+                else {
+                    return NULL;
+                }
+            break;
+
+            case concat_st:
+                token->type = token_type_concat;
+                return token;
+            break;    
+
             default:
                 printf("NICE!");
             break;
