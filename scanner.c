@@ -384,6 +384,6 @@ Token* read_token() {
             break;
         }
     }
+    return token;	
     str_free(&buffer);
-    return token;
 }
