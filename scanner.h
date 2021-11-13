@@ -21,7 +21,7 @@ typedef struct {
 
 int str_init(String *s);
 
-void str_ree(String *s);
+void str_free(String *s);
 
 void str_clear(String *s);
 
@@ -76,10 +76,10 @@ typedef enum {
 	token_type_plus,                  // (+)   addition 
     token_type_minus,                 // (-)   subtraction      
     token_type_concat,                // (..)  concatenation   
-    token_type_ltn,                   // (<)   less than 
+    token_type_lth,                   // (<)   less than 
     token_type_leq,                   // (<=)  less equal     
-    token_type_mth,                   // (>)   more than       
-    token_type_meq,                   // (>=)  more equal 
+    token_type_gth,                   // (>)   greater than       
+    token_type_geq,                   // (>=)  greater equal 
     token_type_equal,                 // (==)  equal 
     token_type_ineq,                  // (~=)  inequality 
     token_type_assign,                // (=)   assignment 
