@@ -105,10 +105,12 @@ typedef union {
 } Token_data;
 
 
-typedef struct {
+typedef struct token Token;
+struct {
     Token_type type;
     Token_data data;
-} Token;
+    Token *next;
+};
 
 /**
  * @enum States of Scanner finite state machine
