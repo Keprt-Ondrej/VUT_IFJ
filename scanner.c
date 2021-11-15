@@ -8,15 +8,15 @@
 #include "scanner.h"
 #include "ErrLib.h"
 
-#define size_of_length 10
+#define size_of_length 11
 
 int str_init(String *s) {
     s->string = (char *) malloc(size_of_length);
     if(NULL == s->string){
         return INTERNAL_ERROR;
     }
-    s->length = 0;
-    s->string[s->length] = '\0';
+    s->current_index = 0;
+    s->string[s->current_index] = '\0';
     s->alloc_size = size_of_length;
     return 0;
 }
@@ -25,40 +25,57 @@ void str_free(String *s) {
    free(s->string);
 }
 
-void str_clear(String *s) {
-    s->length = 0;
-    s->string[s->length] = '\0';
+// void str_clear(String *s) {
+//     s->current_index = 0;
+//     s->string[s->current_index] = '\0';
+// }
+
+String* extend_buffer(String *s) {
+    int alloc_new_size = s->alloc_size + size_of_length;
+    s->string = (char *) realloc(s->string, alloc_new_size);
+        if(NULL == s->string)
+            return NULL;
+    s->alloc_size = alloc_new_size;    
+    return 0;
 }
 
 int str_add_char(String *s, char c) {
-	if (s->length + 1 >= s->alloc_size) {
-		int alloc_new_size = s->length + size_of_length;
-		s->string = (char *) realloc(s->string, alloc_new_size);
-        if(NULL == s->string)
-           return INTERNAL_ERROR; 
-		s->alloc_size = alloc_new_size;
-	}
-	s->string[s->length] = c;
-	s->string[s->length++] = '\0';
+	// if (s->current_index + 1 >= s->alloc_size) {
+	// 	int alloc_new_size = s->current_index + size_of_length;
+	// 	s->string = (char *) realloc(s->string, alloc_new_size);
+    //     if(NULL == s->string)
+    //        return INTERNAL_ERROR; 
+	// 	s->alloc_size = alloc_new_size;
+	// }
+    if(s->current_index + 1 >= s->alloc_size) {
+        extend_buffer(s);
+    }
+	s->string[s->current_index++] = c;
+	s->string[s->current_index] = '\0';
 	return 0;
 }    
 
-char str_del_char(String *s) {
-	if(s->length) {
-        return INTERNAL_ERROR;
-    }
-    else {
-        return 0;
-    }
+// char str_del_char(String *s) {
+// 	if(s->current_index) {
+//         return INTERNAL_ERROR;
+//     }
+//     else {
+//         return 0;
+//     }
         
-	return s->string[s->length--]; // return deleted char
-}
+// 	return s->string[s->current_index--]; // return deleted char
+// }
 
 Token* create_token() {
     Token *token = malloc(sizeof(Token));
     if (NULL == token)
         return NULL;
     return token;    
+}
+
+void add_str_to_token(String buffer, Token *token) {
+    token->data.str = (char *) malloc(buffer.current_index);
+    strcpy(token->data.str, buffer.string);
 }
 
 Token* read_token() {
@@ -77,15 +94,15 @@ Token* read_token() {
                     state = end_of_line;
                 }
                 else if(c >= '1' && c <= '9') {
-                    buffer.string[buffer.length++] = c; 
+                    str_add_char(&buffer, c);
                     state = int_number;
                 }    
                 else if(c == '0') {
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c); // везде исправить такую строку как в 91
                     state = zero;
                 }
                 else if((('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z'))) {
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c);
                     state = identif_and_kw;                    
                 }
                 else if(c == '/') {
@@ -130,7 +147,9 @@ Token* read_token() {
                 else if(c == '.') {
                     state = dot_st;
                 }
-
+                else if(c == '"') {
+                    state = string_loop;
+                }
             break;
 
             case end_of_line:
@@ -141,20 +160,20 @@ Token* read_token() {
             case int_number:
                 c = getc(stdin);
                 if(c >= '1' && c <= '9') {
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c);
                     state = int_number;
                 }   
                 else if(c == '.') {
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c);
                     state = decimal_point;
                 }
                 else if((c == 'e') || (c == 'E')){
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c);
                     state = double_exponent_begin;
                 }
                 else {
                     ungetc(c,stdin);
-                    buffer.string[buffer.length] = '\0';
+                    str_add_char(&buffer, '\0');
                     token->type = token_type_integer;
                     token->data.type_integer = atoi(buffer.string);
                     return token;                    
@@ -164,7 +183,7 @@ Token* read_token() {
             case zero:
                 c = getc(stdin);
                 if(c == '.') {
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c);
                     state = decimal_point;                             
                 }
                 else {
@@ -178,7 +197,7 @@ Token* read_token() {
             case decimal_point:
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c);
                     state = double_point_value;
                 } 
                 else {
@@ -189,30 +208,30 @@ Token* read_token() {
             case double_point_value:
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c);
                     state = double_point_value;
                 }
                 else if((c == 'e') || (c == 'E')) {
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c);
                     state = double_exponent_begin;
                 }
                 else {
                     ungetc(c, stdin);
-                    buffer.string[buffer.length++] = '\0';
+                    str_add_char(&buffer, '\0');
                     token->type = token_type_number;
                     token->data.type_double = strtod(buffer.string, &endptr);      
-                    return token;              
+                    return token;
                 }
             break;
 
             case double_exponent_begin:
                 c = getc(stdin);
                 if((c == '+') || (c == '-')) {
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c);
                     state = double_exponent_sign;
                 }
                 else if(c >= '0' && c <= '9') {
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c);
                     state = double_exponent_value;
                 }
                 else {
@@ -223,7 +242,7 @@ Token* read_token() {
             case double_exponent_sign:
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c);
                     state = double_exponent_value;
                 }
                 else {
@@ -234,12 +253,12 @@ Token* read_token() {
             case double_exponent_value:
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
-                    buffer.string[buffer.length++] = c;
+                    str_add_char(&buffer, c);
                     state = double_exponent_value;
                 }
                 else {
                     ungetc(c, stdin);
-                    buffer.string[buffer.length++] = '\0';
+                    str_add_char(&buffer, '\0');
                     token->type = token_type_number;
                     token->data.type_double = strtod(buffer.string, &endptr);
                     return token;
@@ -379,8 +398,51 @@ Token* read_token() {
                 return token;
             break;    
 
+            case string_loop:
+                c = getc(stdin);
+                if(c == '"') {
+                    state = string_end;
+                }      
+                else if(c == '\\') {
+                    state = escape_seq;
+                }
+                else if(c == EOF || c == '\n') {
+                    printf("CHYBA STRING EOF!!!!");          // 1 chyba mozna upravovat
+                }
+                else if(c > 31) {                            // specifikace zadani
+                    str_add_char(&buffer, c);
+                    state = string_loop;
+                }                 
+            break;
+
+            case string_end:
+                add_str_to_token(buffer, token);
+                token->type = token_type_string;
+                return token;
+            break;
+
+            case escape_seq:
+                c = getc(stdin);
+                if(c == '"') {
+                    str_add_char(&buffer, '"');
+                    state = string_loop;
+                }
+                else if (c == '\\') {
+                    str_add_char(&buffer, '\\');
+                    state = string_loop;
+                }
+                else if (c == 't') {
+                    str_add_char(&buffer, '\t');
+                    state = string_loop;
+                } 
+                else if (c == 'n') {
+                    str_add_char(&buffer, '\n');
+                    state = string_loop;
+                }
+            break;
+
             default:
-                printf("NICE!");
+                return NULL;
             break;
         }
     }
