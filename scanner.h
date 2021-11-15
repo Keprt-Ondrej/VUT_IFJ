@@ -15,7 +15,7 @@
  */
 typedef struct {
 	char *string;   // string ended by '\0' byte
-	int length;     // lenght of string
+	int current_index;     // lenght of string
 	int alloc_size; // number of chars alocated for string
 } String;
 
@@ -31,10 +31,11 @@ char str_del_char(String *s);
 
 
 /**
- * @enum Reserved keywords.
+ * @enum Type of token.
  */
 
-typedef enum {           
+typedef enum {
+    // Keywords
     kw_do,          //0
     kw_else,        //1     
     kw_end,         //2
@@ -50,17 +51,10 @@ typedef enum {
     kw_string,      //12
     kw_then,        //13
     kw_while,       //14
-} Keyword;
 
-/**
- * @enum Type of token.
- */
-
-typedef enum {
 	token_type_EOF,                   // End of file
 	token_type_EOL,                   // End of line
 	token_type_identifier,            // Identifier
-	token_type_keyword,               // Keyword
     
     // type of data
 	token_type_integer,               // Integer
@@ -68,7 +62,7 @@ typedef enum {
 	token_type_string,                // String
     token_type_nil,                   // Nil
 
-	// operators
+	// Operators
     token_type_length,                // (#)   length 
     token_type_mul,                   // (*)   multiplication 
     token_type_div,                   // (/)   division 
@@ -101,12 +95,11 @@ typedef union {
     int type_integer;      
     double type_double;     
     char *str;
-    Keyword key_word;
 } Token_data;
 
 
 typedef struct token Token;
-struct {
+struct token {
     Token_type type;
     Token_data data;
     Token *next;
