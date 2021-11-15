@@ -18,14 +18,14 @@ int main(){
 
     while(token != NULL) {
         printf("%d :", type);
-        if(type == 6 || type == 2)
+        if(type == 17 || type == 20)
             printf("%s\n", data.str);
-        else if(type == 4)
+        else if(type == 18)
             printf("%d\n", data.type_integer);
-        else if(type == 5)
+        else if(type == 19)
             printf("%f\n", data.type_double);  
         else
-            printf("%d\n", data.key_word);  
+            printf("%d\n", type);  
         token = read_token();
         type = token->type;
         data = token->data;
