@@ -203,78 +203,63 @@ Token* read_token() {
                 else {
                     ungetc(c, stdin);
                     if (strcmp(buffer.string, "do") == 0) {
-                        token->data.key_word = kw_do;
-                        token->type = token_type_keyword;
+                        token->type = kw_do;
                         return token;
                     }
                     else if (strcmp(buffer.string, "else") == 0) {
-                        token->data.key_word = kw_else;
-                        token->type = token_type_keyword;
+                        token->type = kw_else;
                         return token;
                     }
                     else if (strcmp(buffer.string, "end") == 0) {
-                        token->data.key_word = kw_end;
-                        token->type = token_type_keyword;
+                        token->type = kw_end;
                         return token;
                     }
                     else if (strcmp(buffer.string, "function") == 0) {
-                        token->data.key_word = kw_function;
-                        token->type = token_type_keyword;
+                        token->type = kw_function;
                         return token;
                     }
                     else if (strcmp(buffer.string, "global") == 0) {
-                        token->data.key_word = kw_global;
-                        token->type = token_type_keyword;
+                        token->type = kw_global;
                         return token;
                     }
                     else if (strcmp(buffer.string, "if") == 0) {
-                        token->data.key_word = kw_if;
-                        token->type = token_type_keyword;
+                        token->type = kw_if;
                         return token;
                     }
                     else if (strcmp(buffer.string, "integer") == 0) {
-                        token->data.key_word = kw_integer;
-                        token->type = token_type_keyword;
+                        token->type = kw_integer;
                         return token;
                     }
                     else if (strcmp(buffer.string, "local") == 0) {
-                        token->data.key_word = kw_local;
-                        token->type = token_type_keyword;
+                        token->type = kw_local;
                         return token;
                     }
                     else if (strcmp(buffer.string, "nil") == 0) {
-                        token->data.key_word = kw_nil;
-                        token->type = token_type_keyword;
+                        token->type = kw_nil;
                         return token;
                     }
                     else if (strcmp(buffer.string, "number") == 0) {
-                        token->data.key_word = kw_number;
-                        token->type = token_type_keyword;
+                        token->type = kw_number;
                         return token;
                     }
                     else if (strcmp(buffer.string, "require") == 0) {
-                        token->data.key_word = kw_require;
-                        token->type = token_type_keyword;
+                        token->type = kw_require;
                         return token;
                     }
                     else if (strcmp(buffer.string, "return") == 0) {
-                        token->data.key_word = kw_return;
-                        token->type = token_type_keyword;
+                        token->type = kw_return;
                         return token;
                     }
                     else if (strcmp(buffer.string, "string") == 0) {
-                        token->data.key_word = kw_string;
-                        token->type = token_type_keyword;
+                        token->type = kw_string;
                         return token;
                     }
                     else if (strcmp(buffer.string, "then") == 0) {
-                        token->data.key_word = kw_then;
-                        token->type = token_type_keyword;
+                        token->type = kw_then;
                         return token;
                     }
                     else if (strcmp(buffer.string, "while") == 0) {
-                        token->data.key_word = kw_while;
-                        token->type = token_type_keyword;
+                        token->type = kw_while;
                         return token;
                     }
                     else {
