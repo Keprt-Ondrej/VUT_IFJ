@@ -90,7 +90,10 @@ Token* read_token() {
         switch(state) {
             case start: 
                 c = getc(stdin);
-                if(c == '\n') {
+                if(c == EOF) {
+                    state = end_of_file;
+                }
+                else if(c == '\n') {
                     state = end_of_line;
                 }
                 else if(c >= '1' && c <= '9') {
@@ -98,7 +101,7 @@ Token* read_token() {
                     state = int_number;
                 }    
                 else if(c == '0') {
-                    str_add_char(&buffer, c); // везде исправить такую строку как в 91
+                    str_add_char(&buffer, c); 
                     state = zero;
                 }
                 else if ((('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z')) || (c == '_')) {
@@ -136,7 +139,7 @@ Token* read_token() {
                     state = assignment_st;
                 }
                 else if(isspace(c)) {
-                    state = start; // Нужно ли что-то добавить в return?
+                    state = start; 
                 }
                 else if(c == '<') {
                     state = less_st;
@@ -150,16 +153,24 @@ Token* read_token() {
                 else if(c == '"') {
                     state = string_loop;
                 }
+                else if(c == '-') {
+                    state = minus_st;
+                }
+            break;
+
+            case end_of_file:
+                token->type = token_type_EOF;
+                return token;
             break;
 
             case end_of_line:
-                token->type = token_type_EOF;
+                token->type = token_type_EOL;
                 return token;
             break;
 
             case int_number:
                 c = getc(stdin);
-                if(c >= '1' && c <= '9') {
+                if(c >= '0' && c <= '9') {
                     str_add_char(&buffer, c);
                     state = int_number;
                 }   
@@ -515,6 +526,11 @@ Token* read_token() {
                     str_add_char(&buffer, '\n');
                     state = string_loop;
                 }
+            break;
+            
+            case minus_st:                          //dopisu pro komentare
+                token->type = token_type_minus;
+                return token;
             break;
 
             default:
