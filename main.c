@@ -16,8 +16,8 @@ int main(){
     Token_data data = token->data;
     Token_type type = token->type;
 
-    while(token != NULL) {
-        printf("%d :", type);
+    while(token != NULL && type != 15) {
+        printf("%3d: ", type);
         if(type == 17 || type == 20)
             printf("%s\n", data.str);
         else if(type == 18)
