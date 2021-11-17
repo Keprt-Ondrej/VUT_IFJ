@@ -70,9 +70,6 @@ Token* read_token() {
                 if(c == EOF) {
                     state = end_of_file;
                 }
-                else if(c == '\n') {
-                    state = end_of_line;
-                }
                 else if(c >= '1' && c <= '9') {
                     str_add_char(&buffer, c);
                     state = int_number;
@@ -137,11 +134,6 @@ Token* read_token() {
 
             case end_of_file:
                 token->type = token_type_EOF;
-                return token;
-            break;
-
-            case end_of_line:
-                token->type = token_type_EOL;
                 return token;
             break;
 
