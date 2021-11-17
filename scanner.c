@@ -70,6 +70,9 @@ Token* read_token() {
                 if(c == EOF) {
                     state = end_of_file;
                 }
+                else if(c == '\n') {
+                    state = start;
+                }
                 else if(c >= '1' && c <= '9') {
                     str_add_char(&buffer, c);
                     state = int_number;
