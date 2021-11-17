@@ -34,6 +34,6 @@ int main(){
         printf("%3d: %d\n", type, type);
     //wordcount();
 
-    //print git funguj pls
+    //print git funguj pls vscode jedem
     return 0;
 }
