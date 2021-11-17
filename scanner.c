@@ -25,11 +25,6 @@ void str_free(String *s) {
    free(s->string);
 }
 
-// void str_clear(String *s) {
-//     s->current_index = 0;
-//     s->string[s->current_index] = '\0';
-// }
-
 String* extend_buffer(String *s) {
     int alloc_new_size = s->alloc_size + size_of_length;
     s->string = (char *) realloc(s->string, alloc_new_size);
@@ -40,13 +35,6 @@ String* extend_buffer(String *s) {
 }
 
 int str_add_char(String *s, char c) {
-	// if (s->current_index + 1 >= s->alloc_size) {
-	// 	int alloc_new_size = s->current_index + size_of_length;
-	// 	s->string = (char *) realloc(s->string, alloc_new_size);
-    //     if(NULL == s->string)
-    //        return INTERNAL_ERROR; 
-	// 	s->alloc_size = alloc_new_size;
-	// }
     if(s->current_index + 1 >= s->alloc_size) {
         extend_buffer(s);
     }
@@ -54,17 +42,6 @@ int str_add_char(String *s, char c) {
 	s->string[s->current_index] = '\0';
 	return 0;
 }    
-
-// char str_del_char(String *s) {
-// 	if(s->current_index) {
-//         return INTERNAL_ERROR;
-//     }
-//     else {
-//         return 0;
-//     }
-        
-// 	return s->string[s->current_index--]; // return deleted char
-// }
 
 Token* create_token() {
     Token *token = malloc(sizeof(Token));
