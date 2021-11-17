@@ -8,8 +8,9 @@
 \usepackage{enumitem}
 \usepackage{graphicx}
 \usepackage{xcolor}
-\usepackage{lscape}
 \usepackage{comment}
+\usepackage{graphicx}
+\usepackage{pdflscape}
 
 \setlength{\parindent}{1em}
 \usepackage{hyperref}
@@ -17,6 +18,8 @@
 
 \newcommand{\term}[1]{{\color{red}#1}}
 \newcommand{\arrow}{$\rightarrow$}
+
+\graphicspath{ {./pics/} }
 
 
 \hypersetup{
@@ -98,7 +101,7 @@ Tohle je uvod
     \item \texttt{<expression\_list2>\arrow{}$\epsilon$}
     \item \texttt{<statement>\arrow{}\term{if}<expression>\term{then}<st\_list>\term{else}<st\_list>\term{end}}
     \item \texttt{<statement>\arrow{}\term{while}<expression>\term{do}<st\_list>\term{end}}     
-    \item \texttt{<statement>\arrow{}\term{return}<expression\_list>}
+    \item \texttt{<st\_list>\arrow{}\term{return}<expression\_list>}
     \item \texttt{<call\_fce>\arrow{}\term{$($} <value\_list> \term{$)$}}
     \item \texttt{<value\_list>\arrow{}$\epsilon$}
     \item \texttt{<value\_list>\arrow{}<value><value\_list2>}
@@ -113,6 +116,12 @@ Tohle je uvod
     \item \texttt{<type>\arrow{}\term{number}}
     \item \texttt{<type>\arrow{}\term{string}}
 \end{enumerate}
+
+\begin{landscape}
+    \begin{figure}[ht]
+        \includegraphics[scale=1.89]{LL_tabulka.eps} %TODO opravit otazniky v obazku u intra
+    \end{figure}
+\end{landscape}
 
 
 \end{document} 
