@@ -30,6 +30,8 @@ int main(){
         type = token->type;
         data = token->data;
     }
+    if(type == 15)                        //aby printoval EOF
+        printf("%3d: %d\n", type, type);
     //wordcount();
 
     //print git
