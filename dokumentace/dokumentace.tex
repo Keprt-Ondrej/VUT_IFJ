@@ -8,6 +8,8 @@
 \usepackage{enumitem}
 \usepackage{graphicx}
 \usepackage{xcolor}
+\usepackage{lscape}
+\usepackage{comment}
 
 \setlength{\parindent}{1em}
 \usepackage{hyperref}
@@ -54,25 +56,21 @@
 Tohle je uvod
 
 
-
-\section{Lex analyza}
-lex analyze je hell
-
 \section{LL gramatika}
 \begin{enumerate}
     {\color{red}}
     \item \texttt{<intro>\arrow{}<prolog> <prog> }  
     \item \texttt{<prog>\arrow{} <fce\_decl> <prog>}
     \item \texttt{<prog>\arrow{} <fce\_def> <prog>}
-    \item \texttt{<prog>\arrow{} <call\_fce> <prog>}
+    \item \texttt{<prog>\arrow{} \term{identif} <call\_fce> <prog>}
     \item \texttt{<prog>\arrow{} $\epsilon$}    
     \item \texttt{<prolog>\arrow{}\term{require} \term{''ifj21''}   }
     \item \texttt{<fce\_decl>\arrow{}\term{global} \term{identif} \term{:} \term{function} \term{$($} <type\_list> \term{$)$} <ret\_list>}
     \item \texttt{<type\_list>\arrow{}$\epsilon$}
     \item \texttt{<type\_list>\arrow{}<type><type\_list2>}
-    \item \texttt{<type\_list2\arrow{}\term{,}<type><type\_list2>} 
+    \item \texttt{<type\_list2>\arrow{}\term{,}<type><type\_list2>} 
     \item \texttt{<type\_list2>\arrow{}$\epsilon$}
-    \item \texttt{<ret\_list>\arrow{}\term{:} <type\_list>}
+    \item \texttt{<ret\_list>\arrow{}\term{:} <type><type\_list2>}
     \item \texttt{<ret\_list>\arrow{}$\epsilon$}
     \item \texttt{<fce\_def>\arrow{}\term{function} \term{identif} \term{$($} <param\_def\_list> \term{$)$} <ret\_list> <st\_list> \term{end}}
     \item \texttt{<param\_def\_list>\arrow{}$\epsilon$}
@@ -81,23 +79,27 @@ lex analyze je hell
     \item \texttt{<param\_def\_list2>\arrow{}$\epsilon$}
     \item \texttt{<param>\arrow{}\term{identif} \term{:} <type>}
     \item \texttt{<st\_list>\arrow{}<statement> <st\_list>}
+    \item \texttt{<st\_list>\arrow{}$\epsilon$}
     \item \texttt{<statement>\arrow{}\term{local} \term{identif}\term{:}<type><init>}
     \item \texttt{<init>\arrow{}$\epsilon$}
     \item \texttt{<init>\arrow{}\term{=}<init2>}
-    \item \texttt{<init2>\arrow{}<call\_fce>}
+    \item \texttt{<init2>\arrow{}\term{identif}<call\_fce>}
     \item \texttt{<init2>\arrow{}<expression>}
-    \item \texttt{<statement>\arrow<identif\_list> \term{=} <assigment>}
-    \item \texttt{<identif\_list>\arrow{}\term{identif}<identif\_list2>}
-    \item \texttt{<identif\_list2>\arrow{}\term{,}<identif><identif\_list2>}
-    \item \texttt{<identif\_list2>\arrow{}$\epsilon$}
+    \item \texttt{<statement>\arrow \term{identif} <after\_id>}    %26
+    \item \texttt{<after\_id>\arrow{}<call\_fce>}
+    \item \texttt{<after\_id>\arrow{}<identif\_list> \term{=} <assigment>}  
+    \item \texttt{<identif\_list>\arrow{}\term{,} \term{identif}<identif\_list>}
+    \item \texttt{<identif\_list>\arrow{}$\epsilon$}
+    \item \texttt{<assigment>\arrow{}<expression><expression\_list2>}
+    \item \texttt{<assigment>\arrow{}\term{identif}<call\_fce>} 
     \item \texttt{<expression\_list>\arrow{}<expression><expression\_list2>}
+    \item \texttt{<expression\_list>\arrow{}$\epsilon$}
     \item \texttt{<expression\_list2>\arrow{}\term{,}<expression><expression\_list2>}
     \item \texttt{<expression\_list2>\arrow{}$\epsilon$}
     \item \texttt{<statement>\arrow{}\term{if}<expression>\term{then}<st\_list>\term{else}<st\_list>\term{end}}
     \item \texttt{<statement>\arrow{}\term{while}<expression>\term{do}<st\_list>\term{end}}     
     \item \texttt{<statement>\arrow{}\term{return}<expression\_list>}
-    \item \texttt{<statement>\arrow{}<call\_fce>}
-    \item \texttt{<call\_fce>\arrow{}\term{identif} \term{$($} <value\_list> \term{$)$}}
+    \item \texttt{<call\_fce>\arrow{}\term{$($} <value\_list> \term{$)$}}
     \item \texttt{<value\_list>\arrow{}$\epsilon$}
     \item \texttt{<value\_list>\arrow{}<value><value\_list2>}
     \item \texttt{<value\_list2>\arrow{}\term{,}<value><value\_list2>}
@@ -110,9 +112,41 @@ lex analyze je hell
     \item \texttt{<type>\arrow{}\term{integer}}
     \item \texttt{<type>\arrow{}\term{number}}
     \item \texttt{<type>\arrow{}\term{string}}
-    \item \texttt{<st\_list>\arrow{}$\epsilon$}
-    \item \texttt{<assigment>\arrow{}<expression\_list>}
-    \item \texttt{<assigment>\arrow{}<call\_fce>}
 \end{enumerate}
 
+
 \end{document} 
+
+\begin{comment}
+    \section{Lex analyza}
+    \subsection{FOR COPY}
+    \texttt{
+    <intro>     \\
+    <prog>      \\
+    <prolog>    \\
+    <fce\_decl>     \\
+    <type\_list>    \\
+    <type\_list2>   \\
+    <ret\_list>     \\
+    <fce\_def>      \\ 
+    <param\_def\_list>      \\
+    <param\_def\_list2>     \\
+    <param>     \\
+    <st\_list>  \\
+    <statement> \\
+    <init>      \\
+    <init2>     \\
+    <after\_id>  \\
+    <identif\_list>     \\ here
+    <expression\_list>    \\
+    <expression\_list2>     \\
+    <call\_fce>         \\
+    <value\_list>       \\
+    <value\_list2>  \\
+    <value>     \\
+    <type>  \\
+    <assigment> \\  
+    <expression>
+    }   
+    \end{comment}
+
