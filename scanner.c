@@ -6,14 +6,14 @@
 */
 
 #include "scanner.h"
-#include "ErrLib.h"
+
 
 #define size_of_length 11
 
 int str_init(String *s) {
     s->string = (char *) malloc(size_of_length);
     if(NULL == s->string){
-        return INTERNAL_ERROR;
+        return 99;
     }
     s->current_index = 0;
     s->string[s->current_index] = '\0';
