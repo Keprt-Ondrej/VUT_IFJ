@@ -34,6 +34,6 @@ int main(){
         printf("%3d: %d\n", type, type);
     //wordcount();
 
-    //print git
+    //print git funguj pls
     return 0;
 }
