@@ -31,7 +31,6 @@ int str_add_char(String *s, char c);
 
 char str_del_char(String *s);
 
-
 /**
  * @enum Type of token.
  */
@@ -54,22 +53,21 @@ typedef enum {
     kw_then,        //13
     kw_while,       //14
 
-    token_type_EOF,                   // End of file
-    token_type_EOL,                   // End of line
-    token_type_identifier,            // Identifier
+	token_type_EOF,                   // End of file
+	token_type_identifier,            // Identifier
     
     // type of data
-    token_type_integer,               // Integer
-    token_type_number,                // Number
-    token_type_string,                // String
+	token_type_integer,               // Integer
+	token_type_number,                // Number
+	token_type_string,                // String
     token_type_nil,                   // Nil
 
-    // Operators
+	// Operators
     token_type_length,                // (#)   length 
     token_type_mul,                   // (*)   multiplication 
     token_type_div,                   // (/)   division 
     token_type_floor_div,             // (//)  floor division
-    token_type_plus,                  // (+)   addition 
+	token_type_plus,                  // (+)   addition 
     token_type_minus,                 // (-)   subtraction      
     token_type_concat,                // (..)  concatenation   
     token_type_lth,                   // (<)   less than 
@@ -99,7 +97,9 @@ typedef union {
     char *str;
 } Token_data;
 
-
+/**
+ * @struct Token
+ */
 typedef struct token Token;
 struct token {
     Token_type type;
