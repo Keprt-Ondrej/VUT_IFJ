@@ -6,14 +6,14 @@
 */
 
 #include "scanner.h"
-#include "ErrLib.h"
+
 
 #define size_of_length 11
 
 int str_init(String *s) {
     s->string = (char *) malloc(size_of_length);
     if(NULL == s->string){
-        return INTERNAL_ERROR;
+        return 99;
     }
     s->current_index = 0;
     s->string[s->current_index] = '\0';
@@ -69,6 +69,9 @@ Token* read_token() {
                 c = getc(stdin);
                 if(c == EOF) {
                     state = end_of_file;
+                }
+                else if(c == '\n') {
+                    state = start;
                 }
                 else if(c >= '1' && c <= '9') {
                     str_add_char(&buffer, c);
@@ -497,9 +500,62 @@ Token* read_token() {
                 }
             break;
             
-            case minus_st:                          //dopisu pro komentare
-                token->type = token_type_minus;
-                return token;
+            case minus_st:  
+                c = getc(stdin);
+                if(c == '-') {
+                    state = line_comment;
+                }
+                else {
+                    ungetc(c,stdin);
+                    token->type = token_type_minus;
+                    return token;
+                }    
+            break;
+
+            case line_comment:
+                c = getc(stdin);
+                if(c == '[') {
+                    state = block_comment_begin;
+                }
+                else if (c == EOF) {
+                    state = end_of_file;
+                }
+                else {
+                    state = line_comment;
+                }
+            break;
+
+            case block_comment_begin:
+                c = getc(stdin);
+                if(c == '[') {
+                    state = block_comment_loop;
+                }
+                else {
+                    state = line_comment;
+                }
+            break;
+
+            case block_comment_loop:
+                c = getc(stdin);
+                if(c == ']') {
+                    state = block_comment_end;
+                }
+                else if (c == EOF) {
+                    state = end_of_file;        //UPRAVIT!!!
+                }
+                else {
+                    state = block_comment_loop;
+                }    
+            break;
+
+            case block_comment_end:
+                c = getc(stdin);
+                if(c == ']') {
+                    state = start;
+                }
+                else {
+                    state = end_of_file;       //UPRAVIT!!!
+                }  
             break;
 
             default:
@@ -510,3 +566,4 @@ Token* read_token() {
     str_free(&buffer);
     return token;	
 }
+
