@@ -31,5 +31,7 @@ int main(){
         data = token->data;
     }
     //wordcount();
+
+    //print git
     return 0;
 }
