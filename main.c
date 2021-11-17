@@ -18,11 +18,11 @@ int main(){
 
     while(token != NULL && type != 15) {
         printf("%3d: ", type);
-        if(type == 17 || type == 20)
+        if(type == 16 || type == 19)
             printf("%s\n", data.str);
-        else if(type == 18)
+        else if(type == 17)
             printf("%d\n", data.type_integer);
-        else if(type == 19)
+        else if(type == 18)
             printf("%f\n", data.type_double);  
         else
             printf("%d\n", type);  
@@ -30,10 +30,8 @@ int main(){
         type = token->type;
         data = token->data;
     }
-    if(type == 15)                        //aby printoval EOF
+    if(type == 15)
         printf("%3d: %d\n", type, type);
     //wordcount();
-
-    //print git funguj pls vscode jedem
     return 0;
 }
