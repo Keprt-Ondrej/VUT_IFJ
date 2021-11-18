@@ -180,6 +180,21 @@ bool fce_def(parser_data_t *data){
 }
 
 bool call_fce(parser_data_t *data){
+    //grammar rule 41
+    if(!is_token(data,token_type_left_bracket)){
+        //TODO ERRNO
+        return false;
+    }
+    get_token(data);
+    if(!value_list(data)){
+        //TODO ERRNO
+        return false;
+    }
+    if(!is_token(data,token_type_right_bracket)){
+        //TODO ERRNO
+        return false;
+    }
+    get_token(data);
     return true;
 }
 
@@ -306,18 +321,23 @@ bool st_list(parser_data_t *data){
 
     //grammar rule 20
     switch (data->token->type){
-    case kw_if:
-    case kw_local:
-    case kw_while:
-    case token_type_identifier:
-        return statement(data) && st_list(data);
-    break;
-    default:
-    break;
+        case kw_if:
+        case kw_local:
+        case kw_while:
+        case token_type_identifier:
+            return statement(data) && st_list(data);
+        break;
+        default:
+        break;
     }
     
     //grammar rule 40
-    return true;
+    if(!is_token(data,kw_return)){
+        //TODO ERRNO
+        return false;
+    }
+    get_token(data);
+    return expression_list(data);
 }
 
 bool statement(parser_data_t *data){
@@ -336,22 +356,90 @@ bool statement(parser_data_t *data){
         get_token(data);
         return type(data) && init(data);    
     }
-    return true;
+    else if(is_token(data,token_type_identifier)){
+        //grammar rule 27
+        get_token(data);
+        return after_id(data);
+    }
+    else if(is_token(data,kw_if)){
+        //grammar rule 38
+        get_token(data);
+        if(!is_expression_start(data->token)){
+            //TODO ERRNO
+            return false;
+        }
+        if(!expression(data)){
+            //TODO ERRNO
+            return false;
+        }
+        if(!is_token(data,kw_then)){
+            //TODO ERRNO
+            return false;
+        }
+        get_token(data);
+        if(!st_list(data)){
+            //TODO ERRNO
+            return false;
+        }
+        if(!is_token(data,kw_else)){
+            //TODO ERRNO
+            return false;
+        }
+        get_token(data);
+        if(!st_list(data)){
+            //TODO ERRNO
+            return false;
+        }
+        if(is_token(data,kw_end)){
+            get_token(data);
+            return true;
+        }
+        //TODO ERRNO
+        return false;
+    }
+    else if(is_token(data,kw_while)){
+        //grammar rule 39
+        get_token(data);
+                if(!is_expression_start(data->token)){
+            //TODO ERRNO
+            return false;
+        }
+        if(!expression(data)){
+            //TODO ERRNO
+            return false;
+        }
+        if(!is_token(data,kw_do)){
+            //TODO ERRNO
+            return false;
+        }
+        get_token(data);
+        if(!st_list(data)){
+            //TODO ERRNO
+            return false;
+        }
+        if(is_token(data,kw_end)){
+            get_token(data);
+            return true;
+        }
+        //TODO ERRNO
+        return false;
+    }
+    return false;
 }
 
 bool init(parser_data_t *data){
     //grammar rule 23
     switch (data->token->type){
-    case kw_end:
-    case kw_if:
-    case kw_local:
-    case kw_return:
-    case kw_while:
-    case token_type_identifier:
-        return true;
-    break;    
-    default:
-    break;
+        case kw_end:
+        case kw_if:
+        case kw_local:
+        case kw_return:
+        case kw_while:
+        case token_type_identifier:
+            return true;
+        break;    
+        default:
+        break;
     }
 
     //grammar rule 24
@@ -368,7 +456,7 @@ bool init2(parser_data_t *data){
         return false;
     }
 
-    //decide if it is identifier of function or variable
+    //decide if it is identifier of function or variable TODO
 
     //grammar rule 25
     return call_fce(data);
@@ -378,5 +466,126 @@ bool init2(parser_data_t *data){
 }
 
 bool expression(parser_data_t *data){
+    return true;
+}
+
+bool after_id(parser_data_t *data){
+    //grammar rule 28
+    if(is_token(data,token_type_left_bracket)){
+        return call_fce(data);
+    }
+
+    //grammar rule 29
+    if(is_token(data,token_type_identifier) || is_token(data,token_type_assign)){
+        if(!identif_list(data)){
+            //TODO ERRNO
+            return false;
+        }
+
+        if(!is_token(data,token_type_assign)){
+            //TODO ERRNO
+            return false;
+        }
+
+        return assignment(data);
+    }
+    //TODO ERRNO
+    return false;
+}
+
+bool assignment(parser_data_t *data){
+    //TODO
+    //grammar rule 32
+    //grammar rule 33
+}
+
+bool identif_list(parser_data_t *data){
+    //grammar rule 31
+    if(is_token(data,token_type_assign)){
+        return true;
+    }
+
+    //grammar rule 30
+    if(!is_token(data,token_type_comma)){
+        //TODO ERRNO
+        return false;
+    }
+    get_token(data);
+    if(!is_token(data,token_type_identifier)){
+        //TODO ERRNO
+        return false;
+    }
+    get_token(data);
+    return identif_list(data);
+}
+
+bool expression_list(parser_data_t *data){
+    //grammar rule 35
+    if(is_token(data,kw_end) || is_token(data,kw_else)){
+        return true;
+    }
+
+    //grammar rule 34
+    if(is_expression_start(data->token)){
+        return expression(data) && expression_list2(data); 
+    }
+    
+    //TODO ERRNO
+    return false;
+}
+
+bool expression_list2(parser_data_t *data){
+    //grammar rule 37
+    switch (data->token->type){
+        case kw_else:
+        case kw_end:
+        case kw_if:
+        case kw_local:
+        case kw_return:
+        case kw_while:
+        case token_type_identifier:
+            return true;
+        break;        
+        default:
+        break;
+    }
+
+    //grammar rule 36
+    if(!is_token(data,token_type_comma)){
+        //TODO ERRNO
+        return false;
+    }
+    get_token(data); 
+    if(is_expression_start(data->token)){
+        return expression(data) && expression_list2(data);
+    }
+
+    //TODO ERRNO
+    return false;
+}
+
+bool is_expression_start(Token *token){
+    switch (token->type){
+        case kw_nil:
+        case token_type_left_bracket:
+        case token_type_integer:
+        case token_type_number:
+        case token_type_string:
+        case token_type_identifier:
+        case token_type_length: // #
+            return true;           
+        break;    
+        default:
+            return false;
+        break;
+    }
+    return false;
+}
+
+bool value_list(parser_data_t *data){
+    //grammar rule 42
+
+
+    //grammar rule 43
     return true;
 }

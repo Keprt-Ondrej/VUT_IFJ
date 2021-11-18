@@ -11,13 +11,17 @@
 #include "scanner.h"
 #include "symtable.h"
 
-
+/**
+ * @brief Data for parser
+ * 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 typedef struct 
 {   
-    Token *token;
-    Token *token_list_first;
-    htab_t *global_symtable;
-    int errno;
+    Token *token;       //< actual token on input
+    Token *token_list_first;    //< first token in token list
+    htab_t *global_symtable;    //< table of symbols for functions  
+    int errno;                  //< exit code
 } parser_data_t;
 
 /**
@@ -37,6 +41,15 @@ void get_token(parser_data_t *data);
  */
 bool is_token(parser_data_t *data, Token_type type);
 
+/**
+ * @brief Seek if on input token is start of expression
+ * 
+ * @param token pointer on token on input
+ * @return true if it is start of expression
+ * @return false it is not expression start
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+bool is_expression_start(Token *token);
 
 bool intro(parser_data_t *data);
 bool prolog(parser_data_t *data);
@@ -56,8 +69,12 @@ bool statement(parser_data_t *data);
 bool init(parser_data_t *data);
 bool init2(parser_data_t *data);
 bool expression(parser_data_t *data);
-
-
+bool after_id(parser_data_t *data);
+bool assignment(parser_data_t *data);
+bool identif_list(parser_data_t *data);
+bool expression_list(parser_data_t *data);
+bool expression_list2(parser_data_t *data);
+bool value_list(parser_data_t *data);
 
 void parser();
 
