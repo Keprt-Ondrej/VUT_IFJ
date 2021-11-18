@@ -5,13 +5,16 @@ LOGIN = xkeprt03
 #CFLAGS += -fsanitize=address
 #LDFLAGS += -fsanitize=address
 
-OFILES = main.o symtable.o scanner.o parser.o
-HFILES = main.h
+OFILES = symtable.o scanner.o parser.o
+HFILES = scanner.h parser.h symtable.h 
 
 all: $(PROGS)
 
-$(PROGS): $(OFILES) $(HFILES)
-	$(CC) $(CFLAGS) -o  $(PROGS) $(OFILES)
+$(PROGS): $(OFILES) $(HFILES) main.o
+	$(CC) $(CFLAGS) -o  $(PROGS) $(OFILES) main.o
+
+lex_test: scanner.o scanner.h lex_test_main.o
+	$(CC) $(CFLAGS) -o lex_test $^ 
 
 run: $(PROGS)
 	./$(PROGS)
