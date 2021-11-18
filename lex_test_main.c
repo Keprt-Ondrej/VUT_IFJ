@@ -20,11 +20,14 @@ int main(){
         else
             printf("%d\n", type);  
         token = read_token();
+        if (token == NULL){
+            return LEX_ERROR;
+        }
         type = token->type;
         data = token->data;
     }
     if(type == 15)
         printf("%3d: %d\n", type, type);
     //wordcount();
-    return 4;
+    return 0;
 }
