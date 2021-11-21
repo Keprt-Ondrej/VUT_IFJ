@@ -11,18 +11,24 @@
 #include "scanner.h"
 #include "symtable.h"
 
+#define SYNTAX_ERROR 2
+#define REDEFINE_UNDEFINE_VAR 3
+#define INTERNAL_ERROR 99
+
 /**
  * @brief Data for parser
  * 
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
-typedef struct 
+typedef struct parser_data
 {   
     Token *token;       //< actual token on input
     Token *token_list_first;    //< first token in token list
     htab_t *global_symtable;    //< table of symbols for functions  
     int errno;                  //< exit code
 } parser_data_t;
+
+void set_errno(parser_data_t *data,int errno);
 
 /**
  * @brief Read token from scanner and store it to data structure
@@ -51,6 +57,10 @@ bool is_token(parser_data_t *data, Token_type type);
 */
 bool is_expression_start(Token *token);
 
+bool htab_declare_function(htab_key_t key,parser_data_t *data);
+bool htab_define_function(htab_key_t key,parser_data_t *data);
+void free_parser_data(parser_data_t *data);
+
 bool intro(parser_data_t *data);
 bool prolog(parser_data_t *data);
 bool prog(parser_data_t *data);
@@ -75,8 +85,10 @@ bool identif_list(parser_data_t *data);
 bool expression_list(parser_data_t *data);
 bool expression_list2(parser_data_t *data);
 bool value_list(parser_data_t *data);
+bool value_list2(parser_data_t *data);
+bool value(parser_data_t *data);
 
-void parser();
+int parser();
 
-
+bool fake_expression(parser_data_t *data);
 #endif

@@ -8,6 +8,7 @@
 #include "symtable.h"
 #include <string.h>     // size_t
 #include <stdbool.h>    // bool
+#include "parser.h"
 
 size_t htab_bucket_count(const htab_t * t){
     return t->arr_size;
@@ -171,8 +172,7 @@ htab_t *htab_move(size_t n, htab_t *from){
                 htab_free(tab);
                 return NULL;
             }
-            else{
-                new_pair->value = moving_item->value;  
+            else{ 
                 moving_item = moving_item->next;
             }           
         }        
@@ -192,10 +192,8 @@ struct htab_item *create_htab_item(const htab_key_t key){
         return NULL;
     }
     item->next = NULL;
-    item->value = 0;
     item->param_list = NULL;
     item->return_list = NULL;
-    item->inicialized = false;
     //TODO INIT values
 
     char *new_key = malloc(strlen(key)+1); 
@@ -215,7 +213,7 @@ void free_htab_item(struct htab_item * item){
 }
 
 void print_htab_item_values(htab_item *data){    
-    printf("%s\t%d\n",data->key,(int)data->value);    
+    printf("%s\n",data->key);    
 }
  
 #define WORD_MAX_LENGHT 127
@@ -257,11 +255,12 @@ int read_word(char *s, int max, FILE *f){
     return  0; //deathcode
 }
 
+/*
 /**
  * @brief Testovací funkce pro kontrolu implementace tabulky
  * 
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
-*/
+*
 void wordcount(){    
     htab_t * storage = htab_init(TABLE_SIZE);    
     if (storage == NULL){
@@ -285,12 +284,10 @@ void wordcount(){
     htab_free(storage);
     return;
 }
+*/
 
 void htab_define_var(htab_key_t key){
-    printf("%s\n",key);
+    return;
 }
 
-void htab_declare_var(htab_key_t key){
-    printf("%s\n",key);
-}
 

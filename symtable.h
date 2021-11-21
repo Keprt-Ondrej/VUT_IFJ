@@ -26,11 +26,12 @@ void symtable_hello();
 typedef const char * htab_key_t;        // typ klíče
 typedef int htab_value_t;               // typ hodnoty
 typedef enum{
-    function,
+    function_declared,
+    function_defined,
     integer,
     number,
     string,
-} htab_record_type;
+} htab_record_type_t;
 
 
 #define TABLE_SIZE 101
@@ -43,14 +44,11 @@ typedef struct htab{
 
 typedef struct htab_item{
     htab_key_t    key;          // klíč
-    htab_value_t  value;        // asociovaná hodnota
+    htab_record_type_t type;
     void * param_list;
     void * return_list;
-    bool inicialized;
     struct htab_item *next;
 }htab_item;
-
-
 
 struct htab_item *create_htab_item(const htab_key_t key);
 void free_htab_item(struct htab_item * item);
@@ -81,6 +79,6 @@ int read_word(char *s, int max, FILE *f);
 void wordcount();
 
 void htab_define_var(htab_key_t key);
-void htab_declare_var(htab_key_t key);
+
 
 #endif
