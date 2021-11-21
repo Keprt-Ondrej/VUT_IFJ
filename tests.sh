@@ -35,5 +35,7 @@ echo "${RED}--------------------------tests-------------------------------------
 #writes: expected return value of program, real return value, program input file, reference file for diff
 test input.txt main.c_refference.txt 0 lex_test
 test nothin.syntax_test_in no_output.txt 0 IFJ-Projekt-2021
+test prolog.syntax_test_in no_output.txt 0 IFJ-Projekt-2021
+test basic_syn.syntax_test_in no_output.txt 0 IFJ-Projekt-2021
 echo "${RED}--------------------------tests---------------------------------------${NC}"
 rm -f tmp.tmp
