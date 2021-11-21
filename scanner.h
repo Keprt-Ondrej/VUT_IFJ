@@ -53,36 +53,36 @@ typedef enum {
     kw_then,        //13
     kw_while,       //14
 
-	token_type_EOF,                   // End of file
-	token_type_identifier,            // Identifier
+	token_type_EOF,                   // End of file    15
+	token_type_identifier,            // Identifier     16
     
     // type of data
-	token_type_integer,               // Integer
-	token_type_number,                // Number
-	token_type_string,                // String
-    token_type_nil,                   // Nil
+	token_type_integer,               // Integer        17
+	token_type_number,                // Number         18
+	token_type_string,                // String         19
+    token_type_nil,                   // Nil            20
 
 	// Operators
-    token_type_length,                // (#)   length 
-    token_type_mul,                   // (*)   multiplication 
-    token_type_div,                   // (/)   division 
-    token_type_floor_div,             // (//)  floor division
-	token_type_plus,                  // (+)   addition 
-    token_type_minus,                 // (-)   subtraction      
-    token_type_concat,                // (..)  concatenation   
-    token_type_lth,                   // (<)   less than 
-    token_type_leq,                   // (<=)  less equal     
-    token_type_gth,                   // (>)   greater than       
-    token_type_geq,                   // (>=)  greater equal 
-    token_type_equal,                 // (==)  equal 
-    token_type_ineq,                  // (~=)  inequality 
-    token_type_assign,                // (=)   assignment 
-    token_type_left_bracket,          // (     left bracket
-    token_type_right_bracket,         //  )    right bracket
-    token_type_square_left_bracket,   // ([)   square left bracket
-    token_type_square_right_bracket,  // (])   square right bracket
-    token_type_colon,                 // (:)   colon
-    token_type_comma,                 // (,)   comma
+    token_type_length,                // (#)   length               21
+    token_type_mul,                   // (*)   multiplication       22
+    token_type_div,                   // (/)   division             23
+    token_type_floor_div,             // (//)  floor division       24
+	token_type_plus,                  // (+)   addition             25
+    token_type_minus,                 // (-)   subtraction          26   
+    token_type_concat,                // (..)  concatenation        27
+    token_type_lth,                   // (<)   less than            28
+    token_type_leq,                   // (<=)  less equal           29
+    token_type_gth,                   // (>)   greater than         30
+    token_type_geq,                   // (>=)  greater equal        31
+    token_type_equal,                 // (==)  equal                32
+    token_type_ineq,                  // (~=)  inequality           33
+    token_type_assign,                // (=)   assignment           34
+    token_type_left_bracket,          // (     left bracket         35
+    token_type_right_bracket,         //  )    right bracket        36
+    token_type_square_left_bracket,   // ([)   square left bracket  37
+    token_type_square_right_bracket,  // (])   square right bracket 38
+    token_type_colon,                 // (:)   colon                39
+    token_type_comma,                 // (,)   comma                40
 } Token_type;
 
 

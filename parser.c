@@ -58,7 +58,7 @@ int parser(){
     if(data.token == NULL){
         return LEX_ERROR;
     }
-    print_token(data.token);    
+    //print_token(data.token);    
     data.token_list_first = data.token;
     data.global_symtable = htab_init(TABLE_SIZE);
     data.errno = 0;
@@ -109,6 +109,8 @@ bool intro(parser_data_t *data){
         return true;
     }
     else{
+        fprintf(stderr,"chyba: %s\n",__func__);
+
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -125,6 +127,7 @@ bool prolog(parser_data_t* data){
             }            
         }
     }
+    fprintf(stderr,"chyba: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -148,6 +151,7 @@ bool prog(parser_data_t* data){
         //grammar rule 5
         return true;
     }
+    fprintf(stderr,"chyba: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -155,11 +159,13 @@ bool prog(parser_data_t* data){
 bool fce_decl(parser_data_t *data){
     //grammar rule 7
     if(!is_token(data,kw_global)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR); 
         return false;
     }
     get_token(data);
     if(!is_token(data,token_type_identifier)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR); 
         return false;
     }
@@ -179,16 +185,19 @@ bool fce_decl(parser_data_t *data){
     
     get_token(data);
     if(!is_token(data,token_type_colon)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
     get_token(data);
     if(!is_token(data,kw_function)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
     get_token(data);
     if(!is_token(data,token_type_left_bracket)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -198,7 +207,8 @@ bool fce_decl(parser_data_t *data){
         return false;
     }
 
-    if(!is_token(data,token_type_left_bracket)){
+    if(!is_token(data,token_type_right_bracket)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -216,11 +226,13 @@ bool fce_decl(parser_data_t *data){
 bool fce_def(parser_data_t *data){
     //grammar rule 14
     if(!is_token(data,kw_function)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
     get_token(data);
     if(!is_token(data,token_type_identifier)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -245,6 +257,7 @@ bool fce_def(parser_data_t *data){
 
     get_token(data);
     if(!is_token(data,token_type_left_bracket)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -255,6 +268,7 @@ bool fce_def(parser_data_t *data){
     }
 
     if(!is_token(data,token_type_right_bracket)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -281,6 +295,7 @@ bool fce_def(parser_data_t *data){
     }
 
     if(!is_token(data,kw_end)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -291,6 +306,7 @@ bool fce_def(parser_data_t *data){
 bool call_fce(parser_data_t *data){
     //grammar rule 41
     if(!is_token(data,token_type_left_bracket)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -300,6 +316,7 @@ bool call_fce(parser_data_t *data){
         return false;
     }
     if(!is_token(data,token_type_right_bracket)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -309,8 +326,7 @@ bool call_fce(parser_data_t *data){
 
 bool type_list(parser_data_t *data){
     //grammar rule 8 
-    if(is_token(data,token_type_right_bracket)){
-        get_token(data);
+    if(is_token(data,token_type_right_bracket)){        
         return true;
     }
 
@@ -329,8 +345,7 @@ bool ret_list(parser_data_t *data){
         case kw_return:
         case kw_while:
         case token_type_EOF:
-        case token_type_identifier:
-            get_token(data);
+        case token_type_identifier:            
             return true;
         break;
         default:
@@ -340,6 +355,7 @@ bool ret_list(parser_data_t *data){
 
     //grammar rule 12
     if(!is_token(data,token_type_colon)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -361,6 +377,7 @@ bool type(parser_data_t *data){
         default:
         break;
     }
+    fprintf(stderr,"chyba: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -377,8 +394,7 @@ bool type_list2(parser_data_t *data){
         case kw_while:
         case token_type_right_bracket:
         case token_type_EOF:
-        case token_type_identifier:
-            get_token(data);
+        case token_type_identifier:            
             return true;
         break;
         default:
@@ -388,6 +404,7 @@ bool type_list2(parser_data_t *data){
 
     //grammar rule 10
     if(!is_token(data,token_type_comma)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -413,6 +430,7 @@ bool param_def_list2(parser_data_t *data){
 
     //grammar rule 17
     if(!is_token(data,token_type_comma)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -423,12 +441,14 @@ bool param_def_list2(parser_data_t *data){
 bool param(parser_data_t *data){
     //grammar rule 19
     if(!is_token(data,token_type_identifier)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
     //TODO semnatis identifier
     get_token(data);
     if(!is_token(data,token_type_colon)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -447,7 +467,7 @@ bool st_list(parser_data_t *data){
         case kw_if:
         case kw_local:
         case kw_while:
-        case token_type_identifier:
+        case token_type_identifier:            
             return statement(data) && st_list(data);
         break;
         default:
@@ -456,6 +476,7 @@ bool st_list(parser_data_t *data){
     
     //grammar rule 40
     if(!is_token(data,kw_return)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -468,11 +489,13 @@ bool statement(parser_data_t *data){
         //grammar rule 22
         get_token(data);
         if(!is_token(data,token_type_identifier)){
+            fprintf(stderr,"chyba: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
         get_token(data);
         if(!is_token(data,token_type_colon)){
+            fprintf(stderr,"chyba: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
@@ -488,6 +511,7 @@ bool statement(parser_data_t *data){
         //grammar rule 38
         get_token(data);
         if(!is_expression_start(data->token)){
+            fprintf(stderr,"chyba: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
@@ -496,6 +520,7 @@ bool statement(parser_data_t *data){
             return false;
         }
         if(!is_token(data,kw_then)){
+            fprintf(stderr,"chyba: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
@@ -505,6 +530,7 @@ bool statement(parser_data_t *data){
             return false;
         }
         if(!is_token(data,kw_else)){
+            fprintf(stderr,"chyba: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
@@ -517,6 +543,7 @@ bool statement(parser_data_t *data){
             get_token(data);
             return true;
         }
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -524,6 +551,7 @@ bool statement(parser_data_t *data){
         //grammar rule 39
         get_token(data);
         if(!is_expression_start(data->token)){
+            fprintf(stderr,"chyba: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
@@ -532,6 +560,7 @@ bool statement(parser_data_t *data){
             return false;
         }
         if(!is_token(data,kw_do)){
+            fprintf(stderr,"chyba: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
@@ -544,6 +573,7 @@ bool statement(parser_data_t *data){
             get_token(data);
             return true;
         }
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -567,6 +597,7 @@ bool init(parser_data_t *data){
 
     //grammar rule 24
     if(!is_token(data,token_type_assign)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -574,19 +605,21 @@ bool init(parser_data_t *data){
     return init2(data);
 }
 
-bool init2(parser_data_t *data){
-    if(!is_token(data,token_type_identifier)){
+bool init2(parser_data_t *data){ 
+    if(is_token(data,token_type_identifier)){
+        htab_item *item = htab_find(data->global_symtable,data->token->data.str);
+        if(item != NULL){
+            //grammar rule 25
+            get_token(data);
+            return call_fce(data);
+        }
+    }
+
+    if(!is_expression_start){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
-
-    htab_item *item = htab_find(data->global_symtable,data->token->data.str);
-    if(item != NULL){
-        //grammar rule 25
-        get_token(data);
-        return call_fce(data);
-    }
-
     //grammar rule 26
     return expression(data);
 }
@@ -612,18 +645,21 @@ bool after_id(parser_data_t *data){
         }
 
         if(!is_token(data,token_type_assign)){
+            fprintf(stderr,"chyba: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
         get_token(data);
         return assignment(data);
     }
+    fprintf(stderr,"chyba: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
 
 bool assignment(parser_data_t *data){
     if(!is_token(data,token_type_identifier)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -647,11 +683,13 @@ bool identif_list(parser_data_t *data){
 
     //grammar rule 30
     if(!is_token(data,token_type_comma)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
     get_token(data);
     if(!is_token(data,token_type_identifier)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -670,6 +708,7 @@ bool expression_list(parser_data_t *data){
         return expression(data) && expression_list2(data); 
     }
     
+    fprintf(stderr,"chyba: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -692,6 +731,7 @@ bool expression_list2(parser_data_t *data){
 
     //grammar rule 36
     if(!is_token(data,token_type_comma)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -700,6 +740,7 @@ bool expression_list2(parser_data_t *data){
         return expression(data) && expression_list2(data);
     }
 
+    fprintf(stderr,"chyba: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -732,6 +773,7 @@ bool value_list(parser_data_t *data){
     if(is_token(data,token_type_string) || is_token(data,token_type_integer) || is_token(data,token_type_number)){
         return value(data) && value_list2(data);
     }
+    fprintf(stderr,"chyba: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -744,6 +786,7 @@ bool value_list2(parser_data_t *data){
 
     //grammar rule 44
     if(!is_token(data,token_type_comma)){
+        fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -768,6 +811,7 @@ bool value(parser_data_t *data){
         default:
         break;
     }
+    fprintf(stderr,"chyba: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
