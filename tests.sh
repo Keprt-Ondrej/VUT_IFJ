@@ -30,6 +30,8 @@ test(){
     
 }
 
+make 
+make lex_test
 echo "${RED}--------------------------tests---------------------------------------${NC}"
 #parameters: input file for program, refference file, expected return val of program
 #writes: expected return value of program, real return value, program input file, reference file for diff
