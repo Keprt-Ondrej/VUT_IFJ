@@ -10,6 +10,8 @@
 
 #include "scanner.h"
 #include "symtable.h"
+#include "parser_precedence.h"
+#include "code_generator.h"
 
 #define SYNTAX_ERROR 2
 #define REDEFINE_UNDEFINE_VAR 3

@@ -823,3 +823,36 @@ bool fake_expression(parser_data_t *data){
     return true;
 }
 
+/*
+
+        if a + b then 
+
+     mul a b DEST1 | add e C dest2 | JMP 
+
+A = 5
+B = 2
+
+A*B
+<E + C >
+
+5   
+
+statement statement1 statement2 statement3
+
+jmp label
+
+{
+    statements_t *next;
+    action MUL ADD
+    symb op1
+    symb op2
+    symb dest1 
+} statements_t
+
+print("mul A 5 DEST1")
+print("add DEST1 C DEST2")
+
+
+
+A*B + C
+*/
