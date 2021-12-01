@@ -26,11 +26,11 @@ void htab_clear(htab_t * t){
     t->size = 0;
 }
 
-bool htab_erase(htab_t * t, htab_key_t key){
+bool htab_erase(htab_t * t, char * key){
     size_t index = (htab_hash_function(key) % t->arr_size);  
     struct htab_item *deleting_item = NULL;
     if (t->array[index] != NULL){
-        if (strcmp((char *)key,(char *)t->array[index]->key) == 0){
+        if (strcmp(key,t->array[index]->key) == 0){
             deleting_item = t->array[index];
             t->array[index] = t->array[index]->next;
             free_htab_item(deleting_item);
@@ -43,7 +43,7 @@ bool htab_erase(htab_t * t, htab_key_t key){
     struct htab_item *walking_item = t->array[index];
     while(walking_item->next != NULL){
         deleting_item = walking_item->next;
-        if (strcmp((char *)deleting_item->key,(char *)key) == 0){
+        if (strcmp(deleting_item->key,key) == 0){
             walking_item->next = deleting_item->next;
             free_htab_item(deleting_item);
             t->size--;
@@ -54,11 +54,11 @@ bool htab_erase(htab_t * t, htab_key_t key){
     return false; //prosel jsem cely list a nenasel jsem
 }
 
-htab_item * htab_find(htab_t * t, htab_key_t key){
+htab_item * htab_find(htab_t * t, char * key){
     size_t index = (htab_hash_function(key) % t->arr_size);     //rychlejsi, nez volat funkci size_t htab_bucket_count(const htab_t * t), pokud se ale ukladani velikosti pole zmeni, bude se muset zmenit i zde, coz pri pouziti funkce nehrozi, ale zmena v tomto ukolu jiz nenastane... 
     struct htab_item *walking_item = t->array[index];
     while (walking_item != NULL){
-        if (strcmp((char *)walking_item->key,(char *)key) == 0){
+        if (strcmp(walking_item->key,key) == 0){
             return walking_item;
         }
         else walking_item = walking_item->next;
@@ -87,7 +87,7 @@ void htab_free(htab_t * t){
     free(t);
 }
 
-size_t htab_hash_function(const char *str) {
+size_t htab_hash_function(char *str) {
     uint32_t h=0;     // musí mít 32 bitů
     const unsigned char *p;
     for(p=(const unsigned char*)str; *p!='\0'; p++){
@@ -109,7 +109,7 @@ htab_t *htab_init(size_t n){
 }
 
 //TODO
-htab_item * htab_lookup_add(htab_t * t, htab_key_t key){
+htab_item * htab_lookup_add(htab_t * t, char * key){
     size_t index = (htab_hash_function(key) % t->arr_size); //rychlejsi, nez volat funkci size_t htab_bucket_count(const htab_t * t), pokud se ale t->arr_size nejak zmeni, bude se muset zmenit i zde, coz pri pouziti funkce nehrozi, ale zmena v tomto ukolu jiz nenastane... 
     if (t->array[index] == NULL){
         t->array[index] = create_htab_item(key);
@@ -120,13 +120,13 @@ htab_item * htab_lookup_add(htab_t * t, htab_key_t key){
         return t->array[index];
     }
 
-    if (strcmp((char *)t->array[index]->key,(char *)key) == 0){
+    if (strcmp(t->array[index]->key,key) == 0){
         return NULL;;
     }
 
     struct htab_item *walking_item = t->array[index];
     while (walking_item->next != NULL){        
-        if (strcmp((char *)walking_item->next->key,(char *)key) == 0){            
+        if (strcmp(walking_item->next->key,key) == 0){            
             return NULL;
         }
         walking_item = walking_item->next;
@@ -173,7 +173,7 @@ size_t htab_size(const htab_t * t){
     return t->size;
 }
 
-struct htab_item *create_htab_item(const htab_key_t key){    
+struct htab_item *create_htab_item( char * key){    
     struct htab_item *item = malloc(sizeof(struct htab_item));
     if (item == NULL){
         return NULL;

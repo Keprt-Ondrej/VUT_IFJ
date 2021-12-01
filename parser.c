@@ -37,9 +37,8 @@ void free_parser_data(parser_data_t *data){
     return;
 }
 
-void htab_find_variable(){
-
-
+htab_item *htab_find_variable(htab_t *table,char *key){
+    return htab_find(table,key);
 }
 
 void print_token(Token *token){

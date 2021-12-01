@@ -18,7 +18,6 @@
 
 #define TABLE_SIZE 101  //<size of table
 
-typedef const char * htab_key_t; ///<typedef for key of item 
 
 /**
  * @brief information, what information carry item
@@ -49,7 +48,7 @@ typedef struct htab{
 }htab_t;
 
 typedef struct htab_item{
-    htab_key_t    key;      ///< name of symbol stored in item
+    char *    key;      ///< name of symbol stored in item
     data_type_t type;       ///< type of data, which represents this item
     void * param_list;      ///< list of parameters, if item is symbol of function, else NULL
     void * return_list;     ///< list of returning values, if item is symbol of function, else NULL
@@ -66,7 +65,7 @@ typedef struct htab_item{
  * @return allocated memory of item
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
-struct htab_item *create_htab_item(const htab_key_t key);
+struct htab_item *create_htab_item(char *key);
 
 /**
  * @brief free memory of item
@@ -83,7 +82,7 @@ void free_htab_item(struct htab_item * item);
  * @return hashed symbol
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
-size_t htab_hash_function(htab_key_t str);
+size_t htab_hash_function(char * str);
 
 /**
  * @brief allocation and initialization of table
@@ -132,7 +131,7 @@ size_t htab_bucket_count(const htab_t * t);
  * @return finded item or NULL, when item was not found
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
-htab_item * htab_find(htab_t * t, htab_key_t key);  // hledání
+htab_item * htab_find(htab_t * t, char * key);  // hledání
 
 /**
  * @brief add item to hash table
@@ -144,7 +143,7 @@ htab_item * htab_find(htab_t * t, htab_key_t key);  // hledání
  * @return created item in hash table or NULL if item was defined before
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
-htab_item * htab_lookup_add(htab_t * t, htab_key_t key);
+htab_item * htab_lookup_add(htab_t * t, char * key);
 
 
 /**
@@ -156,7 +155,7 @@ htab_item * htab_lookup_add(htab_t * t, htab_key_t key);
  * @return false item was not found
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
-bool htab_erase(htab_t * t, htab_key_t key);
+bool htab_erase(htab_t * t, char * key);
 
 /**
  * @brief apply function f on each item of the table

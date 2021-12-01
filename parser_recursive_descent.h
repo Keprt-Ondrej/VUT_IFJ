@@ -19,8 +19,8 @@
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 bool is_expression_start(Token *token);
-bool htab_declare_function(htab_key_t key,parser_data_t *data);
-bool htab_define_function(htab_key_t key,parser_data_t *data);
+bool htab_declare_function(char * key,parser_data_t *data);
+bool htab_define_function(char * key,parser_data_t *data);
 
 bool intro(parser_data_t *data);
 bool prolog(parser_data_t *data);

@@ -45,8 +45,26 @@ void get_token(parser_data_t *data);
  */
 bool is_token(parser_data_t *data, Token_type type);
 
+/**
+ * @brief free all memory allocated by parser
+ * 
+ * @param data pointer to data
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 void free_parser_data(parser_data_t *data);
+
+
 void print_token(Token *token);
+
+/**
+ * @brief find variable in hierarchy of frames
+ * 
+ * @param table pointer on first 
+ * @param key name of variable
+ * @return finded item or NULL, when item was not found
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+htab_item *htab_find_variable(htab_t *table,char *key);
 
 #endif
 

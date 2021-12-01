@@ -29,7 +29,7 @@ int parser(){
     return 0;
 }
 
-bool htab_define_function(htab_key_t key,parser_data_t *data){
+bool htab_define_function(char * key,parser_data_t *data){
     htab_item * item = htab_lookup_add(data->global_symtable,key);   
     if(item == NULL){
         //TODO ERRNO
@@ -40,7 +40,7 @@ bool htab_define_function(htab_key_t key,parser_data_t *data){
     return true;
 }
 
-bool htab_declare_function(htab_key_t key,parser_data_t *data){ 
+bool htab_declare_function(char * key,parser_data_t *data){ 
     htab_item * item = htab_lookup_add(data->global_symtable,key);   
     if(item == NULL){
          //TODO ERRNO
@@ -51,7 +51,7 @@ bool htab_declare_function(htab_key_t key,parser_data_t *data){
     return true;
 }
 
-bool htab_define_variable(htab_key_t key,parser_data_t *data){
+bool htab_define_variable(char * key,parser_data_t *data){
     return true;
 }
 
