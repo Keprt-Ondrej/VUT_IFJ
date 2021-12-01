@@ -10,6 +10,7 @@
 
 #include "scanner.h"
 #include "symtable.h"
+#include "parser_recursive_descent.h"
 
 #include <stdio.h>
 

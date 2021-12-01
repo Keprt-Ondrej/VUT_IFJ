@@ -11,7 +11,7 @@
 typedef struct prec_token{
     Token_type type;
     char *identifier;
-    htab_record_type_t data_type;
+    data_type_t data_type;
 }
 precedence_token_t;
 
