@@ -3,6 +3,10 @@
 #include <stdio.h> 
 #include <stdlib.h>
 
+const char* nil_string = "nil@nil";
+const char* bool_string_true = "bool@true";
+const char* bool_string_false = "bool@false";
+
 void free_instruction(instruction_t *ins){
     free(ins->op1);
     free(ins->op2);

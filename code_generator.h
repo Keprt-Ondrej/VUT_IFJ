@@ -3,9 +3,9 @@
 #ifndef __CODE_GENERATOR_H__
 #define __CODE_GENERATOR_H__
 
-const char* nil_string = "nil@nil";
-const char* bool_string_true = "bool@true";
-const char* bool_string_false = "bool@false";
+extern const char* nil_string;
+extern const char* bool_string_true;
+extern const char* bool_string_false;
 
 typedef enum {
     MOVE,
@@ -72,6 +72,16 @@ typedef struct instr{
     char *op2;
     char *op3;
 }instruction_t;
+
+void free_instruction(instruction_t *ins);
+char *int_to_string(int value);
+char *double_to_string(double value);
+char *string_to_string(char *string);
+instruction_t *create_instruction(OP_code_t opcode,char *op1,char *op2,char *op3);
+void generate_code(instruction_t *inst);
+void print_opcode(OP_code_t opcode);
+
+
 
 
 #endif
