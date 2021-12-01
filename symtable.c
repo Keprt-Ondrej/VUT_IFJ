@@ -1,14 +1,13 @@
 /**
  * @file symtable.c
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
- * @brief Definice funkcí pro operace s tabulkou symbolů
- * 
+ * @brief Definition of functions for work with table of symbols    
+ *  
 */
 
 #include "symtable.h"
-#include <string.h>     // size_t
-#include <stdbool.h>    // bool
 #include "parser.h"
+#include "ErrLib.h"
 
 size_t htab_bucket_count(const htab_t * t){
     return t->arr_size;
@@ -28,7 +27,7 @@ void htab_clear(htab_t * t){
 }
 
 bool htab_erase(htab_t * t, htab_key_t key){
-    size_t index = (htab_hash_function(key) % t->arr_size); //rychlejsi, nez volat funkci size_t htab_bucket_count(const htab_t * t), pokud se ale ukladani velikosti pole zmeni, bude se muset zmenit i zde, coz pri pouziti funkce nehrozi, ale zmena v tomto ukolu jiz nenastane...  
+    size_t index = (htab_hash_function(key) % t->arr_size);  
     struct htab_item *deleting_item = NULL;
     if (t->array[index] != NULL){
         if (strcmp((char *)key,(char *)t->array[index]->key) == 0){
@@ -64,7 +63,11 @@ htab_item * htab_find(htab_t * t, htab_key_t key){
         }
         else walking_item = walking_item->next;
     }
-    return NULL; //prosel jsem cely list a nenasel jsem
+
+    if(t->next != NULL){
+        return htab_find(t->next,key);
+    }
+    return NULL;
 }
 
 void htab_for_each(const htab_t * t, void (*f)(htab_item *data)){
@@ -84,27 +87,15 @@ void htab_free(htab_t * t){
     free(t);
 }
 
-#ifdef HASHTEST
-    size_t htab_hash_function(const char *str) {
-        //fprintf(stderr,"myhash\n");
-        uint32_t hash = 43;
-        uint32_t lenght = strlen(str);
-        for(uint32_t i = 0; i < lenght;i++){
-            hash = (str[i] * hash >> 4) + 33;
-        }  
-        return hash;
-    }
-#else 
-    //funkce ze zadani
-    size_t htab_hash_function(const char *str) {
-        uint32_t h=0;     // musí mít 32 bitů
-        const unsigned char *p;
-        for(p=(const unsigned char*)str; *p!='\0'; p++){
-            h = 65599*h + *p;
-        }        
-        return h;
-    }
-#endif
+size_t htab_hash_function(const char *str) {
+    uint32_t h=0;     // musí mít 32 bitů
+    const unsigned char *p;
+    for(p=(const unsigned char*)str; *p!='\0'; p++){
+        h = 65599*h + *p;
+    }        
+    return h;
+}
+
 
 htab_t *htab_init(size_t n){
     htab_t *tab = calloc(1,sizeof(htab_t)+ sizeof(struct htab_item *[n]));
@@ -114,46 +105,42 @@ htab_t *htab_init(size_t n){
     }
     tab->arr_size = n;
     tab->size = 0;  
-    /*              
-    for(size_t i = 0; i < n;i++){       //pokud by se misto calloc pouzil malloc
-        tab->array[i] = NULL;           // ale NULL je definovan jako ((void*)0), proto to jiz pri alokaci pomoci calloc "nastavim na NULL"
-    }                                   // pri vetsi tabulce by toto prochazeni mohlo spomalit program
-    */
     return tab;
 }
 
+//TODO
 htab_item * htab_lookup_add(htab_t * t, htab_key_t key){
     size_t index = (htab_hash_function(key) % t->arr_size); //rychlejsi, nez volat funkci size_t htab_bucket_count(const htab_t * t), pokud se ale t->arr_size nejak zmeni, bude se muset zmenit i zde, coz pri pouziti funkce nehrozi, ale zmena v tomto ukolu jiz nenastane... 
     if (t->array[index] == NULL){
         t->array[index] = create_htab_item(key);
         if (t->array[index] == NULL){
-            return NULL;
+            exit(INTERNAL_ERROR);
         }
         t->size++;       
         return t->array[index];
     }
 
     if (strcmp((char *)t->array[index]->key,(char *)key) == 0){
-        return t->array[index];
+        return NULL;;
     }
 
     struct htab_item *walking_item = t->array[index];
     while (walking_item->next != NULL){        
         if (strcmp((char *)walking_item->next->key,(char *)key) == 0){            
-            return walking_item->next;
+            return NULL;
         }
         walking_item = walking_item->next;
     }
 
     walking_item->next = create_htab_item(key);
     if (walking_item->next == NULL){      
-        return NULL;
+        exit(INTERNAL_ERROR);
     }
     else{
         t->size++; 
         return walking_item->next;
     }   
-    return NULL; // death code??  
+    return NULL; // death code 
 }
 
 htab_t *htab_move(size_t n, htab_t *from){
@@ -207,7 +194,7 @@ struct htab_item *create_htab_item(const htab_key_t key){
 }
 
 void free_htab_item(struct htab_item * item){    
-    //TODO uvolnit seznamy
+    //TODO uvolnit seznamy pro params and return vals
     free((void *)item->key);   // z const char delam void *,protoze prekladac haze warning,
     free(item);                     // ale k polozce uz by se nemelo pristupovat, mela by byt tedy smazana   
 }
@@ -216,78 +203,57 @@ void print_htab_item_values(htab_item *data){
     printf("%s\n",data->key);    
 }
  
-#define WORD_MAX_LENGHT 127
-int read_word(char *s, int max, FILE *f){  
-    static bool was_err_msg = false;  
-    int c;
-    int char_index = 0;
-    max -= 1;    
-    while(1){
-        c = getc(f);
-        if (char_index == max && (!isspace(c) || c == EOF)){     
-            s[char_index] = '\0';
-            c = getc(f);
-            while(!isspace(c)){
-                if (c == EOF) break;
-                c = getc(f); 
-            }  
+/*
+void test(){   
+    int a;  //0
+    int b;  //0
+    if (a < 5){
+        int b = 5;  //b1
+        a = b;      //a0 b1
+        int a = 3;  //a1
 
-            if (!was_err_msg){
-                fprintf(stderr,"Chyba: prilis dlouhe slovo: %s\n",s);
-                was_err_msg = true;
-            }         
-            return max;
-        }
-        if (char_index == 0 && c == EOF){ //pokud bych mel sobour kde je konec radku a pak hned EOF
-            return EOF;
-        }
-        if (isspace(c) && char_index == 0 ){ //preskoceni vicero bilych znaku po sobe 
-            continue;
-        }
-        if (isspace(c) || c == EOF){    //soubor muze koncit slovem a pak hned EOF, tak aby se i to posledni slovo zapocitalo
-            s[char_index] = '\0'; //pridam za slovo konec
-            return strlen(s);                     
+        if(a < b){
+            int a = 10; //a2
+
+            b = a;  //b1 a2
+
         }
         else{
-            s[char_index++] = c;  //ukladani po znaku            
-        }    
-    }
-    return  0; //deathcode
-}
+            a = 4;  //a1
 
-/*
-/**
- * @brief Testovací funkce pro kontrolu implementace tabulky
- * 
- * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
-*
-void wordcount(){    
-    htab_t * storage = htab_init(TABLE_SIZE);    
-    if (storage == NULL){
-        fprintf(stderr,"Chyba: nepodarilo se alokovat pamet pro tabulku\n");
-        exit(1);
-    } 
-
-    htab_item *result = NULL;
-    char s[WORD_MAX_LENGHT] = {'\0'};
-    while (read_word(s,WORD_MAX_LENGHT,stdin) != EOF){
-        result = htab_lookup_add(storage,s);
-        if (result == NULL){    //nepodarilo se pridat slovo
-            fprintf(stderr,"Chyba: nepodarilo se alokovat pamet pro prvek: %s",s);
-            htab_free(storage);
-            exit(1); 
+            int a = 87; //a2
         }
-        result->value++;
+
+        a = 42; //a1 
+
+        if (a < b){
+            int a;  //a3
+
+            b = a;  //b1 a3
+            if(b > a){  
+                a = b;  //a3 b1
+                b = 10; //b1
+                int a; //a4
+
+            }
+            else{ 
+                a = 4; //a3
+                int a = b; //a4 b1 
+                int b;  //b4    
+            }
+        }
+        else{
+            a  = 78; //a1
+            int b = 97; //b3
+        }
+    }
+    else{
+        int a = 42; //a1
+        int b;  //b1
+        b = a;  //b1 a1
     }
 
-    htab_for_each(storage,print_htab_item_values); 
-    htab_free(storage);
-    return;
+    a = 478;    //a0
+    b ;     //b0
 }
 */
-
-void htab_define_var(htab_key_t key){
-    return;
-}
-
-

@@ -1,13 +1,8 @@
 /**
  * @file symtable.h
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
- * @brief Deklarace rozhraní pro tanulku symbolů
+ * @brief Declaration of interface for table of symbols
  * 
- * Základní struktura je převzata z mého projektu z Jazyka C a upravena pro tento projekt
- * Odkaz na zadání, platné asi jen do konce zimního semestru 2021:
- * http://www.fit.vutbr.cz/study/courses/IJC/public/DU2.html.cs
- * Odkaz na vypracovaný projekt Ondřejem Keprtem:
- * https://github.com/KeprtOndrej/ICJ-projekt-2 //obsahuje i původní zadání v HTML
 */
 
 #ifndef __SYMTABLE_H__
@@ -20,65 +15,175 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-void symtable_hello();
 
-// Typy:
-typedef const char * htab_key_t;        // typ klíče
-typedef int htab_value_t;               // typ hodnoty
+#define TABLE_SIZE 101  //<size of table
+
+typedef const char * htab_key_t; ///<typedef for key of item 
+
+/**
+ * @brief information, what information carry item
+ * 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 typedef enum{
-    function_declared,
-    function_defined,
-    integer,
-    number,
-    string,
-} htab_record_type_t;
+    function_declared,  ///< only in global hash table for functions, this item should be de defined later
+    function_defined,   ///< only in global hash table for functions
+    integer,            ///< type for local frames and precedence analysis
+    number,             ///< type for local frames and precedence analysis
+    string,             ///< type for local frames and precedence analysis
+    nil,                ///< type for local frames and precedence analysis
+    type_bool,          ///< type for local frames and precedence analysis
+} data_type_t;
 
 
-#define TABLE_SIZE 101
-// Tabulka:
+/**
+ * @brief sturcture for hash table
+ * 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 typedef struct htab{
-    size_t size;
-    size_t arr_size;
-    struct htab_item *array[];    
+    size_t size;                ///< counter of items in table
+    size_t arr_size;            ///< size of array, where lists of items are stored
+    struct htab *next;          ///< pointer on next table, "stack" representation of local frames
+    struct htab_item *array[];  ///< array of pointers on lists of items   
 }htab_t;
 
 typedef struct htab_item{
-    htab_key_t    key;          // klíč
-    htab_record_type_t type;
-    void * param_list;
-    void * return_list;
-    struct htab_item *next;
+    htab_key_t    key;      ///< name of symbol stored in item
+    data_type_t type;       ///< type of data, which represents this item
+    void * param_list;      ///< list of parameters, if item is symbol of function, else NULL
+    void * return_list;     ///< list of returning values, if item is symbol of function, else NULL
+    struct htab_item *next; ///< pointer on the parent table ("frame")
+    size_t frame_ID;        ///< ID of frame, where symbol was defined
 }htab_item;
 
+/**
+ * @brief allocates memory for item and sets default values
+ * 
+ * allocated additional memory for key, which is stored in item
+ * 
+ * @param key name of symbol
+ * @return allocated memory of item
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 struct htab_item *create_htab_item(const htab_key_t key);
+
+/**
+ * @brief free memory of item
+ *  
+ * @param item pointer to memory, which should be cleared
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 void free_htab_item(struct htab_item * item);
 
-// Rozptylovací (hash) funkce (stejná pro všechny tabulky v programu)
-// Pokud si v programu definujete stejnou funkci, použije se ta vaše.
+/**
+ * @brief hash function
+ * 
+ * @param str name of symbol
+ * @return hashed symbol
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 size_t htab_hash_function(htab_key_t str);
 
-// Funkce pro práci s tabulkou:
-htab_t *htab_init(size_t n);                    // konstruktor tabulky
-htab_t *htab_move(size_t n, htab_t *from);      // přesun dat do nové tabulky
-size_t htab_size(const htab_t * t);             // počet záznamů v tabulce
-size_t htab_bucket_count(const htab_t * t);     // velikost pole
+/**
+ * @brief allocation and initialization of table
+ * 
+ * @param n size of array for lists
+ * @return pointer on table, NULL if allocation failed
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+htab_t *htab_init(size_t n);
 
+/**
+ * @brief move all items to newly allocated hash table
+ * 
+ * @param n size of new table
+ * @param from 
+ * @return htab_t* 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+htab_t *htab_move(size_t n, htab_t *from);
+
+/**
+ * @brief 
+ * 
+ * @param t pointer on table 
+ * @return number of items in the table
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+size_t htab_size(const htab_t * t);
+
+/**
+ * @brief returns size of array, where are stored pointers on lists of items
+ * 
+ * @param t pointer on table
+ * @return size of array
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+size_t htab_bucket_count(const htab_t * t);
+
+/**
+ * @brief recursivly finds item in structure of hash tables
+ * 
+ * find search in first table, than continue with table t->next
+ * 
+ * @param t pointer on table
+ * @param key key for searched item
+ * @return finded item or NULL, when item was not found
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 htab_item * htab_find(htab_t * t, htab_key_t key);  // hledání
+
+/**
+ * @brief add item to hash table
+ * 
+ * this function is not recursive!
+ * 
+ * @param t pointer on table
+ * @param key name of symbol
+ * @return created item in hash table or NULL if item was defined before
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 htab_item * htab_lookup_add(htab_t * t, htab_key_t key);
 
-bool htab_erase(htab_t * t, htab_key_t key);    // ruší zadaný záznam
 
-// for_each: projde všechny záznamy a zavolá na ně funkci f
+/**
+ * @brief Erase item defined by key from hash table
+ * 
+ * @param t pointer on table
+ * @param key key of item, which should be deleted
+ * @return true item was deleted
+ * @return false item was not found
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+bool htab_erase(htab_t * t, htab_key_t key);
+
+/**
+ * @brief apply function f on each item of the table
+ * 
+ * @param t pointer on table
+ * @param f pointer on function, whish should be applied on all items in table
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 void htab_for_each(const htab_t * t, void (*f)(htab_item *data));
 
-void htab_clear(htab_t * t);    // ruší všechny záznamy
+/**
+ * @brief delete all items of table, but not the table
+ * 
+ * @param t pointer on table, where all items should be erased and memory freed
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+void htab_clear(htab_t * t);
+
+/**
+ * @brief free memory of table and all items of the table
+ * 
+ * @param t pointer on table, which memory should be freed
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 void htab_free(htab_t * t);     // destruktor tabulky
 
 void print_htab_item_values(htab_item *data);  //tiskne data, ktera dostane v argumentu
-int read_word(char *s, int max, FILE *f);
-void wordcount();
-
-void htab_define_var(htab_key_t key);
 
 
 #endif
