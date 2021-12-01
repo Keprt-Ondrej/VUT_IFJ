@@ -3,6 +3,10 @@
 #ifndef __CODE_GENERATOR_H__
 #define __CODE_GENERATOR_H__
 
+const char* nil_string = "nil@nil";
+const char* bool_string_true = "bool@true";
+const char* bool_string_false = "bool@false";
+
 typedef enum {
     MOVE,
     CREATEFRAME,
@@ -68,4 +72,6 @@ typedef struct instr{
     char *op2;
     char *op3;
 }instruction_t;
+
+
 #endif
