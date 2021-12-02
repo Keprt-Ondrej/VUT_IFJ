@@ -10,8 +10,17 @@
 
 #include "scanner.h"
 #include "symtable.h"
-#include "parser_precedence.h"
 #include "code_generator.h"
+
+
+
+typedef struct prec_token{
+    Token_type type;
+    char *identifier;
+    data_type_t data_type;
+    struct prec_token *next;
+}
+precedence_token_t;
 
 /**
  * @brief Data for parser
@@ -27,14 +36,6 @@ typedef struct parser_data
     precedence_token_t *expression_list;    ///< list of tokens for assignment/function call
     int errno;                              ///< exit code
 } parser_data_t;
-
-typedef struct prec_token{
-    Token_type type;
-    char *identifier;
-    data_type_t data_type;
-    struct prec_token *next;
-}
-precedence_token_t;
 
 /**
  * @brief Set the errno if was not before
