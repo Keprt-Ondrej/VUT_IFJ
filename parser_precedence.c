@@ -1,10 +1,28 @@
 
 #include "parser_precedence.h"
+#include "parser.h"
 
 #define buffer_length 50
 
-int hello_world(){
-    return 5;
+void buffer_init(Buffer_for_token *buffer){
+    buffer->new_token = (precedence_token_t **) malloc(sizeof(precedence_token_t) * buffer_length);
+    buffer->index= 0;
+    buffer->length = buffer_length;
+}
+
+
+precedence_token_t * remake_token(parser_data_t *data){
+    precedence_token_t * new_token = malloc(sizeof(precedence_token_t));
+    new_token->token_type = data->token->type;
+    return new_token;
+}
+
+int precedence(parser_data_t *data){
+    precedence_token_t * new_token = remake_token(data);
+
+
+
+    return 1;
 }
 
 /*

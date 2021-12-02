@@ -49,6 +49,7 @@ void free_parser_data(parser_data_t *data);
 int print_token(Token *token);
 
 bool expression(parser_data_t *data);
+int precedence(parser_data_t *data);
 
 #endif
 
