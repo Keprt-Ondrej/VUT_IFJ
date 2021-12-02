@@ -3,6 +3,8 @@
 #ifndef __CODE_GENERATOR_H__
 #define __CODE_GENERATOR_H__
 
+#include "ErrLib.h"
+
 extern const char* nil_string;
 extern const char* bool_string_true;
 extern const char* bool_string_false;

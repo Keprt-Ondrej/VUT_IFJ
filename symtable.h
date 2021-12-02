@@ -34,6 +34,16 @@ typedef enum{
     type_bool,          ///< type for local frames and precedence analysis
 } data_type_t;
 
+/**
+ * @brief structure for list of parameters and return list
+ * 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+typedef struct data_token{
+    data_type_t data_type;      ///< data type of item
+    char *key;                  ///< name of item
+    struct data_token* next;    ///< pointer on the next item in list
+}data_token_t;
 
 /**
  * @brief sturcture for hash table
@@ -48,12 +58,12 @@ typedef struct htab{
 }htab_t;
 
 typedef struct htab_item{
-    char *    key;      ///< name of symbol stored in item
-    data_type_t type;       ///< type of data, which represents this item
-    void * param_list;      ///< list of parameters, if item is symbol of function, else NULL
-    void * return_list;     ///< list of returning values, if item is symbol of function, else NULL
-    struct htab_item *next; ///< pointer on the parent table ("frame")
-    size_t frame_ID;        ///< ID of frame, where symbol was defined
+    char *key;                     ///< name of symbol stored in item
+    data_type_t type;              ///< type of data, which represents this item
+    data_token_t *param_list;      ///< list of parameters, if item is symbol of function, else NULL
+    data_token_t *return_list;     ///< list of returning values, if item is symbol of function, else NULL
+    struct htab_item *next;        ///< pointer on the parent table ("frame")
+    size_t frame_ID;               ///< ID of frame, where symbol was defined
 }htab_item;
 
 /**

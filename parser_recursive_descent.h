@@ -9,6 +9,7 @@
 #define __PARSER_RECURSIVE_DESCENT_H__
 
 #include "parser.h"
+#include "code_generator.h"
 
 /**
  * @brief Seek if on input token is start of expression
@@ -50,5 +51,6 @@ bool value(parser_data_t *data);
 
 int parser();
 
+char *label_generator(char *function,char *what, size_t frame_counter);
 
 #endif

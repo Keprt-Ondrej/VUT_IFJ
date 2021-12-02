@@ -29,11 +29,20 @@ precedence_token_t;
 */
 typedef struct parser_data
 {   
+    char *actual_function;
     Token *token;                           ///< actual token on input
     Token *token_list_first;                ///< first token in token list
     htab_t *global_symtable;                ///< table of symbols for functions
     htab_t *local_symtable;                 ///< table of symbols for local variables  
     precedence_token_t *expression_list;    ///< list of tokens for assignment/function call
+    data_token_t *param_list;
+    data_token_t *return_list;
+    data_token_t *identif_list;
+    size_t while_counter;
+    size_t frame_counter;
+    instruction_t *before_while;
+    instruction_t *program;
+    instruction_t *last_instruction;
     int errno;                              ///< exit code
 } parser_data_t;
 
@@ -99,8 +108,33 @@ htab_item *htab_find_variable(htab_t *table,char *key);
 */
 void push_precedence_token(parser_data_t *data, precedence_token_t *token);
 
+void push_data_token(parser_data_t *data, data_token_t *token);
+void push_instruction(parser_data_t *data, instruction_t *instruction);
+char *return_allocated_string(char *string);
 
 bool fake_expression(parser_data_t *data); //TODO DELETE after precedence analysis is all done
+
+/**
+ * @brief create instruction for definition local variable in program
+ * 
+ * 
+ * @param data parser data, where instructions are stored
+ * @param key ALLOCATED memory with variable name, do not free this memory, it will be done at the end of program by code generator
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+void defvar_3AC(parser_data_t *data,char *key);
+
+/**
+ * @brief Allocate memory and copy the string
+ * 
+ * function exit program with error cote INTERNAL_ERROR
+ * 
+ * @param data for clearing data, if instruction fails
+ * @param str  copied string
+ * @return char* new allocated string
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+char *strcpy_alloc(parser_data_t *data, const char *str);
 
 #endif
 

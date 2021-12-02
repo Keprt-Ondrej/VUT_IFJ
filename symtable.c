@@ -105,6 +105,7 @@ htab_t *htab_init(size_t n){
     }
     tab->arr_size = n;
     tab->size = 0;  
+    tab->next = NULL;
     return tab;
 }
 

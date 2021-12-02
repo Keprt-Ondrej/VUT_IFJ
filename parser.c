@@ -6,6 +6,7 @@
 */
 
 #include "parser.h"
+#include "code_generator.h"
 
 void set_errno(parser_data_t *data,int errno){
     if(data->errno == 0){
@@ -51,6 +52,44 @@ void push_precedence_token(parser_data_t *data, precedence_token_t *token){
         walking_item = walking_item->next;
     }
     walking_item->next = token;
+}
+
+void push_instruction(parser_data_t *data, instruction_t *instruction){
+    data->last_instruction->next = instruction;
+    data->last_instruction = instruction;
+}
+
+//TODO switcher
+void push_data_token(parser_data_t *data, data_token_t *token){
+    if (data->param_list == NULL){
+        data->param_list = token;
+    }
+    data_token_t *walking_item = data->param_list;
+    while(walking_item->next != NULL){
+        walking_item = walking_item->next;
+    }
+    walking_item->next = token;
+}
+
+void defvar_3AC(parser_data_t *data,char *key){
+    instruction_t *instruction = create_instruction(DEFVAR,key,NULL,NULL);
+    if(data->while_counter == 0){
+        push_instruction(data,instruction);
+    }
+    else{
+        instruction->next = data->before_while->next;
+        data->before_while->next = instruction;
+    }
+}
+
+char *strcpy_alloc(parser_data_t *data, const char *str){
+    char *string = calloc(strlen(str) + 1,sizeof(char));
+    if(string == NULL){
+        free_parser_data(data);
+        exit(INTERNAL_ERROR);
+    }
+    strcpy(string,str);
+    return string;
 }
 
 int print_token(Token *token){

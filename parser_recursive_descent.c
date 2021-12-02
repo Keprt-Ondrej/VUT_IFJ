@@ -16,7 +16,22 @@ int parser(){
     //print_token(data.token);    
     data.token_list_first = data.token;
     data.global_symtable = htab_init(TABLE_SIZE);
-    data.errno = 0;
+    data.errno = SUCCESS;
+    data.expression_list = NULL;
+    data.return_list = NULL;
+    data.param_list = NULL;
+    data.identif_list = NULL;
+    data.while_counter = 0;
+
+    const char *label = "__IFJ21__$KEPY$___&START&__";
+    char *first_label = calloc(strlen(label)+1,sizeof(char));
+    if(first_label == NULL){
+        free_parser_data(&data);
+        exit(INTERNAL_ERROR);
+    }
+    strcpy(first_label,label);
+    data.program = create_instruction(LABEL,first_label,NULL,NULL);
+    data.last_instruction = data.program;
 
     //syntax analysis
     //get_token(&data);
@@ -26,7 +41,7 @@ int parser(){
         return data.errno;
     }
     free_parser_data(&data);
-    return 0;
+    return SUCCESS;
 }
 
 bool htab_define_function(char * key,parser_data_t *data){
@@ -178,7 +193,7 @@ bool fce_decl(parser_data_t *data){
 }
 
 bool fce_def(parser_data_t *data){
-    //grammar rule 14
+    //grammar rule 14    
     if(!is_token(data,kw_function)){
         fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
@@ -190,6 +205,8 @@ bool fce_def(parser_data_t *data){
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
+    data->while_counter = 0;
+    data->frame_counter = 0;
     //semantic check if function is defined
     char *identifier = data->token->data.str;
     htab_item *item = htab_find(data->global_symtable,identifier);
@@ -202,13 +219,12 @@ bool fce_def(parser_data_t *data){
         }
     }
     else{
-        store_identifier = malloc(strlen(identifier)+1);
-        if(store_identifier == NULL){
-            set_errno(data,INTERNAL_ERROR);
-            return false;
-        }
-        strcpy(store_identifier,identifier);
+        store_identifier = strcpy_alloc(data,identifier);        
     }
+
+    //create label for function
+    instruction_t *label = create_instruction(LABEL,label_generator(store_identifier,"",0),NULL,NULL); 
+    push_instruction(data,label);
 
     get_token(data);
     if(!is_token(data,token_type_left_bracket)){
@@ -252,6 +268,9 @@ bool fce_def(parser_data_t *data){
         return false;
     }
     get_token(data);
+
+
+
     return true;
 }
 
@@ -453,6 +472,8 @@ bool statement(parser_data_t *data){
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
+
+
         //TODO semantics
         get_token(data);
         if(!is_token(data,token_type_colon)){
@@ -507,6 +528,10 @@ bool statement(parser_data_t *data){
     }
     else if(is_token(data,kw_while)){
         //grammar rule 39
+        if(data->while_counter == 0){
+            data->before_while = data->last_instruction;
+        }
+        data->while_counter++;
         get_token(data);
         if(!is_expression_start(data->token)){
             fprintf(stderr,"chyba: %s\n",__func__);
@@ -527,6 +552,7 @@ bool statement(parser_data_t *data){
         }
         if(is_token(data,kw_end)){
             get_token(data);
+            data->while_counter--;
             return true;
         }
         fprintf(stderr,"chyba: %s\n",__func__);
@@ -760,6 +786,17 @@ bool value(parser_data_t *data){
     fprintf(stderr,"chyba: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
+}
+
+char *label_generator(char *function,char *what, size_t frame_counter){
+    char *label = NULL;
+    int lenght = snprintf(NULL,0,"$_%s_%s_%zu",function,what,frame_counter)+1;
+    label = calloc(lenght,sizeof(char));
+    if (label == NULL){
+        exit(INTERNAL_ERROR);
+    }
+    snprintf(label,lenght,"$_%s_%s_%zu",function,what,frame_counter);
+    return label;
 }
 
 bool fake_expression(parser_data_t *data){

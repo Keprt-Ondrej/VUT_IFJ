@@ -18,7 +18,7 @@ char *int_to_string(int value){
     int length = snprintf(NULL,0,"%d",value) + 1 ;
     char * str = calloc(length + 4,sizeof(char));
     if(str == NULL){
-        //TODO ret val ERROR handel
+        exit(INTERNAL_ERROR);
     }
     snprintf(str,length, "int@%d",value);
     return str;
@@ -28,7 +28,7 @@ char *double_to_string(double value){
     int length = snprintf(NULL,0,"%a",value) + 1 ;
     char * str = calloc(length + 6,sizeof(char));
     if(str == NULL){
-        //TODO ret val ERROR handel
+        exit(INTERNAL_ERROR);
     }
     snprintf(str,length, "float@%a",value);
     return str;
@@ -40,7 +40,7 @@ char *string_to_string(char *string){
     int lenght = strlen(string) + 8; //  1 + 7 is string@    1 is \0
     char * str = calloc(lenght,sizeof(char));
     if(str == NULL){
-        //TODO ret val error handle
+        exit(INTERNAL_ERROR);
     }
     snprintf(str,lenght,"string@%s",string);
     return str;
@@ -49,12 +49,13 @@ char *string_to_string(char *string){
 instruction_t *create_instruction(OP_code_t opcode,char *op1,char *op2,char *op3){
     instruction_t *inst = calloc(1,sizeof(instruction_t));
     if(inst == NULL){
-        //TODO error handle
+        exit(INTERNAL_ERROR);
     }
     inst->opcode = opcode;
     inst->op1 = op1;
     inst->op2 = op2;
     inst->op3 = op3;
+    inst->next = NULL;
     return inst;
 }
 
@@ -83,7 +84,7 @@ void generate_code(instruction_t *inst){
 void print_opcode(OP_code_t opcode){
     switch (opcode){
         case MOVE: printf("move\t"); break;
-        case CREATEFRAME: print("createframe\t"); break;
+        case CREATEFRAME: printf("createframe\t"); break;
         case PUSHFRAME: printf("pushframe\t"); break;
         case POPFRAME: printf("popframe\t"); break;
         case DEFVAR: printf("defvar\t"); break;
