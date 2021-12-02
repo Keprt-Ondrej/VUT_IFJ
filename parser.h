@@ -20,12 +20,29 @@
 */
 typedef struct parser_data
 {   
-    Token *token;               ///< actual token on input
-    Token *token_list_first;    ///< first token in token list
-    htab_t *global_symtable;    ///< table of symbols for functions  
-    int errno;                  ///< exit code
+    Token *token;                           ///< actual token on input
+    Token *token_list_first;                ///< first token in token list
+    htab_t *global_symtable;                ///< table of symbols for functions
+    htab_t *local_symtable;                 ///< table of symbols for local variables  
+    precedence_token_t *expression_list;    ///< list of tokens for assignment/function call
+    int errno;                              ///< exit code
 } parser_data_t;
 
+typedef struct prec_token{
+    Token_type type;
+    char *identifier;
+    data_type_t data_type;
+    struct prec_token *next;
+}
+precedence_token_t;
+
+/**
+ * @brief Set the errno if was not before
+ * 
+ * @param data parser data structure
+ * @param errno error number of error
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 void set_errno(parser_data_t *data,int errno);
 
 /**
@@ -65,6 +82,15 @@ void print_token(Token *token);
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 htab_item *htab_find_variable(htab_t *table,char *key);
+
+/**
+ * @brief pass token from precedence analyze 
+ * 
+ * @param data 
+ * @param token 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+void push_precedence_token(parser_data_t *data, precedence_token_t *token);
 
 #endif
 

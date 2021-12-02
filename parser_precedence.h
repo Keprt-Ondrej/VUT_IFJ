@@ -8,12 +8,7 @@
 #include "code_generator.h"
 
 
-typedef struct prec_token{
-    Token_type type;
-    char *identifier;
-    data_type_t data_type;
-}
-precedence_token_t;
+
 
 int hello_world();
 

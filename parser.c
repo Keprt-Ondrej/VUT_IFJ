@@ -41,6 +41,17 @@ htab_item *htab_find_variable(htab_t *table,char *key){
     return htab_find(table,key);
 }
 
+void push_precedence_token(parser_data_t *data, precedence_token_t *token){
+    if (data->expression_list == NULL){
+        data->expression_list = token;
+    }
+    precedence_token_t *walking_item = data->expression_list;
+    while(walking_item->next != NULL){
+        walking_item = walking_item->next;
+    }
+    walking_item->next = token;
+}
+
 void print_token(Token *token){
     Token_data data_token = token->data;
     Token_type type = token->type;
