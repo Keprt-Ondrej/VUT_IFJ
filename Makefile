@@ -5,8 +5,8 @@ LOGIN = xkeprt03
 #CFLAGS += -fsanitize=address
 #LDFLAGS += -fsanitize=address
 
-OFILES = scanner.o parser.o symtable.o parser_precedence.o parser_recursive_descent.o
-HFILES = scanner.h parser.h symtable.h parser_precedence.h parser_recursive_descent.h
+OFILES = scanner.o parser.o symtable.o parser_precedence.o parser_recursive_descent.o code_generator.o
+HFILES = scanner.h parser.h symtable.h parser_precedence.h parser_recursive_descent.h code_generator.h
 
 all: $(PROGS)
 
