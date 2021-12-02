@@ -37,6 +37,7 @@ void free_parser_data(parser_data_t *data){
     return;
 }
 
+
 htab_item *htab_find_variable(htab_t *table,char *key){
     return htab_find(table,key);
 }
@@ -52,16 +53,46 @@ void push_precedence_token(parser_data_t *data, precedence_token_t *token){
     walking_item->next = token;
 }
 
-void print_token(Token *token){
+int print_token(Token *token){
     Token_data data_token = token->data;
     Token_type type = token->type;
     printf("%3d: ", type);
-    if(type == 16 || type == 19)
+    if(type == token_type_identifier || type == token_type_string)
         printf("%s\n", data_token.str);
-    else if(type == 17)
+    else if(type == token_type_integer)
         printf("%d\n", data_token.type_integer);
-    else if(type == 18)
-        printf("%f\n", data_token.type_double);  
-    else
-        printf("%d\n", type);
+    else if(type == token_type_number)
+        printf("%f\n", data_token.type_double);
+    else if(type == token_type_EOF)//if EOF
+        return 0;
+    else {
+        if(token_type_length == type)                   printf("#\n");
+        if(token_type_mul == type)                      printf("*\n");
+        if(token_type_div == type)                      printf("/\n");
+        if(token_type_floor_div == type)                printf("//\n");
+        if(token_type_plus == type)                     printf("+\n");
+        if(token_type_minus == type)                    printf("-\n");
+        if(token_type_concat == type)                   printf("..\n");
+        if(token_type_lth == type)                      printf("<\n");
+        if(token_type_leq == type)                      printf("<=\n");
+        if(token_type_gth == type)                      printf(">\n");
+        if(token_type_geq == type)                      printf(">=\n");
+        if(token_type_equal == type)                    printf("==\n");
+        if(token_type_ineq == type)                     printf("~=\n");
+        if(token_type_assign == type)                   printf("=\n");
+        if(token_type_left_bracket == type)             printf("(\n");
+        if(token_type_right_bracket == type)            printf(")\n");
+        if(token_type_square_left_bracket == type)      printf("[\n");
+        if(token_type_square_right_bracket == type)     printf("]\n");
+        if(token_type_colon == type)                    printf(":\n");
+        if(token_type_comma == type)                    printf(",\n");
+        if(token_type_$ == type)                        printf("empty\n");
+        if(token_type_E == type)                        printf("E\n");
+        if(token_type_shift == type)                    printf("<\n");
+    }
+    return 1;
+}
+
+bool expression(parser_data_t *data){    
+    return precedence(data);
 }

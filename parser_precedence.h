@@ -9,8 +9,23 @@
 
 
 
+typedef struct prec_token{
+    Token_type token_type;
+    char *identifier;
+    data_type_t data_type;
+    struct prec_token *next;
+}
+precedence_token_t;
 
-int hello_world();
 
+
+typedef struct{
+    precedence_token_t **new_token;
+    int index;
+    int length;
+
+}Buffer_for_token;
+
+int precedence(parser_data_t *data);
 
 #endif

@@ -71,7 +71,13 @@ bool is_token(parser_data_t *data, Token_type type);
 void free_parser_data(parser_data_t *data);
 
 
-void print_token(Token *token);
+
+
+int print_token(Token *token);
+
+bool expression(parser_data_t *data);
+int precedence(parser_data_t *data);
+
 
 /**
  * @brief find variable in hierarchy of frames
