@@ -46,7 +46,9 @@ void get_token(parser_data_t *data);
 bool is_token(parser_data_t *data, Token_type type);
 
 void free_parser_data(parser_data_t *data);
-void print_token(Token *token);
+int print_token(Token *token);
+
+bool expression(parser_data_t *data);
 
 #endif
 

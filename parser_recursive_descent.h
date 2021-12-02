@@ -39,7 +39,6 @@ bool param(parser_data_t *data);
 bool statement(parser_data_t *data);
 bool init(parser_data_t *data);
 bool init2(parser_data_t *data);
-bool expression(parser_data_t *data);
 bool after_id(parser_data_t *data);
 bool assignment(parser_data_t *data);
 bool identif_list(parser_data_t *data);
