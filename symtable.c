@@ -9,6 +9,31 @@
 #include "parser.h"
 #include "ErrLib.h"
 
+data_token_t *create_data_token(){
+    data_token_t *token = calloc(1,sizeof(data_token_t));
+    if(token == NULL){
+        exit(INTERNAL_ERROR);
+    }
+    return token;
+}
+
+void push_back_data_token(data_token_t *token, data_token_t **place){
+    data_token_t *walking_token = *place;
+    if(walking_token == NULL){
+        *place = token;
+        return;
+    }
+    while(walking_token->next != NULL){
+        walking_token = walking_token->next;
+    }
+    walking_token->next = token;
+}
+
+void free_data_token(data_token_t *token){
+    free(token->key);
+    free(token);
+}
+
 size_t htab_bucket_count(const htab_t * t){
     return t->arr_size;
 }

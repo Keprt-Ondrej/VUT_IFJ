@@ -193,6 +193,9 @@ void htab_clear(htab_t * t);
 void htab_free(htab_t * t);     // destruktor tabulky
 
 void print_htab_item_values(htab_item *data);  //tiskne data, ktera dostane v argumentu
+void push_back_data_token(data_token_t *token, data_token_t **place);
+void free_data_token(data_token_t *token);
+data_token_t *create_data_token();
 
 
 #endif

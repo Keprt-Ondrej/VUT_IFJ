@@ -4,6 +4,7 @@
 #define __CODE_GENERATOR_H__
 
 #include "ErrLib.h"
+#include "symtable.h"
 
 extern const char* nil_string;
 extern const char* bool_string_true;
@@ -79,11 +80,29 @@ void free_instruction(instruction_t *ins);
 char *int_to_string(int value);
 char *double_to_string(double value);
 char *string_to_string(char *string);
+
+/**
+ * @brief Create a instruction object, REQUIRE ALLOCATED operands
+ * 
+ * @param opcode OPCODE of instruction
+ * @param op1 ALLOCATED operand or NULL
+ * @param op2 ALLOCATED operand or NULL
+ * @param op3 ALLOCATED operand or NULL
+ * @return instruction_t* 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 instruction_t *create_instruction(OP_code_t opcode,char *op1,char *op2,char *op3);
 void generate_code(instruction_t *inst);
 void print_opcode(OP_code_t opcode);
 
-
-
+/**
+ * @brief ALLOCATE memory for variable name and properly generate it
+ * 
+ * @param frame string, specifing frame, pass LF@,TF@,GF@ 
+ * @param item variable representation in table of symbols
+ * @return char* final name of variable in 3AC
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+char *allocate_var_name_3AC(const char* frame,htab_item *item);
 
 #endif

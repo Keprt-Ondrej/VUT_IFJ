@@ -2,6 +2,7 @@
 #include "code_generator.h"
 #include <stdio.h> 
 #include <stdlib.h>
+#include <string.h>
 
 const char* nil_string = "nil@nil";
 const char* bool_string_true = "bool@true";
@@ -80,6 +81,16 @@ void generate_code(instruction_t *inst){
         free_instruction(delete);
     }
 }
+
+char *allocate_var_name_3AC(const char* frame,htab_item *item){
+    size_t lenght = snprintf(NULL,0,"%s%s_$%zu",frame,item->key,item->frame_ID) + 1;
+    char *var = calloc(lenght,sizeof(char));
+    if(var == NULL){
+        exit(INTERNAL_ERROR);
+    }
+    snprintf(var,lenght,"%s%s_$%zu",frame,item->key,item->frame_ID);
+    return var;
+}   
 
 void print_opcode(OP_code_t opcode){
     switch (opcode){

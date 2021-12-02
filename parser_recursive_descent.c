@@ -47,11 +47,12 @@ int parser(){
 bool htab_define_function(char * key,parser_data_t *data){
     htab_item * item = htab_lookup_add(data->global_symtable,key);   
     if(item == NULL){
-        //TODO ERRNO
+        set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
         return false;
     }
     item->type = function_defined;
-    //TODO SET PARAMS
+    item->param_list = data->param_list;
+    item->return_list = data->return_list;
     return true;
 }
 
@@ -66,9 +67,12 @@ bool htab_declare_function(char * key,parser_data_t *data){
     return true;
 }
 
+/*
 bool htab_define_variable(char * key,parser_data_t *data){
+
     return true;
 }
+*/
 
 bool intro(parser_data_t *data){    
     if (is_token(data,kw_require)){
@@ -210,7 +214,6 @@ bool fce_def(parser_data_t *data){
     //semantic check if function is defined
     char *identifier = data->token->data.str;
     htab_item *item = htab_find(data->global_symtable,identifier);
-    char *store_identifier;
     if(item != NULL){
         if(item->type != function_declared){
             set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR );
@@ -219,11 +222,11 @@ bool fce_def(parser_data_t *data){
         }
     }
     else{
-        store_identifier = strcpy_alloc(data,identifier);        
+        data->actual_function = strcpy_alloc(data,identifier);        
     }
 
     //create label for function
-    instruction_t *label = create_instruction(LABEL,label_generator(store_identifier,"",0),NULL,NULL); 
+    instruction_t *label = create_instruction(LABEL,label_generator(data->actual_function,"",0),NULL,NULL); 
     push_instruction(data,label);
 
     get_token(data);
@@ -250,13 +253,41 @@ bool fce_def(parser_data_t *data){
 
     //define function
     if(item == NULL){
-        htab_define_function(store_identifier,data);
+        bool retval = htab_define_function(data->actual_function,data);
+        if(!retval){
+            return false;
+        }
     }
     else{
         //TODO pridej listy
         item->type = function_defined;
-    }    
-    free(store_identifier);
+    }
+    
+    data->local_symtable = htab_init(TABLE_SIZE);
+    //param setup
+    size_t param_number = 1;
+    data_token_t *walking_item = data->param_list;   
+    while(walking_item != NULL){        
+        htab_item * item = htab_lookup_add(data->local_symtable,walking_item->key);
+        if(item == NULL){
+            set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+            return false;
+        }
+        item->frame_ID = data->frame_counter;
+        item->type = walking_item->data_type;
+        defvar_3AC(data,allocate_var_name_3AC("LF@",item));
+        size_t lenght = snprintf(NULL,0,"LF@%%%zu",param_number) + 1;
+        char *param = calloc(lenght,sizeof(char));
+        if(param == NULL){
+            set_errno(data,INTERNAL_ERROR);
+            return false;
+        }
+        snprintf(param,lenght,"LF@%%%zu",param_number);
+        instruction_t *instruction = create_instruction(MOVE,allocate_var_name_3AC("LF@",item),param,NULL);
+        push_instruction(data,instruction);
+        walking_item = walking_item->next;
+        param_number++;
+    }
 
     if(!st_list(data)){
         return false;
@@ -268,9 +299,11 @@ bool fce_def(parser_data_t *data){
         return false;
     }
     get_token(data);
-
-
-
+    
+    data->param_list = NULL;
+    data->return_list = NULL;
+    free(data->actual_function);
+    data->actual_function = NULL;
     return true;
 }
 
@@ -342,19 +375,27 @@ bool type(parser_data_t *data){
     //grammar rule 51
     //grammar rule 52
     //grammar rule 53
+    data_token_t *token = create_data_token(data);
     switch (data->token->type){
         case kw_integer:
+            token->data_type = integer;
+        break;
         case kw_number:
+            token->data_type = number;
+        break;
         case kw_string:
-            get_token(data);
-            return true;
+            token->data_type = string;
         break;              
         default:
+            fprintf(stderr,"chyba: %s\n",__func__);
+            free_data_token(token);
+            set_errno(data,SYNTAX_ERROR);
+            return false;
         break;
     }
-    fprintf(stderr,"chyba: %s\n",__func__);
-    set_errno(data,SYNTAX_ERROR);
-    return false;
+    push_back_data_token(token,&(data->param_list));
+    get_token(data);
+    return true;
 }
 
 bool type_list2(parser_data_t *data){
@@ -425,15 +466,23 @@ bool param(parser_data_t *data){
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
-    //TODO semnatis identifier
+    char *param_name = strcpy_alloc(data,data->token->data.str);
+    //TODO semnatis identifier add to local hash table
     get_token(data);
     if(!is_token(data,token_type_colon)){
         fprintf(stderr,"chyba: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
+    
     get_token(data);
-    return type(data);   
+
+    bool type_retval = type(data);   
+    if(type_retval == false){
+        return false;
+    }
+    set_last_data_token_key(param_name,data->param_list);
+    return true;
 }
 
 bool st_list(parser_data_t *data){
@@ -806,6 +855,17 @@ bool fake_expression(parser_data_t *data){
     }
     get_token(data);
     return true;
+}
+
+void set_last_data_token_key(char *key,data_token_t *list){
+    if(list == NULL){
+        exit(INTERNAL_ERROR);
+    }
+    data_token_t *walking_item = list;
+    while(walking_item->next != NULL){
+        walking_item = walking_item->next;
+    }
+    walking_item->key = key;
 }
 
 /*

@@ -53,4 +53,12 @@ int parser();
 
 char *label_generator(char *function,char *what, size_t frame_counter);
 
+/**
+ * @brief Set name for last item in param list,
+ * 
+ * @param key ALLOCATED key name
+ * @param list first item of parameters
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+void set_last_data_token_key(char *key,data_token_t *list);
 #endif
