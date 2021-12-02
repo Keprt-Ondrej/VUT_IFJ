@@ -13,12 +13,13 @@ void buffer_init(Buffer_for_token *buffer){
 
 precedence_token_t * remake_token(parser_data_t *data){
     precedence_token_t * new_token = malloc(sizeof(precedence_token_t));
-    new_token->token_type = data->token->type;
+    //new_token->token_type = data->token->type;
     return new_token;
 }
 
+
 int precedence(parser_data_t *data){
-    precedence_token_t * new_token = remake_token(data);
+    //precedence_token_t * new_token = remake_token(data);
 
 
 

@@ -93,6 +93,8 @@ int print_token(Token *token){
     return 1;
 }
 
-bool expression(parser_data_t *data){    
+bool expression(parser_data_t *data){
+    //return fake_expression(data);
+
     return precedence(data);
 }

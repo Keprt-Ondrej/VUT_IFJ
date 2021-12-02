@@ -99,5 +99,8 @@ htab_item *htab_find_variable(htab_t *table,char *key);
 */
 void push_precedence_token(parser_data_t *data, precedence_token_t *token);
 
+
+bool fake_expression(parser_data_t *data); //TODO DELETE after precedence analysis is all done
+
 #endif
 

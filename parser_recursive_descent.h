@@ -50,5 +50,5 @@ bool value(parser_data_t *data);
 
 int parser();
 
-bool fake_expression(parser_data_t *data);
+
 #endif

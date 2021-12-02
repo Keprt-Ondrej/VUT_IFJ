@@ -582,13 +582,6 @@ bool init2(parser_data_t *data){
     return expression(data);
 }
 
-/*bool expression(parser_data_t *data){
-    return fake_expression(data);
-
-    //drop your code here:
-    return true;
-}*/
-
 bool after_id(parser_data_t *data){
     //grammar rule 28
     if(is_token(data,token_type_left_bracket)){
@@ -768,7 +761,7 @@ bool value(parser_data_t *data){
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
-/*
+
 bool fake_expression(parser_data_t *data){
     if(!is_expression_start(data->token)){
         //TODO ERRNO
@@ -777,7 +770,7 @@ bool fake_expression(parser_data_t *data){
     get_token(data);
     return true;
 }
-*/
+
 /*
 
         if a + b then 
