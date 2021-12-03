@@ -1,5 +1,5 @@
 require "ifj21"
-global foo : function(string,number,integer) :string, number
+global foo : function(string,number,integer) : string
 
 function main()
 local a: integer
@@ -14,8 +14,3 @@ return
 end
 
 main()
-
-function foo(str:string,cislo:number,cislo2:integer): string
-
-return str
-end

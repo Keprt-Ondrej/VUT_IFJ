@@ -196,6 +196,8 @@ void print_htab_item_values(htab_item *data);  //tiskne data, ktera dostane v ar
 void push_back_data_token(data_token_t *token, data_token_t **place);
 void free_data_token(data_token_t *token);
 data_token_t *create_data_token();
+void free_data_token_list(data_token_t **place);
+void htab_definition_control(htab_item *data);
 
 
 #endif

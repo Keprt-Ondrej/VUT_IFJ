@@ -34,6 +34,17 @@ void free_data_token(data_token_t *token){
     free(token);
 }
 
+void free_data_token_list(data_token_t **place){
+    data_token_t *token = *place;
+    data_token_t *delete;
+    while(token != NULL){
+        delete = token;
+        token = token->next;
+        free_data_token(delete);
+    }
+    *place = NULL;
+}
+
 size_t htab_bucket_count(const htab_t * t){
     return t->arr_size;
 }
@@ -227,6 +238,13 @@ void free_htab_item(struct htab_item * item){
 
 void print_htab_item_values(htab_item *data){    
     printf("%s\n",data->key);    
+}
+
+void htab_definition_control(htab_item *data){
+    if(data->type == function_declared){
+        fprintf(stderr,"Undefined function %s\n",data->key);
+        exit(SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+    }
 }
  
 /*

@@ -39,5 +39,6 @@ echo "${RED}--------------------------tests-------------------------------------
 test nothin.syntax_test_in no_output.txt 0 IFJ-Projekt-2021
 test prolog.syntax_test_in no_output.txt 0 IFJ-Projekt-2021
 test basic_syn.syntax_test_in no_output.txt 0 IFJ-Projekt-2021
+test undefine_function.semantic_test_in no_output.txt 3 IFJ-Projekt-2021
 echo "${RED}--------------------------tests---------------------------------------${NC}"
 rm -f tmp.tmp

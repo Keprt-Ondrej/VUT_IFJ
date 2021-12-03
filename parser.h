@@ -80,7 +80,7 @@ bool is_token(parser_data_t *data, Token_type type);
 */
 void free_parser_data(parser_data_t *data);
 
-
+char *generate_variable_3AC(htab_item *item);
 
 
 int print_token(Token *token);
@@ -110,7 +110,6 @@ void push_precedence_token(parser_data_t *data, precedence_token_t *token);
 
 void push_data_token(parser_data_t *data, data_token_t *token);
 void push_instruction(parser_data_t *data, instruction_t *instruction);
-char *return_allocated_string(char *string);
 
 bool fake_expression(parser_data_t *data); //TODO DELETE after precedence analysis is all done
 
