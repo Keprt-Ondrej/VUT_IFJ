@@ -20,8 +20,8 @@
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 bool is_expression_start(Token *token);
-bool htab_declare_function(char * key,parser_data_t *data);
-bool htab_define_function(char * key,parser_data_t *data);
+htab_item *htab_declare_function(char * key,parser_data_t *data);
+htab_item *htab_define_function(char * key,parser_data_t *data);
 
 bool intro(parser_data_t *data);
 bool prolog(parser_data_t *data);
@@ -61,4 +61,5 @@ char *label_generator(char *function,char *what, size_t frame_counter);
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 void set_last_data_token_key(char *key,data_token_t *list);
+bool full_data_token_compare(data_token_t *list1,data_token_t *list2);
 #endif

@@ -36,43 +36,38 @@ int parser(){
     //syntax analysis
     //get_token(&data);
     if (!intro(&data)){
-        fprintf(stderr,"Syntax error\n");
+        if(data.errno == SYNTAX_ERROR){
+            fprintf(stderr,"Syntax error\n");   
+        }
         free_parser_data(&data);
         return data.errno;
     }
+    htab_for_each(data.global_symtable,htab_definition_control);
     free_parser_data(&data);
     return SUCCESS;
 }
 
-bool htab_define_function(char * key,parser_data_t *data){
+htab_item * htab_define_function(char * key,parser_data_t *data){
     htab_item * item = htab_lookup_add(data->global_symtable,key);   
     if(item == NULL){
         set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
-        return false;
+        return NULL;
     }
     item->type = function_defined;
     item->param_list = data->param_list;
-    item->return_list = data->return_list;
-    return true;
+    return item;
 }
 
-bool htab_declare_function(char * key,parser_data_t *data){ 
+htab_item *htab_declare_function(char * key,parser_data_t *data){ 
     htab_item * item = htab_lookup_add(data->global_symtable,key);   
     if(item == NULL){
-         //TODO ERRNO
-        return false;
+        set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+        return NULL;
     }
     item->type = function_declared;
-    //TODO SET PARAMS
-    return true;
+    item->param_list = data->param_list;
+    return item;
 }
-
-/*
-bool htab_define_variable(char * key,parser_data_t *data){
-
-    return true;
-}
-*/
 
 bool intro(parser_data_t *data){    
     if (is_token(data,kw_require)){
@@ -142,6 +137,7 @@ bool fce_decl(parser_data_t *data){
         set_errno(data,SYNTAX_ERROR); 
         return false;
     }
+    data->param_list = NULL; 
     //control of function existence
     char *identifier = data->token->data.str;
     htab_item *item = htab_find(data->global_symtable,identifier);
@@ -186,13 +182,20 @@ bool fce_decl(parser_data_t *data){
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
+    htab_item *func_item = htab_declare_function(store_identifier,data);
+    if(func_item == NULL){
+        return false;
+    }
+    data->param_list = NULL;  
+
     get_token(data);
     if(!ret_list(data)){
         return false;
     }
-    
-    htab_declare_function(store_identifier,data);
+    //fprintf(stderr,"declaration %d\n",data->param_list->data_type);
+    func_item->return_list = data->param_list; //it is param list, because <type> store data tokens to param list    
     free(store_identifier);
+    data->param_list = NULL; 
     return true;
 }
 
@@ -209,21 +212,27 @@ bool fce_def(parser_data_t *data){
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
+    data->param_list = NULL;
+    data->return_list = NULL;
     data->while_counter = 0;
     data->frame_counter = 0;
     //semantic check if function is defined
     char *identifier = data->token->data.str;
-    htab_item *item = htab_find(data->global_symtable,identifier);
-    if(item != NULL){
-        if(item->type != function_declared){
+
+    htab_item *func_item = htab_find(data->global_symtable,identifier);
+    bool was_declared;
+    if(func_item != NULL){        
+        if(func_item->type != function_declared){
             set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR );
             fprintf(stderr,"Trying to redefine function %s\n",identifier);
             return false;
         }
+        was_declared = true;
     }
     else{
-        data->actual_function = strcpy_alloc(data,identifier);        
+        was_declared = false;   
     }
+    data->actual_function = strcpy_alloc(data,identifier);
 
     //create label for function
     instruction_t *label = create_instruction(LABEL,label_generator(data->actual_function,"",0),NULL,NULL); 
@@ -247,24 +256,25 @@ bool fce_def(parser_data_t *data){
     }
     get_token(data);
 
-    if(!ret_list(data)){
-        return false;
+    if(was_declared){
+        if(!full_data_token_compare(data->param_list,func_item->param_list)){
+            fprintf(stderr,"Parameters dont match with declaration, function: %s\n",data->actual_function);
+            set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+            return false;
+        }
+        data_token_t *change = func_item->param_list;
+        func_item->param_list = data->param_list;
+        free_data_token_list(&change);               
     }
-
-    //define function
-    if(item == NULL){
-        bool retval = htab_define_function(data->actual_function,data);
-        if(!retval){
+    else{
+        func_item = htab_define_function(data->actual_function,data);
+        if(func_item == NULL){
             return false;
         }
     }
-    else{
-        //TODO pridej listy
-        item->type = function_defined;
-    }
-    
-    data->local_symtable = htab_init(TABLE_SIZE);
+
     //param setup
+    data->local_symtable = htab_init(TABLE_SIZE);
     size_t param_number = 1;
     data_token_t *walking_item = data->param_list;   
     while(walking_item != NULL){        
@@ -289,6 +299,26 @@ bool fce_def(parser_data_t *data){
         param_number++;
     }
 
+    data->param_list = NULL;
+
+    if(!ret_list(data)){
+        return false;
+    }
+
+    if(was_declared){
+        //fprintf(stderr,"param_list: %d return_list: %d\n",data->param_list->data_type,func_item->return_list->data_type);        
+        if(!full_data_token_compare(data->param_list,func_item->return_list)){  //param list is ok, beacuse function <type> store data tokens to param list
+            fprintf(stderr,"Return values dont match with declaration, function: %s\n",data->actual_function);
+            set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+            return false;
+        }
+        free_data_token_list(&(data->param_list));
+    }
+    else{
+        func_item->return_list = data->param_list;
+        data->param_list = NULL;
+    } 
+
     if(!st_list(data)){
         return false;
     }
@@ -299,7 +329,10 @@ bool fce_def(parser_data_t *data){
         return false;
     }
     get_token(data);
-    
+
+
+    func_item->type = function_defined;
+    push_instruction(data,create_instruction(POPFRAME,NULL,NULL,NULL));
     data->param_list = NULL;
     data->return_list = NULL;
     free(data->actual_function);
@@ -866,6 +899,22 @@ void set_last_data_token_key(char *key,data_token_t *list){
         walking_item = walking_item->next;
     }
     walking_item->key = key;
+}
+
+bool full_data_token_compare(data_token_t *list1,data_token_t *list2){
+    data_token_t *walking_item1 = list1;
+    data_token_t *walking_item2 = list2;
+    while(walking_item1 != NULL && walking_item2 != NULL){
+        if(walking_item1->data_type != walking_item2->data_type){
+            return false;
+        }
+        walking_item1 = walking_item1->next;
+        walking_item2 = walking_item2->next;
+    }
+    if((walking_item1 == NULL && walking_item2 != NULL) || (walking_item1 != NULL && walking_item2 == NULL)){
+        return false;
+    }
+    return true;
 }
 
 /*
