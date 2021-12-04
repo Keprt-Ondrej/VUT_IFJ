@@ -38,14 +38,16 @@ String* extend_buffer(String *s) {
     return 0;
 }
 
-int str_add_char(String *s, char c) {
+bool str_add_char(String *s, char c) {
     if(s->current_index + 1 >= s->alloc_size) {
-        extend_buffer(s);
+        if(NULL == extend_buffer(s)) {
+            return false;
+        }
     }
 	s->string[s->current_index++] = c;
 	s->string[s->current_index] = '\0';
-	return 0;
-}    
+	return true;
+}  
 
 Token* create_token() {
     Token *token = malloc(sizeof(Token));
@@ -61,6 +63,13 @@ void add_str_to_token(String buffer, Token *token) {
     strcpy(token->data.str, buffer.string);
 }
 
+void delete_token(Token* token){
+    if ((token->type == token_type_identifier) || (token->type == token_type_string)){ 
+        free(token->data.str);
+    }
+    free(token);
+}
+
 Token* read_token() {
     Token *token = create_token();
     String buffer;  
@@ -69,6 +78,7 @@ Token* read_token() {
     FSM_state state = start;
     char *endptr;
     char c;
+    bool succes;
     while(true) {
         switch(state) {
             case start: 
@@ -84,7 +94,11 @@ Token* read_token() {
                     state = int_number;
                 }    
                 else if(c == '0') {
-                    str_add_char(&buffer, c);
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
+                        delete_token(token);
+                        return NULL;
+                    }    
                     state = zero;
                 }
                 else if ((('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z')) || (c == '_')) {
