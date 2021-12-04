@@ -16,8 +16,8 @@ void free_instruction(instruction_t *ins){
 }
 
 char *int_to_string(int value){
-    int length = snprintf(NULL,0,"%d",value) + 1 ;
-    char * str = calloc(length + 4,sizeof(char));
+    int length = snprintf(NULL,0,"int@%d",value) + 1 ;
+    char * str = calloc(length,sizeof(char));
     if(str == NULL){
         exit(INTERNAL_ERROR);
     }
@@ -26,8 +26,8 @@ char *int_to_string(int value){
 }
 
 char *double_to_string(double value){
-    int length = snprintf(NULL,0,"%a",value) + 1 ;
-    char * str = calloc(length + 6,sizeof(char));
+    int length = snprintf(NULL,0,"float@%a",value) + 1 ;
+    char * str = calloc(length,sizeof(char));
     if(str == NULL){
         exit(INTERNAL_ERROR);
     }
@@ -61,7 +61,7 @@ instruction_t *create_instruction(OP_code_t opcode,char *op1,char *op2,char *op3
 }
 
 void generate_code(instruction_t *inst){
-    printf(".IFJcode21\n");
+
     //TODO vestavene funkce
 
     instruction_t *delete;
@@ -74,8 +74,9 @@ void generate_code(instruction_t *inst){
             printf("%s\t",inst->op2);
         }
         if(inst->op3 != NULL){
-            printf("%s\n",inst->op3);
+            printf("%s",inst->op3);
         }
+        printf("\n");
         delete = inst;
         inst = inst->next;
         free_instruction(delete);
