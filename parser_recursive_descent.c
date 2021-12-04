@@ -22,6 +22,7 @@ int parser(){
     data.param_list = NULL;
     data.identif_list = NULL;
     data.while_counter = 0;
+    data.tmp_counter = 0;
 
     data.function_calls =create_instruction(LABEL,strcpy_alloc(&data,"__$IFJ-code-21$__$KEPY$__&START&__"),NULL,NULL);
     data.last_call = data.function_calls;
@@ -341,7 +342,9 @@ bool fce_def(parser_data_t *data){
     }
     get_token(data);
 
-
+    //htab_for_each(data->local_symtable,print_htab_item_values);
+    htab_free(data->local_symtable);
+    data->local_symtable = NULL;
     data->while_counter = 0;
     func_item->type = function_defined;
     push_instruction(data,create_instruction(POPFRAME,NULL,NULL,NULL));
@@ -567,8 +570,14 @@ bool statement(parser_data_t *data){
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
+        htab_item *variable =  htab_lookup_add(data->local_symtable,data->token->data.str);
+        if(variable == NULL){
+            fprintf(stderr,"trying to redefine variable %s\n",data->token->data.str);
+            set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+            return false;
+        }
+        variable->frame_ID = data->frame_counter;
 
-        //TODO semantics
         get_token(data);
         if(!is_token(data,token_type_colon)){
             fprintf(stderr,"syntax error in: %s\n",__func__);
@@ -581,6 +590,8 @@ bool statement(parser_data_t *data){
         if(!ret_val){
             return false;
         }
+
+        variable->type = data->param_list->data_type;
         free_data_token(data->param_list);
         data->param_list = NULL;
         return init(data);    

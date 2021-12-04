@@ -237,7 +237,7 @@ void free_htab_item(struct htab_item * item){
 }
 
 void print_htab_item_values(htab_item *data){    
-    printf("%s\n",data->key);    
+    fprintf(stderr,"variable in table: %s %zu %d\n",data->key,data->frame_ID,data->type);    
 }
 
 void htab_definition_control(htab_item *data){
