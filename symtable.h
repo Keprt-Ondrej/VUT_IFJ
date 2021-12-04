@@ -32,6 +32,7 @@ typedef enum{
     string,             ///< type for local frames and precedence analysis
     nil,                ///< type for local frames and precedence analysis
     type_bool,          ///< type for local frames and precedence analysis
+    identifier,         ///< type for generatin function call
 } data_type_t;
 
 /**
