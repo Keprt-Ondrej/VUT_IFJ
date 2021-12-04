@@ -99,7 +99,7 @@ char *strcpy_alloc(parser_data_t *data, const char *str){
 }
 
 char *allocate_new_tmp_name(parser_data_t *data,const char *frame){
-    size_t lenght = snprintf(NULL,0,"%s$_tmp_var_$%zu",frame,data->tmp_counter);
+    size_t lenght = snprintf(NULL,0,"%s$_tmp_var_$%zu",frame,data->tmp_counter)+1;
     char *name = calloc(lenght,sizeof(char));
     if(name == NULL){
         free_parser_data(data);
@@ -149,6 +149,7 @@ int print_token(Token *token){
     }
     return 1;
 }
+
 
 bool expression(parser_data_t *data){
     //return fake_expression(data);

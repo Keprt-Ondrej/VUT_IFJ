@@ -931,7 +931,8 @@ bool value(parser_data_t *data){
                 set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
                 free_data_token(token);
                 return false;
-            }     
+            }
+            token->data_type = identifier;     
             token->key = strcpy_alloc(data,data->token->data.str);       
         break;
         default:
@@ -948,7 +949,7 @@ bool value(parser_data_t *data){
 
 char *label_generator(char *function,char *what, size_t frame_counter){
     char *label = NULL;
-    int lenght = snprintf(NULL,0,"$_%s_%s_%zu",function,what,frame_counter)+1;
+    size_t lenght = snprintf(NULL,0,"$_%s_%s_%zu",function,what,frame_counter)+1;
     label = calloc(lenght,sizeof(char));
     if (label == NULL){
         exit(INTERNAL_ERROR);
@@ -1070,6 +1071,42 @@ void generate_function_call(parser_data_t *data,htab_item *function){
     size_t lenght;
     char *param_def;
     char *param;
+    if(strcmp(function->key,"write") == 0){
+        data_token_t *delete = NULL;
+        reverse_list(&(data->param_list));
+        param_counter = 0;
+        while(data->param_list != NULL){
+            if(walking_item->data_type == identifier){
+                htab_item *variable = htab_find_variable(data->local_symtable,walking_item->key);
+                if(variable == NULL){
+                    free_parser_data(data);
+                    exit(SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+                }
+                push_instruction(data,create_instruction(PUSHS,allocate_var_name_3AC("LF@",variable),NULL,NULL));
+            }
+            else{
+                push_instruction(data,create_instruction(PUSHS,strcpy_alloc(data,data->param_list->key),NULL,NULL));                
+            }
+            delete = data->param_list;
+            data->param_list = data->param_list->next;
+            free_data_token(delete);
+            param_counter++;
+        }
+
+        push_instruction(data,create_instruction(DEFVAR,strcpy_alloc(data,"TF@%1"),NULL,NULL));
+        lenght = snprintf(NULL,0,"int@%zu",param_counter) + 1;
+        param_def = calloc(lenght,sizeof(char));
+        if(param_def == NULL){
+            free_parser_data(data);
+            exit(INTERNAL_ERROR);
+        }
+        snprintf(param_def,lenght,"int@%zu",param_counter);
+        push_instruction(data,create_instruction(MOVE,strcpy_alloc(data,"TF@%1"),param_def,NULL));
+        push_instruction(data,create_instruction(PUSHFRAME,NULL,NULL,NULL));
+        push_instruction(data,create_instruction(CALL,label_generator(function->key,"",0),NULL,NULL));
+        data->param_list = NULL;
+        return;
+    }
     while(walking_item_function != NULL && walking_item != NULL){
         if(walking_item->data_type == identifier){  //TODO otestovat
             htab_item *variable = htab_find_variable(data->local_symtable,walking_item->key);
@@ -1078,20 +1115,40 @@ void generate_function_call(parser_data_t *data,htab_item *function){
                 exit(SEM_ERROR_REDEFINE_UNDEFINE_VAR);
             }
             if(variable->type != walking_item_function->data_type){
-                free_parser_data(data);
-                fprintf(stderr,"wrong data type of parametr in function call %s\n",function->key);
-                exit(SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
-            }
-            param = allocate_var_name_3AC("TF@",variable);
+                if(walking_item_function->data_type == number && variable->type == integer){
+                    char *tmp = allocate_new_tmp_name(data,"TF@");
+                    defvar_3AC(data,strcpy_alloc(data,tmp));
+                    push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,tmp),allocate_var_name_3AC("LF@",variable),NULL));
+                    param = tmp;
+                }
+                else{
+                    free_parser_data(data);
+                    fprintf(stderr,"wrong data type of parametr in function call %s\n",function->key);
+                    exit(SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);            }
+                }                
+            else{
+                param = allocate_var_name_3AC("LF@",variable);
+            }           
         }
         else{
             if(walking_item->data_type != walking_item_function->data_type){
-                free_parser_data(data);
-                fprintf(stderr,"wrong data type of parametr in function call %s\n",function->key);
-                exit(SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
+                if(walking_item_function->data_type == number && walking_item->data_type == integer){
+                    char *tmp = allocate_new_tmp_name(data,"TF@");
+                    defvar_3AC(data,strcpy_alloc(data,tmp));
+                    push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,tmp),walking_item->key,NULL));
+                    walking_item->key = NULL;
+                    param = tmp;
+                }
+                else{
+                    free_parser_data(data);
+                    fprintf(stderr,"wrong data type of parametr in function call %s\n",function->key);
+                    exit(SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
+                }                
             }
-            param = walking_item->key;
-            walking_item->key = NULL;
+            else{
+                param = walking_item->key;
+                walking_item->key = NULL;
+            }            
         }        
         lenght = snprintf(NULL,0,"TF@%%%zu",param_counter) + 1;
         param_def = calloc(lenght,sizeof(char));
@@ -1130,6 +1187,20 @@ void generate_function_call(parser_data_t *data,htab_item *function){
     }
     push_instruction(data,create_instruction(PUSHFRAME,NULL,NULL,NULL));
     push_instruction(data,create_instruction(CALL,label_generator(function->key,"",0),NULL,NULL));
+}
+
+void reverse_list(data_token_t **place){
+    data_token_t *actual = *place;
+    data_token_t *next = NULL;
+    data_token_t *prev = NULL;
+    while(actual != NULL){
+        //fprintf(stderr,"posun--------------------\n");
+        next = actual->next;
+        actual->next = prev;
+        prev = actual;
+        actual = next;
+    }
+    *place = prev;
 }
 
 /*
