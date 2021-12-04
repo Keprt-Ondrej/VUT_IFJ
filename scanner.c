@@ -7,13 +7,15 @@
 
 #include "scanner.h"
 
+extern int exit_code;
 
 #define size_of_length 11
 
 int str_init(String *s) {
     s->string = (char *) malloc(size_of_length);
     if(NULL == s->string){
-        return 99;
+        exit_code = INTERNAL_ERROR;
+        return exit_code;
     }
     s->current_index = 0;
     s->string[s->current_index] = '\0';
@@ -28,8 +30,10 @@ void str_free(String *s) {
 String* extend_buffer(String *s) {
     int alloc_new_size = s->alloc_size + size_of_length;
     s->string = (char *) realloc(s->string, alloc_new_size);
-        if(NULL == s->string)
+        if(NULL == s->string) {
+            exit_code = INTERNAL_ERROR;
             return NULL;
+        }    
     s->alloc_size = alloc_new_size;    
     return 0;
 }
@@ -45,8 +49,10 @@ int str_add_char(String *s, char c) {
 
 Token* create_token() {
     Token *token = malloc(sizeof(Token));
-    if (NULL == token)
+    if (NULL == token) {
+        exit_code = INTERNAL_ERROR;
         return NULL;
+    }    
     return token;    
 }
 
@@ -78,7 +84,7 @@ Token* read_token() {
                     state = int_number;
                 }    
                 else if(c == '0') {
-                    str_add_char(&buffer, c); 
+                    str_add_char(&buffer, c);
                     state = zero;
                 }
                 else if ((('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z')) || (c == '_')) {
@@ -132,6 +138,10 @@ Token* read_token() {
                 }
                 else if(c == '-') {
                     state = minus_st;
+                }
+                else {
+                    exit_code = INTERNAL_ERROR;
+                    return NULL;
                 }
             break;
 
@@ -260,6 +270,7 @@ Token* read_token() {
                     state = double_point_value;
                 } 
                 else {
+                    exit_code = INTERNAL_ERROR;
                     return NULL;
                 }
             break;    
@@ -294,6 +305,7 @@ Token* read_token() {
                     state = double_exponent_value;
                 }
                 else {
+                    exit_code = INTERNAL_ERROR;
                     return NULL;
                 }
             break;
@@ -305,6 +317,7 @@ Token* read_token() {
                     state = double_exponent_value;
                 }
                 else {
+                    exit_code = INTERNAL_ERROR;
                     return NULL;
                 }
             break;
@@ -382,6 +395,7 @@ Token* read_token() {
                     state = ineq_end_st;
                 }
                 else {
+                    exit_code = INTERNAL_ERROR;
                     return NULL;
                 }
             break;
@@ -448,6 +462,7 @@ Token* read_token() {
                     state = concat_st;
                 }         
                 else {
+                    exit_code = INTERNAL_ERROR;
                     return NULL;
                 }
             break;
@@ -466,7 +481,8 @@ Token* read_token() {
                     state = escape_seq;
                 }
                 else if(c == EOF || c == '\n') {
-                    printf("CHYBA STRING EOF!!!!");          // 1 chyba mozna upravovat
+                    exit_code = INTERNAL_ERROR;       
+                    return NULL;   
                 }
                 else if(c > 31) {                            // specifikace zadani
                     str_add_char(&buffer, c);
@@ -517,6 +533,9 @@ Token* read_token() {
                 if(c == '[') {
                     state = block_comment_begin;
                 }
+                else if (c == '\n'){
+                    state = start;
+                }
                 else if (c == EOF) {
                     state = end_of_file;
                 }
@@ -541,6 +560,7 @@ Token* read_token() {
                     state = block_comment_end;
                 }
                 else if (c == EOF) {
+                    exit_code = INTERNAL_ERROR; 
                     state = end_of_file;        //UPRAVIT!!!
                 }
                 else {
@@ -554,6 +574,7 @@ Token* read_token() {
                     state = start;
                 }
                 else {
+                    exit_code = INTERNAL_ERROR;
                     state = end_of_file;       //UPRAVIT!!!
                 }  
             break;
@@ -566,4 +587,3 @@ Token* read_token() {
     str_free(&buffer);
     return token;	
 }
-
