@@ -23,26 +23,25 @@ int parser(){
     data.identif_list = NULL;
     data.while_counter = 0;
 
-    const char *label = "__IFJ21__$KEPY$___&START&__";
-    char *first_label = calloc(strlen(label)+1,sizeof(char));
-    if(first_label == NULL){
-        free_parser_data(&data);
-        exit(INTERNAL_ERROR);
-    }
-    strcpy(first_label,label);
-    data.program = create_instruction(LABEL,first_label,NULL,NULL);
+    data.function_calls =create_instruction(LABEL,strcpy_alloc(&data,"__$IFJ-code-21$__$KEPY$__&START&__"),NULL,NULL);
+    data.last_call = data.function_calls;
+    data.program = create_instruction(EXIT,int_to_string(0),strcpy_alloc(&data,"\n"),NULL);
     data.last_instruction = data.program;
 
-    //syntax analysis
-    //get_token(&data);
+    prepare_build_in_functions(&data);
     if (!intro(&data)){
         if(data.errno == SYNTAX_ERROR){
             fprintf(stderr,"Syntax error\n");   
         }
         free_parser_data(&data);
         return data.errno;
-    }
+    }    
     htab_for_each(data.global_symtable,htab_definition_control);
+    printf(".IFJcode21\n");
+    generate_code(data.function_calls);
+    generate_code(data.program);
+    //TODO generate build in functions
+    data.program = NULL;
     free_parser_data(&data);
     return SUCCESS;
 }
@@ -78,7 +77,7 @@ bool intro(parser_data_t *data){
         return true;
     }
     else{
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -95,7 +94,7 @@ bool prolog(parser_data_t* data){
             }            
         }
     }
-    fprintf(stderr,"chyba: %s\n",__func__);
+    fprintf(stderr,"syntax error in: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -111,15 +110,27 @@ bool prog(parser_data_t* data){
     }
     else if(is_token(data,token_type_identifier)){
         //grammar rule 4
-        //TODO SEMANTIC
-        get_token(data);    
-        return call_fce(data) && prog(data);
+        char *store_identifier = strcpy_alloc(data,data->token->data.str);
+        get_token(data);
+        bool ret_val = call_fce(data); 
+        if(!ret_val){
+            return false;
+        }
+        htab_item *function = htab_find(data->global_symtable,store_identifier);
+        if(function == NULL){
+            fprintf(stderr,"Function %s was not declared/defined\n",store_identifier);
+            free(store_identifier);
+            set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+            return false;
+        }
+        generate_function_call(data,function);
+        return prog(data);
     }
     else if(is_token(data,token_type_EOF)){
         //grammar rule 5
         return true;
     }
-    fprintf(stderr,"chyba: %s\n",__func__);
+    fprintf(stderr,"syntax error in: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -127,13 +138,13 @@ bool prog(parser_data_t* data){
 bool fce_decl(parser_data_t *data){
     //grammar rule 7
     if(!is_token(data,kw_global)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR); 
         return false;
     }
     get_token(data);
     if(!is_token(data,token_type_identifier)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR); 
         return false;
     }
@@ -156,19 +167,19 @@ bool fce_decl(parser_data_t *data){
     //syntax chceck continue:
     get_token(data);
     if(!is_token(data,token_type_colon)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
     get_token(data);
     if(!is_token(data,kw_function)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
     get_token(data);
     if(!is_token(data,token_type_left_bracket)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -178,7 +189,7 @@ bool fce_decl(parser_data_t *data){
     }
 
     if(!is_token(data,token_type_right_bracket)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -202,13 +213,13 @@ bool fce_decl(parser_data_t *data){
 bool fce_def(parser_data_t *data){
     //grammar rule 14    
     if(!is_token(data,kw_function)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
     get_token(data);
     if(!is_token(data,token_type_identifier)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -240,7 +251,7 @@ bool fce_def(parser_data_t *data){
 
     get_token(data);
     if(!is_token(data,token_type_left_bracket)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -250,7 +261,7 @@ bool fce_def(parser_data_t *data){
     }
 
     if(!is_token(data,token_type_right_bracket)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -324,15 +335,17 @@ bool fce_def(parser_data_t *data){
     }
 
     if(!is_token(data,kw_end)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
     get_token(data);
 
 
+    data->while_counter = 0;
     func_item->type = function_defined;
     push_instruction(data,create_instruction(POPFRAME,NULL,NULL,NULL));
+    push_instruction(data,create_instruction(RETURN,strcpy_alloc(data,"\n"),NULL,NULL));
     data->param_list = NULL;
     data->return_list = NULL;
     free(data->actual_function);
@@ -343,7 +356,7 @@ bool fce_def(parser_data_t *data){
 bool call_fce(parser_data_t *data){
     //grammar rule 41
     if(!is_token(data,token_type_left_bracket)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -352,7 +365,7 @@ bool call_fce(parser_data_t *data){
         return false;
     }
     if(!is_token(data,token_type_right_bracket)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -371,7 +384,7 @@ bool type_list(parser_data_t *data){
         return type(data) && type_list2(data);
     }
 
-    fprintf(stderr,"chyba: %s\n",__func__);
+    fprintf(stderr,"syntax error in: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;    
 }
@@ -396,7 +409,7 @@ bool ret_list(parser_data_t *data){
             return type(data) && type_list2(data);  
         break;
         default:
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;            
         break;        
@@ -420,7 +433,7 @@ bool type(parser_data_t *data){
             token->data_type = string;
         break;              
         default:
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             free_data_token(token);
             set_errno(data,SYNTAX_ERROR);
             return false;
@@ -452,7 +465,7 @@ bool type_list2(parser_data_t *data){
             get_token(data);
             return type(data) && type_list2(data);
         default:
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         break;        
@@ -471,7 +484,7 @@ bool param_def_list(parser_data_t *data){
         return param(data) && param_def_list2(data);
     }
 
-    fprintf(stderr,"chyba: %s\n",__func__);
+    fprintf(stderr,"syntax error in: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;    
 }
@@ -484,7 +497,7 @@ bool param_def_list2(parser_data_t *data){
 
     //grammar rule 17
     if(!is_token(data,token_type_comma)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -495,7 +508,7 @@ bool param_def_list2(parser_data_t *data){
 bool param(parser_data_t *data){
     //grammar rule 19
     if(!is_token(data,token_type_identifier)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -503,7 +516,7 @@ bool param(parser_data_t *data){
     //TODO semnatis identifier add to local hash table
     get_token(data);
     if(!is_token(data,token_type_colon)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -537,7 +550,7 @@ bool st_list(parser_data_t *data){
             get_token(data);
             return expression_list(data);
         default:
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         break;
@@ -550,24 +563,34 @@ bool statement(parser_data_t *data){
         //grammar rule 22
         get_token(data);
         if(!is_token(data,token_type_identifier)){
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
-
 
         //TODO semantics
         get_token(data);
         if(!is_token(data,token_type_colon)){
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
         get_token(data);
-        return type(data) && init(data);    
+
+        bool ret_val = type(data);
+        if(!ret_val){
+            return false;
+        }
+        free_data_token(data->param_list);
+        data->param_list = NULL;
+        return init(data);    
     }
     else if(is_token(data,token_type_identifier)){
         //grammar rule 27
+        data_token_t *token = create_data_token();
+        token->key = strcpy_alloc(data,data->token->data.str);
+        data->identif_list = token;
+        //data->param_list = NULL;     //TODO BAD HERE    
         get_token(data);
         return after_id(data);
     }
@@ -575,7 +598,7 @@ bool statement(parser_data_t *data){
         //grammar rule 38
         get_token(data);
         if(!is_expression_start(data->token)){
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
@@ -583,7 +606,7 @@ bool statement(parser_data_t *data){
             return false;
         }
         if(!is_token(data,kw_then)){
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
@@ -592,7 +615,7 @@ bool statement(parser_data_t *data){
             return false;
         }
         if(!is_token(data,kw_else)){
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
@@ -604,7 +627,7 @@ bool statement(parser_data_t *data){
             get_token(data);
             return true;
         }
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -616,7 +639,7 @@ bool statement(parser_data_t *data){
         data->while_counter++;
         get_token(data);
         if(!is_expression_start(data->token)){
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
@@ -624,7 +647,7 @@ bool statement(parser_data_t *data){
             return false;
         }
         if(!is_token(data,kw_do)){
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
@@ -637,11 +660,11 @@ bool statement(parser_data_t *data){
             data->while_counter--;
             return true;
         }
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
-    fprintf(stderr,"chyba: %s\n",__func__);
+    fprintf(stderr,"syntax error in: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -663,7 +686,7 @@ bool init(parser_data_t *data){
             return init2(data);
         break;
         default:            
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         break;
@@ -675,14 +698,19 @@ bool init2(parser_data_t *data){
     if(is_token(data,token_type_identifier)){
         htab_item *item = htab_find(data->global_symtable,data->token->data.str);
         if(item != NULL){
-            //grammar rule 25
+            //grammar rule 25            
             get_token(data);
-            return call_fce(data);
+            bool ret_val = call_fce(data);
+            if(!ret_val){
+                return false;
+            }
+            generate_function_call(data,item);
+            return true;
         }
     }
 
     if(!is_expression_start(data->token)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -693,7 +721,20 @@ bool init2(parser_data_t *data){
 bool after_id(parser_data_t *data){
     //grammar rule 28
     if(is_token(data,token_type_left_bracket)){
-        return call_fce(data);
+        htab_item *function = htab_find(data->global_symtable,data->identif_list->key);
+        if(function == NULL){
+            fprintf(stderr,"Function %s was not declared/defined\n",data->identif_list->key);
+            set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+            return false;
+        }
+        bool ret_val = call_fce(data);
+        if(!ret_val){
+            return false;
+        }
+        generate_function_call(data,function);
+        free_data_token(data->identif_list);
+        data->identif_list = NULL;
+        return true;
     }
 
     //grammar rule 29
@@ -702,14 +743,14 @@ bool after_id(parser_data_t *data){
             return false;
         }
         if(!is_token(data,token_type_assign)){
-            fprintf(stderr,"chyba: %s\n",__func__);
+            fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;       
         }
         get_token(data);
         return assignment(data);
     }
-    fprintf(stderr,"chyba: %s\n",__func__);
+    fprintf(stderr,"syntax error in: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -720,7 +761,12 @@ bool assignment(parser_data_t *data){
         if(item != NULL){
             //grammar rule 33
             get_token(data);
-            return call_fce(data);
+            bool ret_val = call_fce(data);
+            if(!ret_val){
+                return false;
+            }
+            generate_function_call(data,item);
+            return true;
         }
     }
 
@@ -728,7 +774,7 @@ bool assignment(parser_data_t *data){
         //grammar rule 32
         return expression(data);
     }
-    fprintf(stderr,"chyba: %s\n",__func__);
+    fprintf(stderr,"syntax error in: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;  
 }
@@ -741,13 +787,13 @@ bool identif_list(parser_data_t *data){
 
     //grammar rule 30
     if(!is_token(data,token_type_comma)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
     get_token(data);
     if(!is_token(data,token_type_identifier)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -767,7 +813,7 @@ bool expression_list(parser_data_t *data){
         return expression(data) && expression_list2(data); 
     }
     
-    fprintf(stderr,"chyba: %s\n",__func__);
+    fprintf(stderr,"syntax error in: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -794,7 +840,7 @@ bool expression_list2(parser_data_t *data){
             ;
         break;
     }
-    fprintf(stderr,"chyba: %s\n",__func__);
+    fprintf(stderr,"syntax error in: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -827,7 +873,7 @@ bool value_list(parser_data_t *data){
     if(is_token(data,token_type_string) || is_token(data,token_type_integer) || is_token(data,token_type_number) || is_token(data,token_type_identifier) || is_token(data,kw_nil)){
         return value(data) && value_list2(data);
     }
-    fprintf(stderr,"chyba: %s\n",__func__);
+    fprintf(stderr,"syntax error in: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
     return false;
 }
@@ -840,7 +886,7 @@ bool value_list2(parser_data_t *data){
 
     //grammar rule 44
     if(!is_token(data,token_type_comma)){
-        fprintf(stderr,"chyba: %s\n",__func__);
+        fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
@@ -850,24 +896,43 @@ bool value_list2(parser_data_t *data){
 
 bool value(parser_data_t *data){
     //grammar rule 46 47 48 49 50
+    data_token_t *token = create_data_token();
     switch (data->token->type){
         case token_type_integer:
-        case token_type_number:
-        case token_type_string:
-        case kw_nil:
-            get_token(data);
-            return true;
+            token->data_type = integer;
+            token->key = int_to_string(data->token->data.type_integer);
         break;
-        case token_type_identifier:
-            //TODO control of existence
-            get_token(data);
-            return true;        
+        case token_type_number:
+            token->data_type = number;
+            token->key = double_to_string(data->token->data.type_double);
+        break;
+        case token_type_string:
+            token->data_type = string;
+            token->key = string_to_string(data->token->data.str);
+        break;
+        case kw_nil:
+            token->data_type = nil;
+            token->key = strcpy_alloc(data,nil_string);
+        break;
+        case token_type_identifier: ;
+            htab_item *variable = htab_find_variable(data->local_symtable,data->token->data.str);
+            if(variable == NULL){
+                set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+                free_data_token(token);
+                return false;
+            }     
+            token->key = strcpy_alloc(data,data->token->data.str);       
+        break;
         default:
+            fprintf(stderr,"syntax error in: %s\n",__func__);
+            set_errno(data,SYNTAX_ERROR);
+            return false;
         break;
     }
-    fprintf(stderr,"chyba: %s\n",__func__);
-    set_errno(data,SYNTAX_ERROR);
-    return false;
+
+    push_back_data_token(token,&(data->param_list));
+    get_token(data);
+    return true;
 }
 
 char *label_generator(char *function,char *what, size_t frame_counter){
@@ -915,6 +980,145 @@ bool full_data_token_compare(data_token_t *list1,data_token_t *list2){
         return false;
     }
     return true;
+}
+
+void prepare_build_in_functions(parser_data_t *data){
+    data->param_list = NULL;
+    htab_item *fce_item = htab_define_function("reads",data);
+    data_token_t *token = create_data_token();
+    token->data_type = string;
+    fce_item->return_list = token;
+    data->param_list = NULL;
+
+    fce_item = htab_define_function("readi",data);
+    token = create_data_token();
+    token->data_type = integer;
+    fce_item->return_list = token;
+    data->param_list = NULL;
+
+    fce_item = htab_define_function("readn",data);
+    token = create_data_token();
+    token->data_type = number;
+    fce_item->return_list = token;
+    data->param_list = NULL;
+
+    fce_item = htab_define_function("write",data);
+    token = create_data_token();
+    token->data_type = integer;
+    fce_item->return_list = NULL;
+    data->param_list = NULL;
+
+    data->param_list = create_data_token();
+    data->param_list->data_type = number;
+    fce_item = htab_define_function("tointeger",data);
+    token = create_data_token();
+    token->data_type = integer;
+    fce_item->return_list = token;
+    data->param_list = NULL;
+
+    data->param_list = create_data_token();
+    data->param_list->data_type = string;
+    token = create_data_token();
+    token->data_type = number;
+    push_back_data_token(token,&(data->param_list));
+    token = create_data_token();
+    token->data_type = number;
+    push_back_data_token(token,&(data->param_list));
+    fce_item = htab_define_function("substr",data);
+    token = create_data_token();
+    token->data_type = string;
+    fce_item->return_list = token;
+    data->param_list = NULL;
+
+    data->param_list = create_data_token();
+    data->param_list->data_type = string;
+    token = create_data_token();
+    token->data_type = integer;
+    push_back_data_token(token,&(data->param_list));
+    fce_item = htab_define_function("ord",data);
+    token = create_data_token();
+    token->data_type = integer;
+    fce_item->return_list = token;
+    data->param_list = NULL;
+
+    data->param_list = create_data_token();
+    data->param_list->data_type = integer;
+    fce_item = htab_define_function("chr",data);
+    token = create_data_token();
+    token->data_type = string;
+    fce_item->return_list = token;
+    data->param_list = NULL;
+    data->return_list = NULL;
+}
+
+void generate_function_call(parser_data_t *data,htab_item *function){
+    push_instruction(data,create_instruction(CREATEFRAME,NULL,NULL,NULL));
+    size_t param_counter = 1;
+    data_token_t *walking_item_function = function->param_list;
+    data_token_t *walking_item = data->param_list;
+    size_t lenght;
+    char *param_def;
+    char *param;
+    while(walking_item_function != NULL && walking_item != NULL){
+        if(walking_item->data_type == identifier){  //TODO otestovat
+            htab_item *variable = htab_find_variable(data->local_symtable,walking_item->key);
+            if(variable == NULL){
+                free_parser_data(data);
+                exit(SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+            }
+            if(variable->type != walking_item_function->data_type){
+                free_parser_data(data);
+                fprintf(stderr,"wrong data type of parametr in function call %s\n",function->key);
+                exit(SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
+            }
+            param = allocate_var_name_3AC("TF@",variable);
+        }
+        else{
+            if(walking_item->data_type != walking_item_function->data_type){
+                free_parser_data(data);
+                fprintf(stderr,"wrong data type of parametr in function call %s\n",function->key);
+                exit(SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
+            }
+            param = walking_item->key;
+            walking_item->key = NULL;
+        }        
+        lenght = snprintf(NULL,0,"TF@%%%zu",param_counter) + 1;
+        param_def = calloc(lenght,sizeof(char));
+        if(param == NULL){
+            free_parser_data(data);
+            exit(INTERNAL_ERROR);
+        }
+        snprintf(param_def,lenght,"TF@%%%zu",param_counter);
+        defvar_3AC(data,strcpy_alloc(data,param_def));
+        
+        push_instruction(data,create_instruction(MOVE,param_def,param,NULL));
+        walking_item_function = walking_item_function->next;
+        walking_item = walking_item->next;
+        param_counter++;
+    }
+    if(walking_item_function != walking_item){
+        fprintf(stderr,"wrong number of parametrs in function call %s\n",function->key);
+        exit(SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
+    }
+    free_data_token_list(&(data->param_list));
+    data->param_list = NULL;
+    param_counter = 1;
+    walking_item_function = function->return_list;
+    while(walking_item_function != NULL){
+        lenght = snprintf(NULL,0,"TF@$%zu",param_counter) + 1;
+        param_def = calloc(lenght,sizeof(char));
+        if(param == NULL){
+            free_parser_data(data);
+            exit(INTERNAL_ERROR);
+        }
+        snprintf(param_def,lenght,"TF@$%zu",param_counter);
+        defvar_3AC(data,strcpy_alloc(data,param_def));
+        push_instruction(data,create_instruction(MOVE,param_def,strcpy_alloc(data,nil_string),NULL));
+        walking_item_function = walking_item_function->next;
+        param_counter++;
+    }
+    push_instruction(data,create_instruction(PUSHFRAME,NULL,NULL,NULL));
+    push_instruction(data,create_instruction(CALL,label_generator(function->key,"",0),NULL,NULL));
 }
 
 /*

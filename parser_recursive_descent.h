@@ -62,4 +62,6 @@ char *label_generator(char *function,char *what, size_t frame_counter);
 */
 void set_last_data_token_key(char *key,data_token_t *list);
 bool full_data_token_compare(data_token_t *list1,data_token_t *list2);
+void prepare_build_in_functions(parser_data_t *data);
+void generate_function_call(parser_data_t *data,htab_item *function);
 #endif
