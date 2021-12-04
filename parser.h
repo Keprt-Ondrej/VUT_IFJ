@@ -35,6 +35,7 @@ typedef struct parser_data
     htab_t *global_symtable;                ///< table of symbols for functions
     htab_t *local_symtable;                 ///< table of symbols for local variables  
     precedence_token_t *expression_list;    ///< list of tokens for assignment/function call
+    size_t tmp_counter;
     data_token_t *param_list;
     data_token_t *return_list;
     data_token_t *identif_list;
@@ -131,6 +132,16 @@ void defvar_3AC(parser_data_t *data,char *key);
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 char *strcpy_alloc(parser_data_t *data, const char *str);
+
+/**
+ * @brief ALLOCATE and generate name for tmp variable
+ * 
+ * @param data parser data for generation
+ * @param frame string, specifing frame, pass LF@,TF@,GF@ 
+ * @return char* final name of variable in 3AC
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+char *allocate_new_tmp_name(parser_data_t *data,const char *frame);
 
 #endif
 

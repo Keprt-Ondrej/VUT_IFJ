@@ -98,6 +98,18 @@ char *strcpy_alloc(parser_data_t *data, const char *str){
     return string;
 }
 
+char *allocate_new_tmp_name(parser_data_t *data,const char *frame){
+    size_t lenght = snprintf(NULL,0,"%s$_tmp_var_$%zu",frame,data->tmp_counter);
+    char *name = calloc(lenght,sizeof(char));
+    if(name == NULL){
+        free_parser_data(data);
+        exit(INTERNAL_ERROR);
+    }
+    snprintf(name,lenght,"%s$_tmp_var_$%zu",frame,data->tmp_counter);
+    data->tmp_counter++;
+    return name;
+}
+
 int print_token(Token *token){
     Token_data data_token = token->data;
     Token_type type = token->type;
