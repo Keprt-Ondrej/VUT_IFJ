@@ -153,3 +153,8 @@ void print_opcode(OP_code_t opcode){
         case DPRINT: printf("dprint\t"); break;
     }
 }
+
+
+void genetate_build_in_functions(){
+    printf("label\t$_substr__0\ndefvar LF@result\neq LF@result LF@%%1 nil@nil\njumpifeq $_nil_exception_0 LF@result bool@true\neq LF@result LF@%%2 nil@nil\njumpifeq $_nil_exception_0 LF@result bool@true\neq LF@result LF@%%3 nil@nil\njumpifeq $_nil_exception_0 LF@result bool@true\n\nlt LF@result LF@%%2 float@0x1p+0\njumpifeq $$_substr_return_empty_0 LF@result bool@true\ndefvar LF@lenght\nstrlen LF@lenght LF@%%1\nint2float LF@lenght LF@lenght\ngt LF@result LF@%%3 LF@lenght\njumpifeq $$_substr_return_empty_0 LF@result bool@true\ngt LF@result LF@%%2 LF@lenght\njumpifeq $$_substr_return_empty_0 LF@result bool@true\ngt LF@result LF@%%2 LF@%%3\njumpifeq $$_substr_return_empty_0 LF@result bool@true\nfloat2int LF@%%2 LF@%%2\nfloat2int LF@%%3 LF@%%3\ndefvar LF@_char\nSUB LF@%%2 LF@%%2 int@1\nmove LF@$1 string@\nlabel $$_substr_loop_0\nlt LF@result LF@%%2 LF@%%3\njumpifneq $$_substr_return_0 LF@result bool@true\ngetchar LF@_char LF@%%1 LF@%%2\nconcat LF@$1 LF@$1 LF@_char\nadd LF@%%2 LF@%%2 int@1\njump $$_substr_loop_0\nlabel $$_substr_return_0\npopframe\nreturn\nlabel $$_substr_return_empty_0\nmove LF@$1 string@\npopframe\nreturn\n");
+}

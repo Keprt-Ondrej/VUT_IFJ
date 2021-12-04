@@ -41,7 +41,7 @@ int parser(){
     printf(".IFJcode21\n");
     generate_code(data.function_calls);
     generate_code(data.program);
-    //TODO generate build in functions
+    genetate_build_in_functions();
     data.program = NULL;
     free_parser_data(&data);
     return SUCCESS;

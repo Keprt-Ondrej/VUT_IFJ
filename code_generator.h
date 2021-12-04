@@ -104,5 +104,7 @@ void print_opcode(OP_code_t opcode);
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 char *allocate_var_name_3AC(const char* frame,htab_item *item);
+void genetate_build_in_functions();
+
 
 #endif
