@@ -40,6 +40,8 @@ typedef struct parser_data
     data_token_t *identif_list;
     size_t while_counter;
     size_t frame_counter;
+    instruction_t *function_calls;
+    instruction_t *last_call;
     instruction_t *before_while;
     instruction_t *program;
     instruction_t *last_instruction;
@@ -79,12 +81,7 @@ bool is_token(parser_data_t *data, Token_type type);
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 void free_parser_data(parser_data_t *data);
-
-char *generate_variable_3AC(htab_item *item);
-
-
 int print_token(Token *token);
-
 bool expression(parser_data_t *data);
 int precedence(parser_data_t *data);
 

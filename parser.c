@@ -55,8 +55,14 @@ void push_precedence_token(parser_data_t *data, precedence_token_t *token){
 }
 
 void push_instruction(parser_data_t *data, instruction_t *instruction){
-    data->last_instruction->next = instruction;
-    data->last_instruction = instruction;
+    if(data->actual_function == NULL){
+        data->last_call->next = instruction;
+        data->last_call = instruction;
+    }
+    else{
+        data->last_instruction->next = instruction;
+        data->last_instruction = instruction;
+    }
 }
 
 //TODO switcher
