@@ -27,7 +27,7 @@ String* extend_buffer(String *s);
 
 void str_clear(String *s);
 
-int str_add_char(String *s, char c);
+bool str_add_char(String *s, char c);
 
 char str_del_char(String *s);
 
