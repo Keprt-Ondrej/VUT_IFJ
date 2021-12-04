@@ -16,7 +16,7 @@ void free_instruction(instruction_t *ins){
 }
 
 char *int_to_string(int value){
-    int length = snprintf(NULL,0,"int@%d",value) + 1 ;
+    size_t length = snprintf(NULL,0,"int@%d",value) + 1 ;
     char * str = calloc(length,sizeof(char));
     if(str == NULL){
         exit(INTERNAL_ERROR);
@@ -26,7 +26,7 @@ char *int_to_string(int value){
 }
 
 char *double_to_string(double value){
-    int length = snprintf(NULL,0,"float@%a",value) + 1 ;
+    size_t length = snprintf(NULL,0,"float@%a",value) + 1 ;
     char * str = calloc(length,sizeof(char));
     if(str == NULL){
         exit(INTERNAL_ERROR);
@@ -38,7 +38,7 @@ char *double_to_string(double value){
 char *string_to_string(char *string){
     //TODO replace white spaces with escape seq etc..
 
-    int lenght = strlen(string) + 8; //  1 + 7 is string@    1 is \0
+    size_t lenght = snprintf(NULL,0,"string@%s",string)+1; 
     char * str = calloc(lenght,sizeof(char));
     if(str == NULL){
         exit(INTERNAL_ERROR);
@@ -170,7 +170,8 @@ void genetate_build_in_functions(){
     printf("\nlabel $_readi__0\nread LF@$1 int\npopframe\nreturn\n");
     //readn
     printf("\nlabel $_readn__0\nread LF@$1 float\npopframe\nreturn\n");
-
+    //write
+    printf("\nlabel $_write__0\ndefvar LF@tmp\ndefvar LF@result\nlabel $_write_loop_start_0\nlt LF@result LF@%%1 int@1\njumpifeq $_write_end_printing_0 LF@result bool@true\npops LF@tmp\nwrite LF@tmp\nsub LF@%%1 LF@%%1 int@1\njump $_write_loop_start_0\nlabel $_write_end_printing_0\npopframe\nreturn\n");
     //nil exception
     printf("\nlabel $_nil_exception_0\nexit int@8\n");
 }
