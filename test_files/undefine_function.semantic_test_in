@@ -4,11 +4,11 @@ global foo : function(string,number,integer) : string
 function main()
 local a: integer
 local vysl: integer = 0
-foo("zadej cislo pro faktorial\n")
-a = foo()
-if a then foo() return
+foo("to pojede kokos",42.5,8)
+a = foo("to pojede kokos",42.5,8)
+if a then foo("to pojede kokos",42.5,8) return
 else
-foo()
+foo("to pojede kokos",42.5,8)
 end
 return
 end
