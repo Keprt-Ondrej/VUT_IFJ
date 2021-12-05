@@ -61,9 +61,6 @@ instruction_t *create_instruction(OP_code_t opcode,char *op1,char *op2,char *op3
 }
 
 void generate_code(instruction_t *inst){
-
-    //TODO vestavene funkce
-
     instruction_t *delete;
     while(inst != NULL){
         print_opcode(inst->opcode);
@@ -171,7 +168,7 @@ void genetate_build_in_functions(){
     //readn
     printf("\nlabel $_readn__0\nread LF@$1 float\npopframe\nreturn\n");
     //write
-    printf("\nlabel $_write__0\ndefvar LF@tmp\ndefvar LF@result\nlabel $_write_loop_start_0\nlt LF@result LF@%%1 int@1\njumpifeq $_write_end_printing_0 LF@result bool@true\npops LF@tmp\nwrite LF@tmp\nsub LF@%%1 LF@%%1 int@1\njump $_write_loop_start_0\nlabel $_write_end_printing_0\npopframe\nreturn\n");
+    printf("\nlabel $_write__0\ndefvar LF@tmp\ndefvar LF@result\nlabel $_write_loop_start_0\nlt LF@result LF@%%1 int@1\njumpifeq $_write_end_printing_0 LF@result bool@true\nsub LF@%%1 LF@%%1 int@1\npops LF@tmp\neq LF@result LF@tmp nil@nil\njumpifeq $_write_write_nil_0 LF@result bool@true\nwrite LF@tmp\njump $_write_loop_start_0\nlabel $_write_write_nil_0\nwrite string@nil\njump $_write_loop_start_0\nlabel $_write_end_printing_0\npopframe\nreturn\n");
     //nil exception
     printf("\nlabel $_nil_exception_0\nexit int@8\n");
 }
