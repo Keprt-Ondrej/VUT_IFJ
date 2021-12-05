@@ -24,7 +24,7 @@ int parser(){
     data.while_counter = 0;
     data.tmp_counter = 0;
 
-    data.function_calls =create_instruction(LABEL,strcpy_alloc(&data,"__$IFJ-code-21$__$KEPY$__&START&__"),NULL,NULL);
+    data.function_calls =create_instruction(LABEL,strcpy_alloc(&data,"__$IFJ_code_21$__$KEPY$__&START&__"),NULL,NULL);
     data.last_call = data.function_calls;
     data.program = create_instruction(EXIT,int_to_string(0),strcpy_alloc(&data,"\n"),NULL);
     data.last_instruction = data.program;
@@ -551,7 +551,58 @@ bool st_list(parser_data_t *data){
         //grammar rule 40
         case kw_return:
             get_token(data);
-            return expression_list(data);
+            bool ret_val = expression_list(data);
+            if(!ret_val){
+                return false;
+            }
+            htab_item *function = htab_find(data->global_symtable,data->actual_function);
+            if(function == NULL){
+                set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+                fprintf(stderr,"Calling undefined function %s\n",data->actual_function);
+                return false;
+            }
+            data_token_t *walking_return = function->return_list;
+            precedence_token_t *walking_expression = data->expression_list;
+            size_t return_counter = 1;
+            size_t lenght;
+            char *return_name;
+            /*      TODO RUN THIS
+            while(walking_return != NULL && walking_expression != NULL){
+                if(walking_return->data_type != walking_expression->data_type){
+                    if(walking_return->data_type == number && walking_expression->data_type == integer){
+                        push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,walking_expression->identifier),strcpy_alloc(data,walking_expression->identifier),NULL));
+                    }
+                    else{
+                        fprintf(stderr,"wrong types of expression and return type in function %s\n",data->actual_function);
+                        set_errno(data,SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
+                        return false;
+                    }
+                }
+                lenght = snprintf(NULL,0,"LF@$%zu",return_counter) + 1;
+                return_name = calloc(lenght,sizeof(char));
+                if(return_name == NULL){
+                    set_errno(data,INTERNAL_ERROR);
+                    return false;
+                }
+                snprintf(return_name,0,"LF@$%zu",return_counter);
+                push_instruction(data,create_instruction(MOVE,return_name,walking_expression->identifier,NULL));
+                walking_expression->identifier = NULL;
+                walking_return = walking_return->next;
+                walking_expression = walking_expression->next;
+                return_counter++;
+            }
+            if(walking_expression != NULL && walking_return == NULL){
+                set_errno(data,SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
+                fprintf(stderr,"Too much expressions in return statement, function %s\n",data->actual_function);
+                return false;
+            }     
+            */
+            //TODO free expression list
+            data->expression_list = NULL;
+            push_instruction(data,create_instruction(POPFRAME,NULL,NULL,NULL));
+            push_instruction(data,create_instruction(RETURN,NULL,NULL,NULL));
+            return true;
+        break;
         default:
             fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
@@ -592,21 +643,155 @@ bool statement(parser_data_t *data){
         }
 
         variable->type = data->param_list->data_type;
+        defvar_3AC(data,allocate_var_name_3AC("LF@",variable));
         free_data_token(data->param_list);
         data->param_list = NULL;
-        return init(data);    
+        char *var_name = variable->key;
+        variable->key = "$$"; //renaming temporary var, because we cannot call function with it
+        ret_val = init(data);
+        if(!ret_val){
+            return false;
+        } 
+        variable->key = var_name;   //changing name back
+        if(data->return_list != NULL){
+            //init from function call
+            if(variable->type != data->return_list->data_type){
+                if(variable->type == number && data->return_list->data_type == integer){
+                    push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,"TF@$1"),strcpy_alloc(data,"TF@$1"),NULL));
+                }
+                else{
+                    fprintf(stderr,"wrong types in defining variable %s from function call\n",variable->key);
+                    set_errno(data,SEM_ERROR_ASSIGN_COMMAND);
+                    return false;
+                }
+            }
+            push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),strcpy_alloc(data,"TF@$1"),NULL));
+            data->return_list = NULL;
+        }
+        else if(data->expression_list != NULL){            
+            //init from expression
+            if(variable->type != data->expression_list->data_type){
+                if(variable->type == number && data->expression_list == integer){
+                    push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,data->expression_list->identifier),strcpy_alloc(data,data->expression_list->identifier),NULL));
+                }
+                else{
+                    fprintf(stderr,"wrong types in defining variable %s from expression init\n",variable->key);
+                    set_errno(data,SEM_ERROR_ASSIGN_COMMAND);
+                    return false;
+                }
+            }
+            push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),data->expression_list->identifier,NULL));
+            //todo free expression token
+            data->expression_list = NULL;
+        }
+        else{
+            push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),strcpy_alloc(data,nil_string),NULL));
+        }
+        return true;    
     }
     else if(is_token(data,token_type_identifier)){
         //grammar rule 27
         data_token_t *token = create_data_token();
         token->key = strcpy_alloc(data,data->token->data.str);
-        data->identif_list = token;
-        //data->param_list = NULL;     //TODO BAD HERE    
+        data->identif_list = token;   
         get_token(data);
-        return after_id(data);
+        bool ret_val = after_id(data);
+        if(!ret_val){
+            return false;
+        } 
+        if(data->identif_list == NULL){
+            //function was called
+            return true;
+        }
+        if(data->return_list != NULL){
+            //assignment from function call
+            size_t ret_val_counter = 1;
+            data_token_t *walking_identif = data->identif_list;
+            data_token_t *walking_return = data->return_list;
+            size_t lenght;
+            char *return_place;
+            while(walking_identif != NULL && walking_return != NULL){
+                htab_item *variable = htab_find_variable(data->local_symtable,walking_identif->key);
+                if(variable == NULL){
+                    fprintf(stderr,"undefined variable %s used in assignment\n",walking_identif->key);
+                    set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+                    return false;
+                }
+                lenght = snprintf(NULL,0,"TF@$%zu",ret_val_counter) + 1;
+                return_place = calloc(lenght,sizeof(char));
+                if(return_place == NULL){
+                    set_errno(data,INTERNAL_ERROR);
+                    return false;
+                }
+                snprintf(return_place,lenght,"TF@$%zu",ret_val_counter);
+                if(variable->type != walking_return->data_type){
+                    if(variable->type == number && walking_return->data_type == integer){
+                        push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,return_place),strcpy_alloc(data,return_place),NULL));
+                    }
+                    else{
+                        fprintf(stderr,"wrong type of %s used in assignment\n",walking_identif->key);
+                        set_errno(data,SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
+                        return false;
+                    }
+                }
+                push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),return_place,NULL));
+                ret_val_counter++;
+                walking_identif = walking_identif->next;
+                walking_return = walking_return->next;
+            }
+            if(walking_identif != NULL && walking_return == NULL){
+                set_errno(data,SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
+                fprintf(stderr,"wrong number of return values for assingment\n");
+                return false;
+            }
+            free_data_token_list(&(data->identif_list));
+            data->identif_list = NULL;
+            data->return_list = NULL; 
+        }
+        else{
+            //assignment from expression
+            data_token_t *walking_identif = data->identif_list;
+            precedence_token_t *walking_expression = data->expression_list;
+            size_t lenght;
+            char *return_place;
+            while(walking_identif != NULL && walking_expression != NULL){
+                htab_item *variable = htab_find_variable(data->local_symtable,walking_identif->key);
+                if(variable == NULL){
+                    fprintf(stderr,"undefined variable %s used in assignment\n",walking_identif->key);
+                    set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+                    return false;
+                }
+                if(variable->type != walking_expression->data_type){
+                    if(variable->type == number && walking_expression->data_type == integer){
+                        push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,walking_expression->identifier),strcpy_alloc(data,walking_expression->identifier),NULL));
+                    }
+                    else{
+                        fprintf(stderr,"wrong type of %s used in assignment\n",walking_identif->key);
+                        set_errno(data,SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
+                        return false;
+                    }
+                }
+                push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),walking_expression->identifier,NULL));
+                walking_expression->identifier = NULL;
+                walking_identif = walking_identif->next;
+                walking_expression = walking_expression->next;
+            }
+            if(walking_identif != NULL && walking_expression == NULL){
+                set_errno(data,SEM_ERROR_ASSIGN_COMMAND);
+                fprintf(stderr,"wrong number of return values for assingment\n");
+                return false;
+            }
+            free_data_token_list(&(data->identif_list));
+            data->identif_list = NULL;
+            //todo free precedence token            
+            data->expression_list = NULL; 
+        }
+        return true;
     }
     else if(is_token(data,kw_if)){
         //grammar rule 38
+        data->frame_counter++;
+        size_t actual_if = data->frame_counter;        
         get_token(data);
         if(!is_expression_start(data->token)){
             fprintf(stderr,"syntax error in: %s\n",__func__);
@@ -621,23 +806,36 @@ bool statement(parser_data_t *data){
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
-        get_token(data);
+        htab_t *table = htab_init(TABLE_SIZE);
+        table->next = data->local_symtable;
+        data->local_symtable = table;
+        get_token(data);        
         if(!st_list(data)){
             return false;
         }
+        htab_clear(data->local_symtable);
+        push_instruction(data,create_instruction(JUMPIFNEQ,label_generator(data->actual_function,"endif",actual_if),strcpy_alloc(data,bool_string_true),NULL));
+        data->frame_counter++;
         if(!is_token(data,kw_else)){
             fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
+        push_instruction(data,create_instruction(LABEL,label_generator(data->actual_function,"else",actual_if),NULL,NULL));
         get_token(data);
         if(!st_list(data)){
             return false;
         }
         if(is_token(data,kw_end)){
-            get_token(data);
-            return true;
-        }
+            table = data->local_symtable;
+            data->local_symtable = data->local_symtable->next;
+            table->next =NULL;
+            htab_free(table);
+            push_instruction(data,create_instruction(LABEL,label_generator(data->actual_function,"endif",actual_if),NULL,NULL)); 
+            data->frame_counter++;
+            get_token(data);           
+            return true;            
+        }       
         fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
@@ -648,7 +846,10 @@ bool statement(parser_data_t *data){
             data->before_while = data->last_instruction;
         }
         data->while_counter++;
-        get_token(data);
+        data->frame_counter++;
+        size_t actual_while = data->frame_counter;
+        push_instruction(data,create_instruction(LABEL,label_generator(data->actual_function,"while_before_exp",actual_while),NULL,NULL));
+        get_token(data);        
         if(!is_expression_start(data->token)){
             fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
@@ -657,17 +858,30 @@ bool statement(parser_data_t *data){
         if(!expression(data)){
             return false;
         }
+        //TODO skok kontrola na nil a jiny nez bool
+        condition_re_type(data,actual_while);
+        push_instruction(data,create_instruction(JUMPIFNEQ,label_generator(data->actual_function,"while_end",actual_while),strcpy_alloc(data,bool_string_true),NULL/*TODO data->expression_list->identifier*/));
         if(!is_token(data,kw_do)){
             fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
         get_token(data);
+        htab_t *table = htab_init(TABLE_SIZE);
+        table->next = data->local_symtable;
+        data->local_symtable = table;        
         if(!st_list(data)){
             return false;
         }
+        push_instruction(data,create_instruction(JUMP,label_generator(data->actual_function,"while_before_exp",actual_while),NULL,NULL));
         if(is_token(data,kw_end)){
+            push_instruction(data,create_instruction(LABEL,label_generator(data->actual_function,"while_end",actual_while),NULL,NULL));
+            table = data->local_symtable;
+            data->local_symtable = data->local_symtable->next;
+            table->next = NULL;
+            htab_free(table);
             get_token(data);
+            data->frame_counter++;
             data->while_counter--;
             return true;
         }
@@ -684,6 +898,7 @@ bool init(parser_data_t *data){
     //grammar rule 23
     switch (data->token->type){
         case kw_end:
+        case kw_else:
         case kw_if:
         case kw_local:
         case kw_return:
@@ -715,6 +930,12 @@ bool init2(parser_data_t *data){
             if(!ret_val){
                 return false;
             }
+            if(item->return_list == NULL){
+                fprintf(stderr,"can not initialize variable with function %s with no return value\n",item->key);
+                set_errno(data,SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
+                return false;
+            }
+            data->return_list = item->return_list;
             generate_function_call(data,item);
             return true;
         }
@@ -776,6 +997,7 @@ bool assignment(parser_data_t *data){
             if(!ret_val){
                 return false;
             }
+            data->return_list = item->return_list;
             generate_function_call(data,item);
             return true;
         }
@@ -808,7 +1030,9 @@ bool identif_list(parser_data_t *data){
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
-    //TODO semantics
+    data_token_t *token = create_data_token();
+    token->key = strcpy_alloc(data,data->token->data.str);
+    push_back_data_token(token,&(data->identif_list));
     get_token(data);
     return identif_list(data);
 }
@@ -856,7 +1080,7 @@ bool expression_list2(parser_data_t *data){
     return false;
 }
 
-bool is_expression_start(Token *token){
+bool is_expression_start(Token *token){ //TODO delete
     switch (token->type){
         case kw_nil:
         case token_type_left_bracket:
@@ -1194,7 +1418,6 @@ void reverse_list(data_token_t **place){
     data_token_t *next = NULL;
     data_token_t *prev = NULL;
     while(actual != NULL){
-        //fprintf(stderr,"posun--------------------\n");
         next = actual->next;
         actual->next = prev;
         prev = actual;
@@ -1203,36 +1426,22 @@ void reverse_list(data_token_t **place){
     *place = prev;
 }
 
-/*
+void condition_re_type(parser_data_t *data,size_t ID){
+    /*  TODO
+    switch(data->expression_list->data_type){
+        case integer:
+        case number:
+        case string:
+            data->expression_list->data_type = type_bool;
+            free(data->expression_list->identifier);
+            data->expression_list->identifier = strcpy_alloc(data,bool_string_true);
+        break;
+        case nil:
+            free(data->expression_list->identifier);
+            data->expression_list->identifier = strcpy_alloc(data,bool_string_false);
+        break;
+        print("");
 
-        if a + b then 
-
-     mul a b DEST1 | add e C dest2 | JMP 
-
-A = 5
-B = 2
-
-A*B
-<E + C >
-
-5   
-
-statement statement1 statement2 statement3
-
-jmp label
-
-{
-    statements_t *next;
-    action MUL ADD
-    symb op1
-    symb op2
-    symb dest1 
-} statements_t
-
-print("mul A 5 DEST1")
-print("add DEST1 C DEST2")
-
-
-
-A*B + C
-*/
+    }
+    */
+}
