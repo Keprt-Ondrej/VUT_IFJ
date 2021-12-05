@@ -7,15 +7,14 @@
 
 #include "scanner.h"
 
-int exit_code;
+#define size_of_length 100
 
-#define size_of_length 11
-
-int str_init(String *s) {
+bool str_init(String *s) {
     s->string = (char *) malloc(size_of_length);
     if(NULL == s->string){
-        exit_code = INTERNAL_ERROR;
-        return exit_code;
+        //exit_code = INTERNAL_ERROR;
+        errno = INTERNAL_ERROR;
+        return NULL;
     }
     s->current_index = 0;
     s->string[s->current_index] = '\0';
@@ -31,7 +30,8 @@ String* extend_buffer(String *s) {
     int alloc_new_size = s->alloc_size + size_of_length;
     s->string = (char *) realloc(s->string, alloc_new_size);
         if(NULL == s->string) {
-            exit_code = INTERNAL_ERROR;
+            //exit_code = INTERNAL_ERROR;
+            errno = INTERNAL_ERROR;
             return NULL;
         }    
     s->alloc_size = alloc_new_size;    
@@ -41,30 +41,39 @@ String* extend_buffer(String *s) {
 bool str_add_char(String *s, char c) {
     if(s->current_index + 1 >= s->alloc_size) {
         if(NULL == extend_buffer(s)) {
-            return false;
+            //exit_code = INTERNAL_ERROR;
+            errno = INTERNAL_ERROR;
+            return NULL;
         }
     }
 	s->string[s->current_index++] = c;
 	s->string[s->current_index] = '\0';
-	return true;
-}  
+    return true;
+}    
 
 Token* create_token() {
     Token *token = malloc(sizeof(Token));
     if (NULL == token) {
-        exit_code = INTERNAL_ERROR;
+        //exit_code = INTERNAL_ERROR;
+        errno = INTERNAL_ERROR;
         return NULL;
     }    
     return token;    
 }
 
-void add_str_to_token(String buffer, Token *token) {
+bool add_str_to_token(String buffer, Token *token) {
     token->data.str = (char *) malloc(buffer.current_index);
+    if(NULL == token->data.str) {
+        //exit_code == INTERNAL_ERROR;
+        errno = INTERNAL_ERROR;
+        return NULL;
+    }
     strcpy(token->data.str, buffer.string);
+    return true;
 }
 
-void delete_token(Token* token){
-    if ((token->type == token_type_identifier) || (token->type == token_type_string)){ 
+void delete_token(Token* token) {
+    if ((token->type == token_type_identifier) || (token->type == token_type_string)) { 
         free(token->data.str);
     }
     free(token);
@@ -78,7 +87,7 @@ Token* read_token() {
     FSM_state state = start;
     char *endptr;
     char c;
-    bool succes;
+    bool succes = true;
     while(true) {
         switch(state) {
             case start: 
@@ -89,20 +98,31 @@ Token* read_token() {
                 else if(c == '\n') {
                     state = start;
                 }
+                else if(isspace(c)) {
+                    state = start; 
+                }
                 else if(c >= '1' && c <= '9') {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }                    
                     state = int_number;
                 }    
                 else if(c == '0') {
-                    succes = str_add_char(&buffer, c);
-                    if (!succes) {
+                    str_add_char(&buffer, c);
+                    if (succes == false) {
                         delete_token(token);
                         return NULL;
-                    }    
+                    }
                     state = zero;
                 }
                 else if ((('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z')) || (c == '_')) {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }                    
                     state = identif_and_kw;                    
                 }
                 else if(c == '/') {
@@ -135,9 +155,6 @@ Token* read_token() {
                 else if(c == '=') {
                     state = assignment_st;
                 }
-                else if(isspace(c)) {
-                    state = start; 
-                }
                 else if(c == '<') {
                     state = less_st;
                 }
@@ -154,7 +171,8 @@ Token* read_token() {
                     state = minus_st;
                 }
                 else {
-                    exit_code = INTERNAL_ERROR;
+                    //exit_code = LEX_ERROR;
+                    errno = LEX_ERROR;
                     return NULL;
                 }
             break;
@@ -168,19 +186,35 @@ Token* read_token() {
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }  
                     state = int_number;
                 }   
                 else if(c == '.') {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }  
                     state = decimal_point;
                 }
                 else if((c == 'e') || (c == 'E')){
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }  
                     state = double_exponent_begin;
                 }
                 else {
                     ungetc(c,stdin);
                     str_add_char(&buffer, '\0');
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }  
                     token->type = token_type_integer;
                     token->data.type_integer = atoi(buffer.string);
                     return token;                    
@@ -191,6 +225,10 @@ Token* read_token() {
                 c = getc(stdin);
                 if(c == '.') {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     state = decimal_point;                             
                 }
                 else {
@@ -205,6 +243,10 @@ Token* read_token() {
                 c = getc(stdin);
                 if (isdigit(c) || (('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z')) || (c == '_')) {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }  
                     state = identif_and_kw;
                 }
                 else {
@@ -270,8 +312,12 @@ Token* read_token() {
                         return token;
                     }
                     else {
-                        add_str_to_token(buffer, token);    
                         token->type = token_type_identifier;
+                        add_str_to_token(buffer, token);    
+                        if (succes == false){
+                            delete_token(token);
+                            return NULL;
+                        }  
                         return token;
                     }
                 }
@@ -281,10 +327,16 @@ Token* read_token() {
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     state = double_point_value;
                 } 
                 else {
-                    exit_code = INTERNAL_ERROR;
+                    //exit_code = LEX_ERROR;
+                    delete_token(token);
+                    errno = LEX_ERROR;
                     return NULL;
                 }
             break;    
@@ -293,15 +345,27 @@ Token* read_token() {
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     state = double_point_value;
                 }
                 else if((c == 'e') || (c == 'E')) {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     state = double_exponent_begin;
                 }
                 else {
                     ungetc(c, stdin);
                     str_add_char(&buffer, '\0');
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     token->type = token_type_number;
                     token->data.type_double = strtod(buffer.string, &endptr);      
                     return token;
@@ -312,14 +376,24 @@ Token* read_token() {
                 c = getc(stdin);
                 if((c == '+') || (c == '-')) {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     state = double_exponent_sign;
                 }
                 else if(c >= '0' && c <= '9') {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     state = double_exponent_value;
                 }
                 else {
-                    exit_code = INTERNAL_ERROR;
+                    //exit_code = LEX_ERROR;
+                    delete_token(token);
+                    errno = LEX_ERROR;
                     return NULL;
                 }
             break;
@@ -328,10 +402,16 @@ Token* read_token() {
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     state = double_exponent_value;
                 }
                 else {
-                    exit_code = INTERNAL_ERROR;
+                    //exit_code = LEX_ERROR;
+                    delete_token(token);
+                    errno = LEX_ERROR;
                     return NULL;
                 }
             break;
@@ -340,11 +420,19 @@ Token* read_token() {
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     state = double_exponent_value;
                 }
                 else {
                     ungetc(c, stdin);
                     str_add_char(&buffer, '\0');
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     token->type = token_type_number;
                     token->data.type_double = strtod(buffer.string, &endptr);
                     return token;
@@ -409,7 +497,9 @@ Token* read_token() {
                     state = ineq_end_st;
                 }
                 else {
-                    exit_code = INTERNAL_ERROR;
+                    //exit_code = LEX_ERROR;
+                    delete_token(token);
+                    errno = LEX_ERROR;
                     return NULL;
                 }
             break;
@@ -476,7 +566,9 @@ Token* read_token() {
                     state = concat_st;
                 }         
                 else {
-                    exit_code = INTERNAL_ERROR;
+                    //exit_code = LEX_ERROR;
+                    delete_token(token);
+                    errno = LEX_ERROR;
                     return NULL;
                 }
             break;
@@ -491,21 +583,31 @@ Token* read_token() {
                 if(c == '"') {
                     state = string_end;
                 }      
-                else if(c == '\\') {
+                else if(c == '\\') {                
                     state = escape_seq;
                 }
                 else if(c == EOF || c == '\n') {
-                    exit_code = INTERNAL_ERROR;       
-                    return NULL;   
+                    //exit_code = LEX_ERROR;
+                    delete_token(token);     
+                    errno = LEX_ERROR;
+                    return NULL;
                 }
                 else if(c > 31) {                            // specifikace zadani
                     str_add_char(&buffer, c);
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     state = string_loop;
                 }                 
             break;
 
             case string_end:
                 add_str_to_token(buffer, token);
+                if (succes == false) {
+                    delete_token(token);
+                    return NULL;
+                }
                 token->type = token_type_string;
                 return token;
             break;
@@ -514,19 +616,41 @@ Token* read_token() {
                 c = getc(stdin);
                 if(c == '"') {
                     str_add_char(&buffer, '"');
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     state = string_loop;
                 }
                 else if (c == '\\') {
                     str_add_char(&buffer, '\\');
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     state = string_loop;
                 }
                 else if (c == 't') {
                     str_add_char(&buffer, '\t');
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
                     state = string_loop;
                 } 
                 else if (c == 'n') {
                     str_add_char(&buffer, '\n');
-                    state = string_loop;
+                    if (succes == false) {
+                        delete_token(token);
+                        return NULL;
+                    }
+                    state = string_loop;    
+                }
+                else {
+                    //exit_code = LEX_ERROR;
+                    delete_token(token);
+                    errno = LEX_ERROR;
+                    return NULL;   
                 }
             break;
             
@@ -574,7 +698,7 @@ Token* read_token() {
                     state = block_comment_end;
                 }
                 else if (c == EOF) {
-                    exit_code = INTERNAL_ERROR; 
+                    //exit_code = LEX_ERROR; 
                     state = end_of_file;        //UPRAVIT!!!
                 }
                 else {
@@ -588,7 +712,7 @@ Token* read_token() {
                     state = start;
                 }
                 else {
-                    exit_code = INTERNAL_ERROR;
+                    //exit_code = LEX_ERROR;
                     state = end_of_file;       //UPRAVIT!!!
                 }  
             break;
