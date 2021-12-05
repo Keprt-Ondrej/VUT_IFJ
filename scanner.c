@@ -7,7 +7,7 @@
 
 #include "scanner.h"
 
-extern int exit_code;
+int exit_code;
 
 #define size_of_length 11
 
