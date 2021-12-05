@@ -18,6 +18,7 @@ void get_token(parser_data_t *data){
     Token *token = read_token();
     if(token == NULL){
         fprintf(stderr,"Lexical error\n");
+        free_parser_data(data);
         exit(LEX_ERROR);
     }    
     print_token(token);
@@ -113,39 +114,39 @@ char *allocate_new_tmp_name(parser_data_t *data,const char *frame){
 int print_token(Token *token){
     Token_data data_token = token->data;
     Token_type type = token->type;
-    printf("%3d: ", type);
+    fprintf(stderr,"%3d: ", type);
     if(type == token_type_identifier || type == token_type_string)
-        printf("%s\n", data_token.str);
+        fprintf(stderr,"%s\n", data_token.str);
     else if(type == token_type_integer)
-        printf("%d\n", data_token.type_integer);
+        fprintf(stderr,"%d\n", data_token.type_integer);
     else if(type == token_type_number)
-        printf("%f\n", data_token.type_double);
+        fprintf(stderr,"%f\n", data_token.type_double);
     else if(type == token_type_EOF)//if EOF
         return 0;
     else {
-        if(token_type_length == type)                   printf("#\n");
-        if(token_type_mul == type)                      printf("*\n");
-        if(token_type_div == type)                      printf("/\n");
-        if(token_type_floor_div == type)                printf("//\n");
-        if(token_type_plus == type)                     printf("+\n");
-        if(token_type_minus == type)                    printf("-\n");
-        if(token_type_concat == type)                   printf("..\n");
-        if(token_type_lth == type)                      printf("<\n");
-        if(token_type_leq == type)                      printf("<=\n");
-        if(token_type_gth == type)                      printf(">\n");
-        if(token_type_geq == type)                      printf(">=\n");
-        if(token_type_equal == type)                    printf("==\n");
-        if(token_type_ineq == type)                     printf("~=\n");
-        if(token_type_assign == type)                   printf("=\n");
-        if(token_type_left_bracket == type)             printf("(\n");
-        if(token_type_right_bracket == type)            printf(")\n");
-        if(token_type_square_left_bracket == type)      printf("[\n");
-        if(token_type_square_right_bracket == type)     printf("]\n");
-        if(token_type_colon == type)                    printf(":\n");
-        if(token_type_comma == type)                    printf(",\n");
-        if(token_type_$ == type)                        printf("empty\n");
-        if(token_type_E == type)                        printf("E\n");
-        if(token_type_shift == type)                    printf("<\n");
+        if(token_type_length == type)                   fprintf(stderr,"#\n");
+        if(token_type_mul == type)                      fprintf(stderr,"*\n");
+        if(token_type_div == type)                      fprintf(stderr,"/\n");
+        if(token_type_floor_div == type)                fprintf(stderr,"//\n");
+        if(token_type_plus == type)                     fprintf(stderr,"+\n");
+        if(token_type_minus == type)                    fprintf(stderr,"-\n");
+        if(token_type_concat == type)                   fprintf(stderr,"..\n");
+        if(token_type_lth == type)                      fprintf(stderr,"<\n");
+        if(token_type_leq == type)                      fprintf(stderr,"<=\n");
+        if(token_type_gth == type)                      fprintf(stderr,">\n");
+        if(token_type_geq == type)                      fprintf(stderr,">=\n");
+        if(token_type_equal == type)                    fprintf(stderr,"==\n");
+        if(token_type_ineq == type)                     fprintf(stderr,"~=\n");
+        if(token_type_assign == type)                   fprintf(stderr,"=\n");
+        if(token_type_left_bracket == type)             fprintf(stderr,"(\n");
+        if(token_type_right_bracket == type)            fprintf(stderr,")\n");
+        if(token_type_square_left_bracket == type)      fprintf(stderr,"[\n");
+        if(token_type_square_right_bracket == type)     fprintf(stderr,"]\n");
+        if(token_type_colon == type)                    fprintf(stderr,":\n");
+        if(token_type_comma == type)                    fprintf(stderr,",\n");
+        if(token_type_$ == type)                        fprintf(stderr,"empty\n");
+        if(token_type_E == type)                        fprintf(stderr,"E\n");
+        if(token_type_shift == type)                    fprintf(stderr,"<\n");
     }
     return 1;
 }
