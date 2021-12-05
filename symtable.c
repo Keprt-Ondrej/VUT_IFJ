@@ -119,6 +119,9 @@ void htab_for_each(const htab_t * t, void (*f)(htab_item *data)){
 }
 
 void htab_free(htab_t * t){
+    if(t->next != NULL){
+        htab_free(t->next);
+    }   
     htab_clear(t);
     free(t);
 }

@@ -186,7 +186,7 @@ void htab_for_each(const htab_t * t, void (*f)(htab_item *data));
 void htab_clear(htab_t * t);
 
 /**
- * @brief free memory of table and all items of the table
+ * @brief recursivly free memory of table and all items of the table
  * 
  * @param t pointer on table, which memory should be freed
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
