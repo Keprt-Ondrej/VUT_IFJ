@@ -4,6 +4,7 @@
  * 
  * IFJ-2021 Compiler
  * 
+ * @see code_generator.h for documentation
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 #include "code_generator.h"
@@ -43,8 +44,6 @@ char *double_to_string(double value){
 }
 
 char *string_to_string(char *string){
-    //TODO replace white spaces with escape seq etc..
-
     size_t lenght = snprintf(NULL,0,"string@%s",string)+1; 
     char * str = calloc(lenght,sizeof(char));
     if(str == NULL){

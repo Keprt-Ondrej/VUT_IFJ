@@ -85,7 +85,7 @@ typedef struct instr{
 /**
  * @brief Free all string operands and whole structure
  * 
- * @param ins 
+ * @param ins pointer on deleting instruction
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 void free_instruction(instruction_t *ins);
@@ -111,8 +111,8 @@ char *double_to_string(double value);
 /**
  * @brief ALLOCATE string, representing string in IFJcode21
  * 
- * @param string 
- * @return char* 
+ * @param string string in IFJ21
+ * @return char* ALLOCATED string representing string
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 char *string_to_string(char *string);
@@ -124,7 +124,7 @@ char *string_to_string(char *string);
  * @param op1 ALLOCATED operand or NULL
  * @param op2 ALLOCATED operand or NULL
  * @param op3 ALLOCATED operand or NULL
- * @return instruction_t* 
+ * @return instruction_t* ALLOCATED instruction
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 instruction_t *create_instruction(OP_code_t opcode,char *op1,char *op2,char *op3);
