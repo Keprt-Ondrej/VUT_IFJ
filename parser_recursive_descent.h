@@ -14,6 +14,16 @@
 #include "code_generator.h"
 
 /**
+ * @brief Initialization of parser data and start of parser 
+ * 
+ * call function for generating code
+ * 
+ * @return int 0, if succes, another when error occured
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+int parser();
+
+/**
  * @brief Seek if on input token is start of expression
  * 
  * @param token pointer on token on input
@@ -72,16 +82,6 @@ bool expression_list2(parser_data_t *data);
 bool value_list(parser_data_t *data);
 bool value_list2(parser_data_t *data);
 bool value(parser_data_t *data);
-
-/**
- * @brief Initialization of parser data and start of parser 
- * 
- * call function for generating code
- * 
- * @return int 0, if succes, another when error occured
- * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
-*/
-int parser();
 
 /**
  * @brief Set name for last item in param list,

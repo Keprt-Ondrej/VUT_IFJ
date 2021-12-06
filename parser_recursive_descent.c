@@ -4,6 +4,8 @@
  * 
  * IFJ-2021 Compiler
  * 
+ * @see documentation (dokumentace.pdf) for grammar rules
+ * 
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 
@@ -14,8 +16,7 @@ int parser(){
     data.token = read_token();
     if(data.token == NULL){
         return LEX_ERROR;
-    }
-    //print_token(data.token);    
+    }   
     data.token_list_first = data.token;
     data.global_symtable = htab_init(TABLE_SIZE);
     data.errno = SUCCESS;
@@ -26,12 +27,13 @@ int parser(){
     data.while_counter = 0;
     data.tmp_counter = 0;
 
-    data.function_calls =create_instruction(LABEL,strcpy_alloc(&data,"__$IFJ_code_21$__$KEPY$__&START&__"),NULL,NULL);
+    data.function_calls = create_instruction(LABEL,strcpy_alloc(&data,"__$IFJ_code_21$__$KEPY$__&START&__"),NULL,NULL);
     data.last_call = data.function_calls;
     data.program = create_instruction(EXIT,int_to_string(0),strcpy_alloc(&data,"\n"),NULL);
     data.last_instruction = data.program;
 
-    prepare_build_in_functions(&data);
+    prepare_build_in_functions(&data);  //setup parametrs and ret vals in global symtable for build in functions
+    //start of analysis
     if (!intro(&data)){
         if(data.errno == SYNTAX_ERROR){
             fprintf(stderr,"Syntax error\n");   
@@ -39,7 +41,8 @@ int parser(){
         free_parser_data(&data);
         return data.errno;
     }    
-    htab_for_each(data.global_symtable,htab_definition_control);
+
+    htab_for_each(data.global_symtable,htab_definition_control);    //control if all functions were defined
     printf(".IFJcode21\n");
     generate_code(&(data.function_calls));
     generate_code(&(data.program));
@@ -50,7 +53,7 @@ int parser(){
 
 htab_item * htab_define_function(char * key,parser_data_t *data){
     htab_item * item = htab_lookup_add(data->global_symtable,key);   
-    if(item == NULL){
+    if(item == NULL){   //function exists
         set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
         return NULL;
     }
@@ -61,7 +64,7 @@ htab_item * htab_define_function(char * key,parser_data_t *data){
 
 htab_item *htab_declare_function(char * key,parser_data_t *data){ 
     htab_item * item = htab_lookup_add(data->global_symtable,key);  
-    if(item == NULL){
+    if(item == NULL){   //function exists
         set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
         return NULL;
     }
@@ -75,7 +78,7 @@ bool intro(parser_data_t *data){
         //grammar rule 1
         return prolog(data) && prog(data);
     }
-    else if(is_token(data,token_type_EOF)){
+    else if(is_token(data,token_type_EOF)){ //empty file
         return true;
     }
     else{
@@ -102,24 +105,24 @@ bool prolog(parser_data_t* data){
 }
 
 bool prog(parser_data_t* data){
-    if(is_token(data,kw_global)){    
+    if(is_token(data,kw_global)){       //declaration of functioon
         //grammar rule 2
         return fce_decl(data) && prog(data);
     }
-    else if(is_token(data,kw_function)){
+    else if(is_token(data,kw_function)){    //definition of function
         //grammar rule 3
         return fce_def(data) && prog(data);
     }
-    else if(is_token(data,token_type_identifier)){
+    else if(is_token(data,token_type_identifier)){  //function call beetwen declarations
         //grammar rule 4
         char *store_identifier = strcpy_alloc(data,data->token->data.str);
         get_token(data);
-        bool ret_val = call_fce(data); 
+        bool ret_val = call_fce(data); //syntax for param list
         if(!ret_val){
             return false;
         }
         htab_item *function = htab_find(data->global_symtable,store_identifier);
-        if(function == NULL){
+        if(function == NULL){   //can not call undefined function
             fprintf(stderr,"Function %s was not declared/defined\n",store_identifier);
             free(store_identifier);
             set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
@@ -159,12 +162,7 @@ bool fce_decl(parser_data_t *data){
         set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
         return false;
     }
-    char *store_identifier = malloc(strlen(identifier)+1);
-    if(store_identifier == NULL){
-        set_errno(data,INTERNAL_ERROR);
-        return false;
-    }
-    strcpy(store_identifier,identifier);
+    char *store_identifier = strcpy_alloc(data,identifier);
     
     //syntax chceck continue:
     get_token(data);
@@ -186,7 +184,7 @@ bool fce_decl(parser_data_t *data){
         return false;
     }
     get_token(data);
-    if(!type_list(data)){
+    if(!type_list(data)){   //set types of parameters on data->param lists 
         return false;
     }
 
@@ -202,10 +200,10 @@ bool fce_decl(parser_data_t *data){
     data->param_list = NULL;  
 
     get_token(data);
-    if(!ret_list(data)){
+    if(!ret_list(data)){    //set types of return values on data->param lists
         return false;
     }
-    //fprintf(stderr,"declaration %d\n",data->param_list->data_type);
+
     func_item->return_list = data->param_list; //it is param list, because <type> store data tokens to param list    
     free(store_identifier);
     data->param_list = NULL; 
@@ -234,8 +232,8 @@ bool fce_def(parser_data_t *data){
     char *identifier = data->token->data.str;
     htab_item *func_item = htab_find(data->global_symtable,identifier);
     bool was_declared;
-    if(func_item != NULL){        
-        if(func_item->type != function_declared){
+    if(func_item != NULL){  //function found      
+        if(func_item->type != function_declared){   //error if function was defined
             set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR );
             fprintf(stderr,"Trying to redefine function %s\n",identifier);
             return false;
@@ -258,7 +256,7 @@ bool fce_def(parser_data_t *data){
         return false;
     }
     get_token(data);
-    if(!param_def_list(data)){
+    if(!param_def_list(data)){ //on data->param_list stores list of parameters with names
         return false;
     }
 
@@ -270,17 +268,17 @@ bool fce_def(parser_data_t *data){
     get_token(data);
 
     if(was_declared){
-        if(!full_data_token_compare(data->param_list,func_item->param_list)){
+        if(!full_data_token_compare(data->param_list,func_item->param_list)){ //compare data types declaration with definition
             fprintf(stderr,"Parameters dont match with declaration, function: %s\n",data->actual_function);
             set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
             return false;
         }
         data_token_t *change = func_item->param_list;
-        func_item->param_list = data->param_list;
+        func_item->param_list = data->param_list;   //change data types with data types with and name of parameters
         free_data_token_list(&change);               
     }
     else{
-        func_item = htab_define_function(data->actual_function,data);
+        func_item = htab_define_function(data->actual_function,data);   //function wasn t declared so create new definition
         if(func_item == NULL){
             return false;
         }
@@ -290,23 +288,23 @@ bool fce_def(parser_data_t *data){
     data->local_symtable = htab_init(TABLE_SIZE);
     size_t param_number = 1;
     data_token_t *walking_item = data->param_list;   
-    while(walking_item != NULL){        
-        htab_item * item = htab_lookup_add(data->local_symtable,walking_item->key);
+    while(walking_item != NULL){        //for all parameters
+        htab_item * item = htab_lookup_add(data->local_symtable,walking_item->key); //add to local symtable
         if(item == NULL){
             set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
             return false;
         }
         item->frame_ID = data->frame_counter;
         item->type = walking_item->data_type;
-        defvar_3AC(data,allocate_var_name_3AC("LF@",item));
-        size_t lenght = snprintf(NULL,0,"LF@%%%zu",param_number) + 1;
+        defvar_3AC(data,allocate_var_name_3AC("LF@",item));     //define var in local frame
+        size_t lenght = snprintf(NULL,0,"LF@%%%zu",param_number) + 1;   
         char *param = calloc(lenght,sizeof(char));
         if(param == NULL){
             set_errno(data,INTERNAL_ERROR);
             return false;
         }
         snprintf(param,lenght,"LF@%%%zu",param_number);
-        instruction_t *instruction = create_instruction(MOVE,allocate_var_name_3AC("LF@",item),param,NULL);
+        instruction_t *instruction = create_instruction(MOVE,allocate_var_name_3AC("LF@",item),param,NULL); //set passed value
         push_instruction(data,instruction);
         walking_item = walking_item->next;
         param_number++;
@@ -314,12 +312,11 @@ bool fce_def(parser_data_t *data){
 
     data->param_list = NULL;
 
-    if(!ret_list(data)){
+    if(!ret_list(data)){    //on data->param_list stores list of return values
         return false;
     }
 
     if(was_declared){
-        //fprintf(stderr,"param_list: %d return_list: %d\n",data->param_list->data_type,func_item->return_list->data_type);        
         if(!full_data_token_compare(data->param_list,func_item->return_list)){  //param list is ok, beacuse function <type> store data tokens to param list
             fprintf(stderr,"Return values dont match with declaration, function: %s\n",data->actual_function);
             set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
@@ -332,7 +329,7 @@ bool fce_def(parser_data_t *data){
         data->param_list = NULL;
     } 
 
-    if(!st_list(data)){
+    if(!st_list(data)){ //definition of statements
         return false;
     }
 
@@ -365,7 +362,7 @@ bool call_fce(parser_data_t *data){
         return false;
     }
     get_token(data);
-    if(!value_list(data)){
+    if(!value_list(data)){  //get parameters
         return false;
     }
     if(!is_token(data,token_type_right_bracket)){
@@ -379,7 +376,7 @@ bool call_fce(parser_data_t *data){
 
 bool type_list(parser_data_t *data){
     //grammar rule 8 
-    if(is_token(data,token_type_right_bracket)){        
+    if(is_token(data,token_type_right_bracket)){        //empty type list
         return true;
     }
 
@@ -479,7 +476,7 @@ bool type_list2(parser_data_t *data){
 
 bool param_def_list(parser_data_t *data){
     //grammar rule 15
-    if(is_token(data,token_type_right_bracket)){       
+    if(is_token(data,token_type_right_bracket)){       //w empty parametr list
         return true;
     }
 
@@ -495,7 +492,7 @@ bool param_def_list(parser_data_t *data){
 
 bool param_def_list2(parser_data_t *data){
     //grammar rule 18
-    if(is_token(data,token_type_right_bracket)){
+    if(is_token(data,token_type_right_bracket)){        //end of param list
         return true;
     }
 
@@ -517,7 +514,6 @@ bool param(parser_data_t *data){
         return false;
     }
     char *param_name = strcpy_alloc(data,data->token->data.str);
-    //TODO semnatis identifier add to local hash table
     get_token(data);
     if(!is_token(data,token_type_colon)){
         fprintf(stderr,"syntax error in: %s\n",__func__);
@@ -527,11 +523,11 @@ bool param(parser_data_t *data){
     
     get_token(data);
 
-    bool type_retval = type(data);   
+    bool type_retval = type(data);   //add data token on tail of data->param_list
     if(type_retval == false){
         return false;
     }
-    set_last_data_token_key(param_name,data->param_list);
+    set_last_data_token_key(param_name,data->param_list);   //set last param name
     return true;
 }
 
@@ -540,7 +536,7 @@ bool st_list(parser_data_t *data){
         //grammar rule 21
         case kw_else:
         case kw_end:
-            return true;
+            return true;    //end of statement list
         break;
         //grammar rule 20
         case kw_if:
@@ -913,7 +909,7 @@ bool init(parser_data_t *data){
         case kw_return:
         case kw_while:
         case token_type_identifier:
-            return true;
+            return true;    //variable without initialization
         break;
         case token_type_assign:
             //grammar rule 24
@@ -932,7 +928,7 @@ bool init(parser_data_t *data){
 bool init2(parser_data_t *data){ 
     if(is_token(data,token_type_identifier)){
         htab_item *item = htab_find(data->global_symtable,data->token->data.str);
-        if(item != NULL){
+        if(item != NULL){   //initialization wuth function call
             //grammar rule 25            
             get_token(data);
             bool ret_val = call_fce(data);
@@ -950,7 +946,7 @@ bool init2(parser_data_t *data){
         }
     }
 
-    if(!is_expression_start(data->token)){
+    if(!is_expression_start(data->token)){      //init by expression
         fprintf(stderr,"syntax error in: %s\n",__func__);
         set_errno(data,SYNTAX_ERROR);
         return false;
@@ -961,14 +957,14 @@ bool init2(parser_data_t *data){
 
 bool after_id(parser_data_t *data){
     //grammar rule 28
-    if(is_token(data,token_type_left_bracket)){
+    if(is_token(data,token_type_left_bracket)){     //function call
         htab_item *function = htab_find(data->global_symtable,data->identif_list->key);
         if(function == NULL){
             fprintf(stderr,"Function %s was not declared/defined\n",data->identif_list->key);
             set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
             return false;
         }
-        bool ret_val = call_fce(data);
+        bool ret_val = call_fce(data);  //set parameters on data->param list
         if(!ret_val){
             return false;
         }
@@ -979,8 +975,8 @@ bool after_id(parser_data_t *data){
     }
 
     //grammar rule 29
-    if(is_token(data,token_type_comma) || is_token(data,token_type_assign)){
-        if(!identif_list(data)){
+    if(is_token(data,token_type_comma) || is_token(data,token_type_assign)){    // assignment 
+        if(!identif_list(data)){    //create list of identifiers on data->identif_list
             return false;
         }
         if(!is_token(data,token_type_assign)){
@@ -997,7 +993,7 @@ bool after_id(parser_data_t *data){
 }
 
 bool assignment(parser_data_t *data){
-    if(is_token(data,token_type_identifier)){
+    if(is_token(data,token_type_identifier)){       //assignment with function call
         htab_item *item = htab_find(data->global_symtable,data->token->data.str);
         if(item != NULL){
             //grammar rule 33
@@ -1012,7 +1008,7 @@ bool assignment(parser_data_t *data){
         }
     }
 
-    if(is_expression_start(data->token)){
+    if(is_expression_start(data->token)){   //assignment from expression
         //grammar rule 32
         return expression(data);
     }
@@ -1023,7 +1019,7 @@ bool assignment(parser_data_t *data){
 
 bool identif_list(parser_data_t *data){
     //grammar rule 31
-    if(is_token(data,token_type_assign)){
+    if(is_token(data,token_type_assign)){   //end of identifier list
         return true;
     }
 
@@ -1039,6 +1035,7 @@ bool identif_list(parser_data_t *data){
         set_errno(data,SYNTAX_ERROR);
         return false;
     }
+    //store idendifier to identifier list
     data_token_t *token = create_data_token();
     token->key = strcpy_alloc(data,data->token->data.str);
     push_back_data_token(token,&(data->identif_list));
@@ -1048,13 +1045,13 @@ bool identif_list(parser_data_t *data){
 
 bool expression_list(parser_data_t *data){
     //grammar rule 35
-    if(is_token(data,kw_end) || is_token(data,kw_else)){
+    if(is_token(data,kw_end) || is_token(data,kw_else)){    //end of expression list in return
         return true;
     }
 
     //grammar rule 34
-    if(is_expression_start(data->token)){
-        return expression(data) && expression_list2(data); 
+    if(is_expression_start(data->token)){                       //evaluate expression ant ask if there is another expression
+        return expression(data) && expression_list2(data);      //expresions evaluations are stored at data->expression_list
     }
     
     fprintf(stderr,"syntax error in: %s\n",__func__);
@@ -1072,12 +1069,12 @@ bool expression_list2(parser_data_t *data){
         case kw_return:
         case kw_while:
         case token_type_identifier:
-            return true;
+            return true;                //end of expression list
         break;  
         case token_type_comma:
             //grammar rule 36
             get_token(data); 
-            if(is_expression_start(data->token)){
+            if(is_expression_start(data->token)){   //another expression expected
                 return expression(data) && expression_list2(data);
             }  
         default:
@@ -1089,7 +1086,7 @@ bool expression_list2(parser_data_t *data){
     return false;
 }
 
-bool is_expression_start(Token *token){ //TODO delete
+bool is_expression_start(Token *token){ //control if is token start of expression
     switch (token->type){
         case kw_nil:
         case token_type_left_bracket:
@@ -1098,6 +1095,7 @@ bool is_expression_start(Token *token){ //TODO delete
         case token_type_string:
         case token_type_identifier:
         case token_type_length: // #
+        case token_type_minus:
             return true;           
         break;    
         default:
@@ -1109,7 +1107,7 @@ bool is_expression_start(Token *token){ //TODO delete
 
 bool value_list(parser_data_t *data){
     //grammar rule 42
-    if(is_token(data,token_type_right_bracket)){
+    if(is_token(data,token_type_right_bracket)){    //emty value list
         return true;
     }
 
@@ -1124,7 +1122,7 @@ bool value_list(parser_data_t *data){
 
 bool value_list2(parser_data_t *data){
     //grammar rule 45
-    if(is_token(data,token_type_right_bracket)){
+    if(is_token(data,token_type_right_bracket)){    //end of value list
         return true;
     }
 
@@ -1135,12 +1133,12 @@ bool value_list2(parser_data_t *data){
         return false;
     }
     get_token(data);
-    return value(data) && value_list2(data);
+    return value(data) && value_list2(data);        //value list continue
 }
 
 bool value(parser_data_t *data){
     //grammar rule 46 47 48 49 50
-    data_token_t *token = create_data_token();
+    data_token_t *token = create_data_token();  //store data token on data->param_list
     switch (data->token->type){
         case token_type_integer:
             token->data_type = integer;
@@ -1175,7 +1173,7 @@ bool value(parser_data_t *data){
         break;
     }
 
-    push_back_data_token(token,&(data->param_list));
+    push_back_data_token(token,&(data->param_list));    //push on end of data->param_list
     get_token(data);
     return true;
 }
@@ -1191,7 +1189,7 @@ char *label_generator(char *function,char *what, size_t frame_counter){
     return label;
 }
 
-bool fake_expression(parser_data_t *data){
+bool fake_expression(parser_data_t *data){  //TODO DELETE
     if(!is_expression_start(data->token)){
         //TODO ERRNO
         return false;
@@ -1205,23 +1203,23 @@ void set_last_data_token_key(char *key,data_token_t *list){
         exit(INTERNAL_ERROR);
     }
     data_token_t *walking_item = list;
-    while(walking_item->next != NULL){
+    while(walking_item->next != NULL){  //walk on end of list
         walking_item = walking_item->next;
     }
-    walking_item->key = key;
+    walking_item->key = key;    //set last token key
 }
 
-bool full_data_token_compare(data_token_t *list1,data_token_t *list2){
+bool full_data_token_compare(data_token_t *list1,data_token_t *list2){  
     data_token_t *walking_item1 = list1;
     data_token_t *walking_item2 = list2;
-    while(walking_item1 != NULL && walking_item2 != NULL){
+    while(walking_item1 != NULL && walking_item2 != NULL){  //walk through tokens and compare data types
         if(walking_item1->data_type != walking_item2->data_type){
             return false;
         }
         walking_item1 = walking_item1->next;
         walking_item2 = walking_item2->next;
     }
-    if((walking_item1 == NULL && walking_item2 != NULL) || (walking_item1 != NULL && walking_item2 == NULL)){
+    if((walking_item1 == NULL && walking_item2 != NULL) || (walking_item1 != NULL && walking_item2 == NULL)){   //must both end at NULL
         return false;
     }
     return true;
@@ -1247,7 +1245,7 @@ void prepare_build_in_functions(parser_data_t *data){
     fce_item->return_list = token;
     data->param_list = NULL;
 
-    fce_item = htab_define_function("write",data);
+    fce_item = htab_define_function("write",data);  //write can have many parametrs, no type control required
     token = create_data_token();
     token->data_type = integer;
     fce_item->return_list = NULL;
@@ -1422,7 +1420,7 @@ void generate_function_call(parser_data_t *data,htab_item *function){
     push_instruction(data,create_instruction(CALL,label_generator(function->key,"",0),NULL,NULL));
 }
 
-void reverse_list(data_token_t **place){
+void reverse_list(data_token_t **place){    //reverse list of data tokens
     data_token_t *actual = *place;
     data_token_t *next = NULL;
     data_token_t *prev = NULL;
@@ -1435,7 +1433,7 @@ void reverse_list(data_token_t **place){
     *place = prev;
 }
 
-void condition_re_type(parser_data_t *data,size_t ID){
+void condition_re_type(parser_data_t *data,size_t ID){      //condition must convert number, integer and string on bool value
     char * tmp_name = allocate_new_tmp_name(data,"LF@");
     push_instruction(data,create_instruction(DEFVAR,strcpy_alloc(data,tmp_name),NULL,NULL));
     push_instruction(data,create_instruction(TYPE,strcpy_alloc(data,tmp_name),strcpy_alloc(data,data->expression_list->identifier),NULL));
