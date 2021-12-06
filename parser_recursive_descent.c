@@ -801,7 +801,7 @@ bool statement(parser_data_t *data){
         if(!expression(data)){
             return false;
         }
-        condition_re_type(data,actual_if);
+        //condition_re_type(data,actual_if);
         push_instruction(data,create_instruction(JUMPIFNEQ,label_generator(data->actual_function,"else",actual_if),strcpy_alloc(data,bool_string_true),NULL));
         if(!is_token(data,kw_then)){
             fprintf(stderr,"syntax error in: %s\n",__func__);
@@ -860,7 +860,7 @@ bool statement(parser_data_t *data){
         if(!expression(data)){
             return false;
         }
-        condition_re_type(data,actual_while);
+        //condition_re_type(data,actual_while);
         push_instruction(data,create_instruction(JUMPIFNEQ,label_generator(data->actual_function,"while_end",actual_while),strcpy_alloc(data,bool_string_true),NULL/*TODO data->expression_list->identifier*/));
         if(!is_token(data,kw_do)){
             fprintf(stderr,"syntax error in: %s\n",__func__);
