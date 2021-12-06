@@ -12,9 +12,7 @@
 bool str_init(String *s) {
     s->string = (char *) malloc(size_of_length);
     if(NULL == s->string){
-        //exit_code = INTERNAL_ERROR;
-        errno = INTERNAL_ERROR;
-        return NULL;
+        exit(INTERNAL_ERROR);
     }
     s->current_index = 0;
     s->string[s->current_index] = '\0';
@@ -30,9 +28,7 @@ String* extend_buffer(String *s) {
     int alloc_new_size = s->alloc_size + size_of_length;
     s->string = (char *) realloc(s->string, alloc_new_size);
         if(NULL == s->string) {
-            //exit_code = INTERNAL_ERROR;
-            errno = INTERNAL_ERROR;
-            return NULL;
+            exit(INTERNAL_ERROR);
         }    
     s->alloc_size = alloc_new_size;    
     return 0;
@@ -41,9 +37,7 @@ String* extend_buffer(String *s) {
 bool str_add_char(String *s, char c) {
     if(s->current_index + 1 >= s->alloc_size) {
         if(NULL == extend_buffer(s)) {
-            //exit_code = INTERNAL_ERROR;
-            errno = INTERNAL_ERROR;
-            return NULL;
+            exit(INTERNAL_ERROR);
         }
     }
 	s->string[s->current_index++] = c;
@@ -54,9 +48,7 @@ bool str_add_char(String *s, char c) {
 Token* create_token() {
     Token *token = malloc(sizeof(Token));
     if (NULL == token) {
-        //exit_code = INTERNAL_ERROR;
-        errno = INTERNAL_ERROR;
-        return NULL;
+        exit(INTERNAL_ERROR);
     }    
     return token;    
 }
@@ -64,9 +56,7 @@ Token* create_token() {
 bool add_str_to_token(String buffer, Token *token) {
     token->data.str = (char *) malloc(buffer.current_index);
     if(NULL == token->data.str) {
-        //exit_code == INTERNAL_ERROR;
-        errno = INTERNAL_ERROR;
-        return NULL;
+        exit(INTERNAL_ERROR);
     }
     strcpy(token->data.str, buffer.string);
     return true;
@@ -171,8 +161,6 @@ Token* read_token() {
                     state = minus_st;
                 }
                 else {
-                    //exit_code = LEX_ERROR;
-                    errno = LEX_ERROR;
                     return NULL;
                 }
             break;
@@ -334,9 +322,7 @@ Token* read_token() {
                     state = double_point_value;
                 } 
                 else {
-                    //exit_code = LEX_ERROR;
                     delete_token(token);
-                    errno = LEX_ERROR;
                     return NULL;
                 }
             break;    
@@ -391,9 +377,7 @@ Token* read_token() {
                     state = double_exponent_value;
                 }
                 else {
-                    //exit_code = LEX_ERROR;
                     delete_token(token);
-                    errno = LEX_ERROR;
                     return NULL;
                 }
             break;
@@ -409,9 +393,7 @@ Token* read_token() {
                     state = double_exponent_value;
                 }
                 else {
-                    //exit_code = LEX_ERROR;
                     delete_token(token);
-                    errno = LEX_ERROR;
                     return NULL;
                 }
             break;
@@ -497,9 +479,7 @@ Token* read_token() {
                     state = ineq_end_st;
                 }
                 else {
-                    //exit_code = LEX_ERROR;
                     delete_token(token);
-                    errno = LEX_ERROR;
                     return NULL;
                 }
             break;
@@ -566,9 +546,7 @@ Token* read_token() {
                     state = concat_st;
                 }         
                 else {
-                    //exit_code = LEX_ERROR;
                     delete_token(token);
-                    errno = LEX_ERROR;
                     return NULL;
                 }
             break;
@@ -587,9 +565,7 @@ Token* read_token() {
                     state = escape_seq;
                 }
                 else if(c == EOF || c == '\n') {
-                    //exit_code = LEX_ERROR;
                     delete_token(token);     
-                    errno = LEX_ERROR;
                     return NULL;
                 }
                 else if(c > 31) {                            // specifikace zadani
@@ -647,9 +623,7 @@ Token* read_token() {
                     state = string_loop;    
                 }
                 else {
-                    //exit_code = LEX_ERROR;
                     delete_token(token);
-                    errno = LEX_ERROR;
                     return NULL;   
                 }
             break;
@@ -698,7 +672,6 @@ Token* read_token() {
                     state = block_comment_end;
                 }
                 else if (c == EOF) {
-                    //exit_code = LEX_ERROR; 
                     state = end_of_file;        //UPRAVIT!!!
                 }
                 else {
@@ -712,7 +685,6 @@ Token* read_token() {
                     state = start;
                 }
                 else {
-                    //exit_code = LEX_ERROR;
                     state = end_of_file;       //UPRAVIT!!!
                 }  
             break;
