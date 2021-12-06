@@ -228,9 +228,9 @@ bool fce_def(parser_data_t *data){
     data->return_list = NULL;
     data->while_counter = 0;
     data->frame_counter = 0;
+    data->tmp_counter = 0;
     //semantic check if function is defined
     char *identifier = data->token->data.str;
-
     htab_item *func_item = htab_find(data->global_symtable,identifier);
     bool was_declared;
     if(func_item != NULL){        
@@ -621,7 +621,13 @@ bool statement(parser_data_t *data){
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
-        htab_item *variable =  htab_lookup_add(data->local_symtable,data->token->data.str);
+        htab_item *variable = htab_find(data->global_symtable,data->token->data.str);
+        if(variable != NULL){
+            fprintf("trying create variable name same as function identifier %s\n",variable->key);
+            set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+            return false;
+        }
+        variable =  htab_lookup_add(data->local_symtable,data->token->data.str);
         if(variable == NULL){
             fprintf(stderr,"trying to redefine variable %s\n",data->token->data.str);
             set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
@@ -685,6 +691,7 @@ bool statement(parser_data_t *data){
             data->expression_list = NULL;
         }
         else{
+            //default init on nil
             push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),strcpy_alloc(data,nil_string),NULL));
         }
         return true;    
