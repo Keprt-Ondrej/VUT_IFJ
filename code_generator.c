@@ -1,12 +1,19 @@
-
+/**
+ * @file code_generator.c
+ * @brief Implementation of functions for generating IFJcode21
+ * 
+ * IFJ-2021 Compiler
+ * 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 #include "code_generator.h"
 #include <stdio.h> 
 #include <stdlib.h>
 #include <string.h>
 
-const char* nil_string = "nil@nil";
-const char* bool_string_true = "bool@true";
-const char* bool_string_false = "bool@false";
+const char* nil_string = "nil@nil";             ///< String in IFJcode21 for nil value
+const char* bool_string_true = "bool@true";     ///< String in IFJcode21 for true value
+const char* bool_string_false = "bool@false";   ///< String in IFJcode21 for false value
 
 void free_instruction(instruction_t *ins){
     free(ins->op1);
@@ -81,7 +88,7 @@ void generate_code(instruction_t *inst){
 }
 
 char *allocate_var_name_3AC(const char* frame,htab_item *item){
-    size_t lenght = snprintf(NULL,0,"%s%s_$%zu",frame,item->key,item->frame_ID) + 1;
+    size_t lenght = snprintf(NULL,0,"%s%s_$%zu",frame,item->key,item->frame_ID) + 1; //frame id for differentiate frames
     char *var = calloc(lenght,sizeof(char));
     if(var == NULL){
         exit(INTERNAL_ERROR);
@@ -154,11 +161,11 @@ void print_opcode(OP_code_t opcode){
 
 void genetate_build_in_functions(){
     //substr
-    printf("\nlabel\t$_substr__0\ndefvar LF@result\neq LF@result LF@%%1 nil@nil\njumpifeq $_nil_exception_0 LF@result bool@true\neq LF@result LF@%%2 nil@nil\njumpifeq $_nil_exception_0 LF@result bool@true\neq LF@result LF@%%3 nil@nil\njumpifeq $_nil_exception_0 LF@result bool@true\n\nlt LF@result LF@%%2 float@0x1p+0\njumpifeq $$_substr_return_empty_0 LF@result bool@true\ndefvar LF@lenght\nstrlen LF@lenght LF@%%1\nint2float LF@lenght LF@lenght\ngt LF@result LF@%%3 LF@lenght\njumpifeq $$_substr_return_empty_0 LF@result bool@true\ngt LF@result LF@%%2 LF@lenght\njumpifeq $$_substr_return_empty_0 LF@result bool@true\ngt LF@result LF@%%2 LF@%%3\njumpifeq $$_substr_return_empty_0 LF@result bool@true\nfloat2int LF@%%2 LF@%%2\nfloat2int LF@%%3 LF@%%3\ndefvar LF@_char\nSUB LF@%%2 LF@%%2 int@1\nmove LF@$1 string@\nlabel $$_substr_loop_0\nlt LF@result LF@%%2 LF@%%3\njumpifneq $$_substr_return_0 LF@result bool@true\ngetchar LF@_char LF@%%1 LF@%%2\nconcat LF@$1 LF@$1 LF@_char\nadd LF@%%2 LF@%%2 int@1\njump $$_substr_loop_0\nlabel $$_substr_return_0\npopframe\nreturn\nlabel $$_substr_return_empty_0\nmove LF@$1 string@\npopframe\nreturn\n");
+    printf("\nlabel\t$_substr__0\ndefvar LF@result\neq LF@result LF@%%1 nil@nil\njumpifeq $_nil_exception__0 LF@result bool@true\neq LF@result LF@%%2 nil@nil\njumpifeq $_nil_exception__0 LF@result bool@true\neq LF@result LF@%%3 nil@nil\njumpifeq $_nil_exception__0 LF@result bool@true\n\nlt LF@result LF@%%2 float@0x1p+0\njumpifeq $$_substr_return_empty_0 LF@result bool@true\ndefvar LF@lenght\nstrlen LF@lenght LF@%%1\nint2float LF@lenght LF@lenght\ngt LF@result LF@%%3 LF@lenght\njumpifeq $$_substr_return_empty_0 LF@result bool@true\ngt LF@result LF@%%2 LF@lenght\njumpifeq $$_substr_return_empty_0 LF@result bool@true\ngt LF@result LF@%%2 LF@%%3\njumpifeq $$_substr_return_empty_0 LF@result bool@true\nfloat2int LF@%%2 LF@%%2\nfloat2int LF@%%3 LF@%%3\ndefvar LF@_char\nSUB LF@%%2 LF@%%2 int@1\nmove LF@$1 string@\nlabel $$_substr_loop_0\nlt LF@result LF@%%2 LF@%%3\njumpifneq $$_substr_return_0 LF@result bool@true\ngetchar LF@_char LF@%%1 LF@%%2\nconcat LF@$1 LF@$1 LF@_char\nadd LF@%%2 LF@%%2 int@1\njump $$_substr_loop_0\nlabel $$_substr_return_0\npopframe\nreturn\nlabel $$_substr_return_empty_0\nmove LF@$1 string@\npopframe\nreturn\n");
     //ord
-    printf("\nlabel $_ord__0\ndefvar LF@result\neq LF@result LF@%%1 nil@nil\njumpifeq $_nil_exception_0 LF@result bool@true\neq LF@result LF@%%2 nil@nil\njumpifeq $_nil_exception_0 LF@result bool@true\nlt LF@result LF@%%2 int@1\njumpifeq $$_ord_ret_nil_0 LF@result bool@true\ndefvar LF@lenght\nstrlen LF@lenght LF@%%1\ngt LF@result LF@%%2 LF@lenght\njumpifeq $$_ord_ret_nil_0 LF@result bool@true\nsub LF@%%2 LF@%%2 int@1\nstri2int LF@$1 LF@%%1 LF@%%2\npopframe\nreturn\nlabel $$_ord_ret_nil_0\nmove LF@$1 nil@nil\npopframe\nreturn\n");
+    printf("\nlabel $_ord__0\ndefvar LF@result\neq LF@result LF@%%1 nil@nil\njumpifeq $_nil_exception__0 LF@result bool@true\neq LF@result LF@%%2 nil@nil\njumpifeq $_nil_exception__0 LF@result bool@true\nlt LF@result LF@%%2 int@1\njumpifeq $$_ord_ret_nil_0 LF@result bool@true\ndefvar LF@lenght\nstrlen LF@lenght LF@%%1\ngt LF@result LF@%%2 LF@lenght\njumpifeq $$_ord_ret_nil_0 LF@result bool@true\nsub LF@%%2 LF@%%2 int@1\nstri2int LF@$1 LF@%%1 LF@%%2\npopframe\nreturn\nlabel $$_ord_ret_nil_0\nmove LF@$1 nil@nil\npopframe\nreturn\n");
     //chr
-    printf("\nlabel $_chr__0\ndefvar LF@result\neq LF@result LF@%%1 nil@nil\njumpifeq $_nil_exception_0 LF@result bool@true\nlt LF@result LF@%%1 int@0\njumpifeq $$_chr_ret_nil_0 LF@result bool@true\ngt LF@result LF@%%1 int@255\njumpifeq $$_chr_ret_nil_0 LF@result bool@true\nint2char LF@$1 LF@%%1\npopframe\nreturn\nlabel $$_chr_ret_nil_0\nmove LF@$1 nil@nil\npopframe\nreturn\n");
+    printf("\nlabel $_chr__0\ndefvar LF@result\neq LF@result LF@%%1 nil@nil\njumpifeq $_nil_exception__0 LF@result bool@true\nlt LF@result LF@%%1 int@0\njumpifeq $$_chr_ret_nil_0 LF@result bool@true\ngt LF@result LF@%%1 int@255\njumpifeq $$_chr_ret_nil_0 LF@result bool@true\nint2char LF@$1 LF@%%1\npopframe\nreturn\nlabel $$_chr_ret_nil_0\nmove LF@$1 nil@nil\npopframe\nreturn\n");
     //tointeger
     printf("\nlabel $_tointeger__0\ndefvar LF@result\neq LF@result LF@%%1 nil@nil\njumpifeq $$_tointeger_ret_nil_0 LF@result bool@true\nfloat2int LF@$1 LF@%%1\npopframe\nreturn\nlabel $$_tointeger_ret_nil_0\nmove LF@$1 nil@nil\npopframe\nreturn\n");
     //reads
@@ -170,5 +177,5 @@ void genetate_build_in_functions(){
     //write
     printf("\nlabel $_write__0\ndefvar LF@tmp\ndefvar LF@result\nlabel $_write_loop_start_0\nlt LF@result LF@%%1 int@1\njumpifeq $_write_end_printing_0 LF@result bool@true\nsub LF@%%1 LF@%%1 int@1\npops LF@tmp\neq LF@result LF@tmp nil@nil\njumpifeq $_write_write_nil_0 LF@result bool@true\nwrite LF@tmp\njump $_write_loop_start_0\nlabel $_write_write_nil_0\nwrite string@nil\njump $_write_loop_start_0\nlabel $_write_end_printing_0\npopframe\nreturn\n");
     //nil exception
-    printf("\nlabel $_nil_exception_0\nexit int@8\n");
+    printf("\nlabel $_nil_exception__0\nexit int@8\n");
 }
