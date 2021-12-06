@@ -801,6 +801,8 @@ bool statement(parser_data_t *data){
         if(!expression(data)){
             return false;
         }
+        condition_re_type(data,actual_if);
+        push_instruction(data,create_instruction(JUMPIFNEQ,label_generator(data->actual_function,"else",actual_if),strcpy_alloc(data,bool_string_true),NULL));
         if(!is_token(data,kw_then)){
             fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
@@ -808,13 +810,13 @@ bool statement(parser_data_t *data){
         }
         htab_t *table = htab_init(TABLE_SIZE);
         table->next = data->local_symtable;
-        data->local_symtable = table;
+        data->local_symtable = table;        
         get_token(data);        
         if(!st_list(data)){
             return false;
         }
         htab_clear(data->local_symtable);
-        push_instruction(data,create_instruction(JUMPIFNEQ,label_generator(data->actual_function,"endif",actual_if),strcpy_alloc(data,bool_string_true),NULL));
+        push_instruction(data,create_instruction(JUMP,label_generator(data->actual_function,"endif",actual_if),NULL,NULL));
         data->frame_counter++;
         if(!is_token(data,kw_else)){
             fprintf(stderr,"syntax error in: %s\n",__func__);
@@ -858,7 +860,6 @@ bool statement(parser_data_t *data){
         if(!expression(data)){
             return false;
         }
-        //TODO skok kontrola na nil a jiny nez bool
         condition_re_type(data,actual_while);
         push_instruction(data,create_instruction(JUMPIFNEQ,label_generator(data->actual_function,"while_end",actual_while),strcpy_alloc(data,bool_string_true),NULL/*TODO data->expression_list->identifier*/));
         if(!is_token(data,kw_do)){
@@ -1427,21 +1428,12 @@ void reverse_list(data_token_t **place){
 }
 
 void condition_re_type(parser_data_t *data,size_t ID){
-    /*  TODO
-    switch(data->expression_list->data_type){
-        case integer:
-        case number:
-        case string:
-            data->expression_list->data_type = type_bool;
-            free(data->expression_list->identifier);
-            data->expression_list->identifier = strcpy_alloc(data,bool_string_true);
-        break;
-        case nil:
-            free(data->expression_list->identifier);
-            data->expression_list->identifier = strcpy_alloc(data,bool_string_false);
-        break;
-        print("");
-
-    }
-    */
+    char * tmp_name = allocate_new_tmp_name(data,"LF@");
+    push_instruction(data,create_instruction(DEFVAR,strcpy_alloc(data,tmp_name),NULL,NULL));
+    push_instruction(data,create_instruction(TYPE,strcpy_alloc(data,tmp_name),strcpy_alloc(data,data->expression_list->identifier),NULL));
+    push_instruction(data,create_instruction(JUMPIFEQ,label_generator(data->actual_function,"before_if",ID),strcpy_alloc(data,tmp_name),string_to_string("nil")));
+    push_instruction(data,create_instruction(JUMPIFEQ,label_generator(data->actual_function,"before_if",ID),strcpy_alloc(data,tmp_name),string_to_string("bool")));
+    push_instruction(data,create_instruction(MOVE,strcpy_alloc(data,data->expression_list->identifier),strcpy_alloc(data,bool_string_true),NULL));
+    push_instruction(data,create_instruction(LABEL,label_generator(data->actual_function,"before_if",ID),NULL,NULL));
+    free(tmp_name);    
 }
