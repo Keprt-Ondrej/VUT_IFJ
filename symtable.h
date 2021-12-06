@@ -1,8 +1,10 @@
 /**
  * @file symtable.h
- * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
  * @brief Declaration of interface for table of symbols
  * 
+ * IFJ-2021 Compiler
+ * 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 
 #ifndef __SYMTABLE_H__

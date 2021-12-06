@@ -1,8 +1,10 @@
 /**
  * @file symtable.c
+ * @brief Definition of hash table
+ * 
+ * IFJ-2021 Compiler
+ * 
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
- * @brief Definition of functions for work with table of symbols    
- *  
 */
 
 #include "symtable.h"
