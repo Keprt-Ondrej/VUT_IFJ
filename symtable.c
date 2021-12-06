@@ -23,10 +23,10 @@ void push_back_data_token(data_token_t *token, data_token_t **place){
         *place = token;
         return;
     }
-    while(walking_token->next != NULL){
+    while(walking_token->next != NULL){ //walk through list
         walking_token = walking_token->next;
     }
-    walking_token->next = token;
+    walking_token->next = token;    //set last 
 }
 
 void free_data_token(data_token_t *token){
@@ -37,7 +37,7 @@ void free_data_token(data_token_t *token){
 void free_data_token_list(data_token_t **place){
     data_token_t *token = *place;
     data_token_t *delete;
-    while(token != NULL){
+    while(token != NULL){   //until end
         delete = token;
         token = token->next;
         free_data_token(delete);
@@ -52,8 +52,8 @@ size_t htab_bucket_count(const htab_t * t){
 void htab_clear(htab_t * t){
     size_t arr_size = htab_bucket_count(t);
     struct htab_item *deleting_item = NULL;
-	for (size_t index = 0; index < arr_size; index++){
-		while(t->array[index] != NULL){
+	for (size_t index = 0; index < arr_size; index++){  //for all lists starts
+		while(t->array[index] != NULL){         //until end of list
             deleting_item = t->array[index];
             t->array[index] = t->array[index]->next;
             free_htab_item(deleting_item);
@@ -66,7 +66,7 @@ bool htab_erase(htab_t * t, char * key){
     size_t index = (htab_hash_function(key) % t->arr_size);  
     struct htab_item *deleting_item = NULL;
     if (t->array[index] != NULL){
-        if (strcmp(key,t->array[index]->key) == 0){
+        if (strcmp(key,t->array[index]->key) == 0){ //item is first in list
             deleting_item = t->array[index];
             t->array[index] = t->array[index]->next;
             free_htab_item(deleting_item);
@@ -74,10 +74,10 @@ bool htab_erase(htab_t * t, char * key){
             return true;
         }
     }
-    else return false; //pokud na indexu nic nebylo
+    else return false;
 
-    struct htab_item *walking_item = t->array[index];
-    while(walking_item->next != NULL){
+    struct htab_item *walking_item = t->array[index];   
+    while(walking_item->next != NULL){          //walk through list
         deleting_item = walking_item->next;
         if (strcmp(deleting_item->key,key) == 0){
             walking_item->next = deleting_item->next;
@@ -87,19 +87,19 @@ bool htab_erase(htab_t * t, char * key){
         }
         else walking_item = walking_item->next ;
     }
-    return false; //prosel jsem cely list a nenasel jsem
+    return false; 
 }
 
 htab_item * htab_find(htab_t * t, char * key){
-    size_t index = (htab_hash_function(key) % t->arr_size);     //rychlejsi, nez volat funkci size_t htab_bucket_count(const htab_t * t), pokud se ale ukladani velikosti pole zmeni, bude se muset zmenit i zde, coz pri pouziti funkce nehrozi, ale zmena v tomto ukolu jiz nenastane... 
+    size_t index = (htab_hash_function(key) % t->arr_size);
     struct htab_item *walking_item = t->array[index];
-    while (walking_item != NULL){
+    while (walking_item != NULL){                   //find in actual lists
         if (strcmp(walking_item->key,key) == 0){
-            return walking_item;
+            return walking_item;        //found, return
         }
         else walking_item = walking_item->next;
     }
-
+    //end of list, search in next level of table stack
     if(t->next != NULL){
         return htab_find(t->next,key);
     }
@@ -119,7 +119,7 @@ void htab_for_each(const htab_t * t, void (*f)(htab_item *data)){
 }
 
 void htab_free(htab_t * t){
-    if(t->next != NULL){
+    if(t->next != NULL){        //recursive free
         htab_free(t->next);
     }   
     htab_clear(t);
@@ -127,7 +127,7 @@ void htab_free(htab_t * t){
 }
 
 size_t htab_hash_function(char *str) {
-    uint32_t h=0;     // musí mít 32 bitů
+    uint32_t h=0; 
     const unsigned char *p;
     for(p=(const unsigned char*)str; *p!='\0'; p++){
         h = 65599*h + *p;
@@ -139,8 +139,8 @@ size_t htab_hash_function(char *str) {
 htab_t *htab_init(size_t n){
     htab_t *tab = calloc(1,sizeof(htab_t)+ sizeof(struct htab_item *[n]));
     if (tab == NULL){
-        fprintf(stderr,"Chyba: nepodarilo se alokovat pamet pro novou hash table\n");
-        return NULL; //EXIT CODES TODO
+        fprintf(stderr,"Can not allocate hash table\n");
+        exit(INTERNAL_ERROR);
     }
     tab->arr_size = n;
     tab->size = 0;  
@@ -148,10 +148,9 @@ htab_t *htab_init(size_t n){
     return tab;
 }
 
-//TODO
 htab_item * htab_lookup_add(htab_t * t, char * key){
-    size_t index = (htab_hash_function(key) % t->arr_size); //rychlejsi, nez volat funkci size_t htab_bucket_count(const htab_t * t), pokud se ale t->arr_size nejak zmeni, bude se muset zmenit i zde, coz pri pouziti funkce nehrozi, ale zmena v tomto ukolu jiz nenastane... 
-    if (t->array[index] == NULL){
+    size_t index = (htab_hash_function(key) % t->arr_size);  
+    if (t->array[index] == NULL){       //list is empty
         t->array[index] = create_htab_item(key);
         if (t->array[index] == NULL){
             exit(INTERNAL_ERROR);
@@ -160,19 +159,19 @@ htab_item * htab_lookup_add(htab_t * t, char * key){
         return t->array[index];
     }
 
-    if (strcmp(t->array[index]->key,key) == 0){
+    if (strcmp(t->array[index]->key,key) == 0){ //find item with same key
         return NULL;;
     }
 
     struct htab_item *walking_item = t->array[index];
-    while (walking_item->next != NULL){        
+    while (walking_item->next != NULL){                 //find ind list
         if (strcmp(walking_item->next->key,key) == 0){            
             return NULL;
         }
         walking_item = walking_item->next;
     }
 
-    walking_item->next = create_htab_item(key);
+    walking_item->next = create_htab_item(key); //end, can insert item
     if (walking_item->next == NULL){      
         exit(INTERNAL_ERROR);
     }
@@ -195,7 +194,7 @@ htab_t *htab_move(size_t n, htab_t *from){
         while(moving_item != NULL){ 
             htab_item *new_pair = htab_lookup_add(tab, moving_item->key);
             if (new_pair == NULL){
-                fprintf(stderr,"Chyba: nepodarilo se presunout tabulku\n");
+                fprintf(stderr,"Can not move table\n");
                 htab_free(tab);
                 return NULL;
             }
@@ -221,22 +220,26 @@ struct htab_item *create_htab_item( char * key){
     item->next = NULL;
     item->param_list = NULL;
     item->return_list = NULL;
-    //TODO INIT values
 
     char *new_key = malloc(strlen(key)+1); 
     if (new_key == NULL){
         free(item);
         return NULL;
     }
-    strcpy(new_key,key);  //nastavim pole na hodnotu klice
-    item->key = new_key; //ukazatel nastavim na pole, kde je klic
+    strcpy(new_key,key);  
+    item->key = new_key;
     return item;
 }
 
 void free_htab_item(struct htab_item * item){    
-    //TODO uvolnit seznamy pro params and return vals
-    free((void *)item->key);   // z const char delam void *,protoze prekladac haze warning,
-    free(item);                     // ale k polozce uz by se nemelo pristupovat, mela by byt tedy smazana   
+    if(item->param_list != NULL){
+        free_data_token_list(&(item->param_list));        
+    }
+    if(item->return_list != NULL){
+        free_data_token_list(&(item->return_list));
+    }
+    free((void *)item->key);  
+    free(item);                       
 }
 
 void print_htab_item_values(htab_item *data){    
@@ -250,60 +253,3 @@ void htab_definition_control(htab_item *data){
     }
 }
  
-
-// hello  
-
-/*
-void test(){   
-    int a;  //0
-    int b;  //0
-    if (a < 5){
-        int b = 5;  //b1
-        a = b;      //a0 b1
-        int a = 3;  //a1
-
-        if(a < b){
-            int a = 10; //a2
-
-            b = a;  //b1 a2
-
-        }
-        else{
-            a = 4;  //a1
-
-            int a = 87; //a2
-        }
-
-        a = 42; //a1 
-
-        if (a < b){
-            int a;  //a3
-
-            b = a;  //b1 a3
-            if(b > a){  
-                a = b;  //a3 b1
-                b = 10; //b1
-                int a; //a4
-
-            }
-            else{ 
-                a = 4; //a3
-                int a = b; //a4 b1 
-                int b;  //b4    
-            }
-        }
-        else{
-            a  = 78; //a1
-            int b = 97; //b3
-        }
-    }
-    else{
-        int a = 42; //a1
-        int b;  //b1
-        b = a;  //b1 a1
-    }
-
-    a = 478;    //a0
-    b ;     //b0
-}
-*/

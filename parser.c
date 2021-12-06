@@ -17,7 +17,7 @@ void set_errno(parser_data_t *data,int errno){
 void get_token(parser_data_t *data){
     Token *token = read_token();
     if(token == NULL){
-        fprintf(stderr,"Lexical error\n");
+        fprintf(stderr,"Lexical error\n");  //TODO comment 
         free_parser_data(data);
         exit(LEX_ERROR);
     }    
@@ -34,8 +34,28 @@ bool is_token(parser_data_t *data,Token_type type){
 }
 
 void free_parser_data(parser_data_t *data){
-    //TODO free
-    htab_free(data->global_symtable);
+    if(data->local_symtable != NULL) htab_free(data->local_symtable);
+    if(data->global_symtable != NULL) htab_free(data->global_symtable);
+    free(data->actual_function);
+    while(data->token_list_first != NULL){
+        Token *delete = data->token_list_first;
+        data->token_list_first = data->token_list_first->next;
+        delete_token(delete);
+    }
+    //todo precedence free
+    free_data_token_list(&(data->param_list));
+    free_data_token_list(&(data->return_list));
+    free_data_token_list(&(data->identif_list));
+    while(data->program != NULL){
+        instruction_t *delete = data->program;
+        data->program = data->program->next;
+        free_instruction(delete);
+    }
+    while(data->function_calls != NULL){
+        instruction_t *delete = data->function_calls;
+        data->function_calls = data->function_calls->next;
+        free_instruction(delete);
+    } 
     return;
 }
 
@@ -56,7 +76,7 @@ void push_precedence_token(parser_data_t *data, precedence_token_t *token){
 }
 
 void push_instruction(parser_data_t *data, instruction_t *instruction){
-    if(data->actual_function == NULL){
+    if(data->actual_function == NULL){      //decide if we are processing function definition or we are calling function between definitions and declarations
         data->last_call->next = instruction;
         data->last_call = instruction;
     }
@@ -66,7 +86,6 @@ void push_instruction(parser_data_t *data, instruction_t *instruction){
     }
 }
 
-//TODO switcher
 void push_data_token(parser_data_t *data, data_token_t *token){
     if (data->param_list == NULL){
         data->param_list = token;
@@ -80,7 +99,7 @@ void push_data_token(parser_data_t *data, data_token_t *token){
 
 void defvar_3AC(parser_data_t *data,char *key){
     instruction_t *instruction = create_instruction(DEFVAR,key,NULL,NULL);
-    if(data->while_counter == 0){
+    if(data->while_counter == 0){       //decide if insert before while or on last item
         push_instruction(data,instruction);
     }
     else{
@@ -107,7 +126,7 @@ char *allocate_new_tmp_name(parser_data_t *data,const char *frame){
         exit(INTERNAL_ERROR);
     }
     snprintf(name,lenght,"%s$_tmp_var_$%zu",frame,data->tmp_counter);
-    data->tmp_counter++;
+    data->tmp_counter++;    //new tmp var must have another serial number
     return name;
 }
 
@@ -153,7 +172,7 @@ int print_token(Token *token){
 
 
 bool expression(parser_data_t *data){
-    //return fake_expression(data);
+    return fake_expression(data);
 
-    return precedence(data);
+    //return precedence(data);
 }

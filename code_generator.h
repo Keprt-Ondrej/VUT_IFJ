@@ -4,6 +4,8 @@
  * 
  * IFJ-2021 Compiler
  * 
+ * @note some functions for generating code are in files (search for IFJcode21_generating in files): parser_recursive_descent.h, parser.h
+ * 
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 
@@ -134,10 +136,10 @@ instruction_t *create_instruction(OP_code_t opcode,char *op1,char *op2,char *op3
  * 
  * @note function does not set instruction list on NULL!!!
  * 
- * @param inst start of instruction list 
+ * @param instruction start of instruction list 
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
-void generate_code(instruction_t *inst);
+void generate_code(instruction_t **instruction);
 
 /**
  * @brief ALLOCATE memory for variable name and properly generate it

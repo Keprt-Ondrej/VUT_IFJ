@@ -66,8 +66,9 @@ instruction_t *create_instruction(OP_code_t opcode,char *op1,char *op2,char *op3
     return inst;
 }
 
-void generate_code(instruction_t *inst){
+void generate_code(instruction_t **instruction){
     instruction_t *delete;
+    instruction_t *inst = *instruction;
     while(inst != NULL){
         print_opcode(inst->opcode);
         if(inst->op1 != NULL){
@@ -84,6 +85,7 @@ void generate_code(instruction_t *inst){
         inst = inst->next;
         free_instruction(delete);
     }
+    *instruction = NULL;
 }
 
 char *allocate_var_name_3AC(const char* frame,htab_item *item){

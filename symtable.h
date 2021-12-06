@@ -58,6 +58,11 @@ typedef struct htab{
     struct htab_item *array[];  ///< array of pointers on lists of items   
 }htab_t;
 
+/**
+ * @brief Structure of item in symtable
+ * 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
 typedef struct htab_item{
     char *key;                     ///< name of symbol stored in item
     data_type_t type;              ///< type of data, which represents this item
@@ -115,7 +120,7 @@ htab_t *htab_init(size_t n);
 htab_t *htab_move(size_t n, htab_t *from);
 
 /**
- * @brief 
+ * @brief returns count of items in hash table
  * 
  * @param t pointer on table 
  * @return number of items in the table
@@ -193,12 +198,56 @@ void htab_clear(htab_t * t);
 */
 void htab_free(htab_t * t);     // destruktor tabulky
 
-void print_htab_item_values(htab_item *data);  //tiskne data, ktera dostane v argumentu
-void push_back_data_token(data_token_t *token, data_token_t **place);
-void free_data_token(data_token_t *token);
-data_token_t *create_data_token();
-void free_data_token_list(data_token_t **place);
-void htab_definition_control(htab_item *data);
+/**
+ * @brief print data of item, use only on LOCAL symtable 
+ * 
+ * @param data 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+void print_htab_item_values(htab_item *data);
 
+/**
+ * @brief Push back token in list
+ * 
+ * @param token pushed token
+ * @param place beginning of list
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+void push_back_data_token(data_token_t *token, data_token_t **place);
+
+/**
+ * @brief 
+ * 
+ * @param token 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+void free_data_token(data_token_t *token);
+
+/**
+ * @brief Create a data token object
+ * 
+ * @return data_token_t* created data token
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+data_token_t *create_data_token();
+
+/**
+ * @brief free all data tokens and set list on NULL
+ * 
+ * @param place begiinning of the list
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+void free_data_token_list(data_token_t **place);
+
+
+/**
+ * @brief Control if function was defined
+ * 
+ * use in htab_for_each
+ * 
+ * @param data pointer on item in hash table
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+void htab_definition_control(htab_item *data);
 
 #endif

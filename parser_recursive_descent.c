@@ -1,8 +1,10 @@
 /**
  * @file parser_recursive_descent.c
- * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
- * @brief 
+ * @brief Definition of recursive descent and semantics action
  * 
+ * IFJ-2021 Compiler
+ * 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 
 #include "parser_recursive_descent.h"
@@ -39,10 +41,9 @@ int parser(){
     }    
     htab_for_each(data.global_symtable,htab_definition_control);
     printf(".IFJcode21\n");
-    generate_code(data.function_calls);
-    generate_code(data.program);
+    generate_code(&(data.function_calls));
+    generate_code(&(data.program));
     genetate_build_in_functions();
-    data.program = NULL;
     free_parser_data(&data);
     return SUCCESS;
 }
@@ -59,7 +60,7 @@ htab_item * htab_define_function(char * key,parser_data_t *data){
 }
 
 htab_item *htab_declare_function(char * key,parser_data_t *data){ 
-    htab_item * item = htab_lookup_add(data->global_symtable,key);   
+    htab_item * item = htab_lookup_add(data->global_symtable,key);  
     if(item == NULL){
         set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
         return NULL;
@@ -623,7 +624,7 @@ bool statement(parser_data_t *data){
         }
         htab_item *variable = htab_find(data->global_symtable,data->token->data.str);
         if(variable != NULL){
-            fprintf("trying create variable name same as function identifier %s\n",variable->key);
+            fprintf(stderr,"trying create variable name same as function identifier %s\n",variable->key);
             set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
             return false;
         }
@@ -677,7 +678,7 @@ bool statement(parser_data_t *data){
         else if(data->expression_list != NULL){            
             //init from expression
             if(variable->type != data->expression_list->data_type){
-                if(variable->type == number && data->expression_list == integer){
+                if(variable->type == number && data->expression_list->data_type == integer){
                     push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,data->expression_list->identifier),strcpy_alloc(data,data->expression_list->identifier),NULL));
                 }
                 else{

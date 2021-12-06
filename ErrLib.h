@@ -1,3 +1,14 @@
+/**
+ * @file ErrLib.h
+ * @brief Definition of exit codes
+ * 
+ * IFJ-2021 Compiler
+ * 
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+ * @author Trofimov Oleg (xtrofi00@stud.fit.vutbr.cz)
+ * @author Gerasimov Maxim (xgeras00@stud.fit.vutbr.cz)
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
