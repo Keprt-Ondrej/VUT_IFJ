@@ -1,206 +1,166 @@
-/** 
+/**
  * @file scanner.h
- *
- * @brief Scanner 
+ * @author Oleg Trofimov (xtrofi00@stud.fit.vutbr.cz)
+ * @brief 
  * 
- * Functions needed for Lexical analysis
- *
- * @author Ondřej Keprt <xkeprt03@stud.fit.vutbr.cz>
+*/
+
+#ifndef __SCANNER_H__
+#define __SCANNER_H__
+#include "ErrLib.h"
+#include "errno.h"
+
+
+/**
+ * @struct Representation of dynamic string.
+ */
+typedef struct {
+	char *string;   // string ended by '\0' byte
+	int current_index;     // lenght of string
+	int alloc_size; // number of chars alocated for string
+} String;
+
+bool str_init(String *s);
+
+void str_free(String *s);
+
+String* extend_buffer(String *s);
+
+bool str_add_char(String *s, char c);
+
+/**
+ * @enum Type of token.
  */
 
-#ifndef SCANNER_H
-#define SCANNER_H
-#include "cLibs.h"
+typedef enum {
 
-/**
- * @brief Initialization size of reading buffer
- * @warning Always should be greater than 10, for correct deallocation
- */
-#define reading_buffer_init_size 50 
+    // Operators
+    token_type_length,                // (#)   length               21
+    token_type_mul,                   // (*)   multiplication       22
+    token_type_div,                   // (/)   division             23
+    token_type_floor_div,             // (//)  floor division       24
+	token_type_plus,                  // (+)   addition             25
+    token_type_minus,                 // (-)   subtraction          26   
+    token_type_concat,                // (..)  concatenation        27
+    token_type_lth,                   // (<)   less than            28
+    token_type_leq,                   // (<=)  less equal           29
+    token_type_gth,                   // (>)   greater than         30
+    token_type_geq,                   // (>=)  greater equal        31
+    token_type_equal,                 // (==)  equal                32
+    token_type_ineq,                  // (~=)  inequality           33
+    token_type_assign,                // (=)   assignment           34
+    token_type_left_bracket,          // (     left bracket         35
+    token_type_right_bracket,         //  )    right bracket        36
 
-/**
- * @brief Pointer on reading buffer
- * @warning Must be initialized before using by init_reading_buffer()
- */ 
-char *reading_buffer;               
-int size_of_reading_buffer;   /**< Actual size of reading buffer */
 
-/**
- * @brief Allocate memory for reading buffer
- * @return False if request fails, true when memory was allocated 
- */
-bool init_reading_buffer();
+    token_type_identifier,            // Identifier     16
+    
+	token_type_integer,               // Integer        17
+	token_type_number,                // Number         18
+	token_type_string,                // String         19
+    token_type_nil,                   // Nil            20
 
-/**
- * @brief Store character to reading buffer
- * 
- * If reading buffer is full, it try to extend it by small amount
- * @param index in reading buffer, where should be character stored
- * @param character
- * @return false if request fails, true when character was added
- */ 
-bool add_char_to_reading_buffer(int char_cnt,char c);
+    token_type_$,
+    token_type_E,
+    token_type_shift,                  //(<) shift in buffer
 
-/**
- * @brief Free memory, where was reading buffer
- */
-void delete_reading_buffer();
 
-/**
- * @enum Token types
- * @warning Don't change order!!!! print_token() would be destroyed
- */
-typedef enum {          
-    key_word,   //0
-    int64_value,    //1
-    double_value,   //2
-    identif,    //3
-    EoF,    //4
-    EoL,    //5
-    division,   //6
-    string,     //7
-    curly_bracket_close,    //8
-    curly_bracket_open,     //9
-    bracket_open,   //10
-    bracket_close,  //11
-    semicolon,  //12
-    comma,  //13
-    times,  //14
-    plus,   //15
-    minus,  //16
-    init,   //17
-    less,   //18
-    less_eq,    //19
-    greater,    //20
-    greater_eq, //21
-    not_eq,     //22
-    assignment, //23
-    eq,     //24
-} token_type;
+    token_type_square_left_bracket,   // ([)   square left bracket  37
+    token_type_square_right_bracket,  // (])   square right bracket 38
+    token_type_colon,                 // (:)   colon                39
+    token_type_comma,                 // (,)   comma                40
+    
+    // Keywords
+    kw_do,          //0
+    kw_else,        //1     
+    kw_end,         //2
+    kw_function,    //3
+    kw_global,      //4
+    kw_if,          //5
+    kw_integer,     //6
+    kw_local,       //7
+    kw_nil,         //8
+    kw_number,      //9
+    kw_require,     //10
+    kw_return,      //11
+    kw_string,      //12
+    kw_then,        //13
+    kw_while,       //14
 
-/**
- * @enum Keywords
- * @warning don't change order of ENUM!!!! print_token() would be destroyed
- * @see print_token()
- * 
- * If token includes key word, this defines which one
- */ 
-typedef enum{           
-    kw_else,    //0
-    kw_float64, //1
-    kw_for,     //2
-    kw_func,     //3
-    kw_if,      //4
-    kw_int,     //5
-    kw_package, //6
-    kw_return,  //7
-    kw_string,   //8
-} key_word_value;
+	token_type_EOF,                   // End of file    15
+} Token_type;
+
 
 /**
  * @union Data, which token contains
  * 
  * Data stored in token depends on his type
  */
-typedef union{
-    int64_t int_value;      
-    double double_value;     
-    char *str;                  /**<Pointer to memory, where is stored readed string or identificator name */
-    key_word_value key_word;
-} token_data;
+typedef union {
+    int type_integer;      
+    double type_double;     
+    char *str;
+} Token_data;
 
 /**
  * @struct Token
  */
-typedef struct{
-    token_type type;
-    token_data data;
-} LA_token;
+typedef struct token Token;
+struct token {
+    Token_type type;
+    Token_data data;
+    Token *next;
+};
 
 /**
  * @enum States of Scanner finite state machine
  */
-typedef enum{
-    start,
-    end_of_file,
-    int64,
-    decimal_point,
-    zero,
-    double_point_value,
-    double_exponent_begin,
-    double_exponent_sign,
-    double_exponent_value,
-    end_of_line,
-    slash,
-    line_comment,
-    block_comment_loop,
-    block_comment_end,
-    block_comment_end_with_EOL,
-    block_comment_loop_with_EOL,
-    identif_and_kw,
-    curly_bracket_close_st,
-    curly_bracket_open_st,
-    bracket_open_st,
-    bracket_close_st,
-    semicolon_st,
-    comma_st,
-    times_st,
-    plus_st,
-    minus_st,
-    init_begin,
-    init_end,
-    less_st,
-    less_eq_st,
-    greater_st,
-    greater_eq_st,
-    not_eq_begin,
-    not_eq_end,
-    eq_st,
-    assignment_st,
-    string_loop,
-    string_end,
-    string_wrong_input,
-    escape_seq_begin,
-    escape_seq_x,
-    escape_seq_x_number,    
+typedef enum {
+    start,                          //0
+    end_of_file,                    //1
+    int_number,                     //2
+    decimal_point,                  //3
+    zero,                           //4
+    double_point_value,             //5
+    double_exponent_begin,          //6
+    double_exponent_sign,           //7
+    double_exponent_value,          //8                 
+    minus_st,                       //9
+    line_comment,                   //10
+    block_comment_begin,            //11
+    block_comment_loop,             //12
+    block_comment_end,              //13
+    identif_and_kw,                 //14
+    div_st,                         //15
+    floor_div_st,                   //16
+    plus_st,                        //17
+    mul_st,                         //18
+    colon_st,                       //19
+    bracket_right_st,               //20
+    bracket_left_st,                //21
+    comma_st,                       //22
+    length_st,                      //23
+    ineq_begin_st,                  //24  
+    ineq_end_st,                    //25
+    assignment_st,                  //26  
+    equal_st,                       //27
+    less_st,                        //28
+    less_eq_st,                     //29
+    greater_st,                     //30
+    greater_eq_st,                  //31
+    dot_st,                         //32
+    concat_st,                      //33
+    string_loop,                    //34
+    string_end,                     //35
+    escape_seq,                     //36
 } FSM_state;
 
-/**
- * @brief Allocate memory for token 
- * @return return pointer on token, NULL if request fails
- */
-LA_token* create_token();
+Token* create_token(); // Alocate memory for token
 
-/**
- * @brief Free memory of token
- * 
- * If token was identificator or string it also free this memory
- * @param pointer on token which should be freed 
- */
-void delete_token(LA_token* token_ptr);
+bool add_str_to_token(String buffer, Token *token);
 
-/**
- * @brief Store loaded string or identicator to token memory
- * @param pointer on token, where should be data stored
- * @return true if string was stored, false when request fails
- */
-bool store_identif_or_string_to_token(LA_token* token_ptr);
+void delete_token(Token* token);
 
-/**
- * @brief convert hexadecimal number to decimal
- * @param sixteens of converted number
- * @param units of converted number
- * @return decimal number converted from params
- */
-int from_hex_to_decimal(char sixteen,char zero);
+Token* read_token();
 
-/**
- * @brief Send token with readed data
- * 
- * Function calls create_token
- * @return pointer on token with data, NULL if request fails (and set exit_code on LEX_ERROR)
- */
-LA_token* get_token();
-#endif
-
-/*** End of file scanner.h ***/
+#endif // __SCANNER_H__
