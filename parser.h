@@ -12,13 +12,14 @@
 #include "symtable.h"
 #include "code_generator.h"
 
-
-
 typedef struct prec_token{
     Token_type type;
+    Token_data data;
     char *identifier;
     data_type_t data_type;
     struct prec_token *next;
+    bool shift;
+    bool redused;    
 }
 precedence_token_t;
 
@@ -84,7 +85,7 @@ bool is_token(parser_data_t *data, Token_type type);
 void free_parser_data(parser_data_t *data);
 int print_token(Token *token);
 bool expression(parser_data_t *data);
-int precedence(parser_data_t *data);
+bool precedence(parser_data_t *data);
 
 
 /**

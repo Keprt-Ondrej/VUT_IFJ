@@ -7,13 +7,29 @@
 #include "parser.h"
 #include "code_generator.h"
 
-typedef struct{
-    precedence_token_t **new_token;
-    int index;
-    int length;
 
+typedef enum{
+    answer_number,
+    answer_str,
+    answer_int,
+    answer_nil
+}Answer_type;
+
+typedef struct{
+    precedence_token_t **token;
+    int index;
+    int active_index;
+    int current_length;
+    int left_bracket;
+    int right_bracket;    
 }Buffer_for_token;
 
-int precedence(parser_data_t *data);
+typedef enum{
+    P,  //push
+    R,  //reduse
+    E,  //equal
+    N,  //no precedence
+}compare_result;
+
 
 #endif

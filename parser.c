@@ -20,7 +20,7 @@ void get_token(parser_data_t *data){
         fprintf(stderr,"Lexical error\n");
         exit(LEX_ERROR);
     }    
-    print_token(token);
+    //print_token(token);
     data->token->next = token;
     data->token = token;
 }
