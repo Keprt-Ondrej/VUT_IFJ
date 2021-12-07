@@ -542,17 +542,17 @@ bool st_list(parser_data_t *data){
         case kw_if:
         case kw_local:
         case kw_while:
-        case token_type_identifier:            
+        case token_type_identifier:             //generate statement
             return statement(data) && st_list(data);
         break;
         //grammar rule 40
-        case kw_return:
+        case kw_return:     //generate return on oned of statement list
             get_token(data);
-            bool ret_val = expression_list(data);
+            bool ret_val = expression_list(data);      //setup return values on data->expression_list
             if(!ret_val){
                 return false;
             }
-            htab_item *function = htab_find(data->global_symtable,data->actual_function);
+            htab_item *function = htab_find(data->global_symtable,data->actual_function);   //find actual function for type compability of return values
             if(function == NULL){
                 set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
                 fprintf(stderr,"Calling undefined function %s\n",data->actual_function);
@@ -563,10 +563,10 @@ bool st_list(parser_data_t *data){
             size_t return_counter = 1;
             size_t lenght;
             char *return_name;
-            /*      TODO RUN THIS
+            /*    TODO RUN THIS
             while(walking_return != NULL && walking_expression != NULL){
                 if(walking_return->data_type != walking_expression->data_type){
-                    if(walking_return->data_type == number && walking_expression->data_type == integer){
+                    if(walking_return->data_type == number && walking_expression->data_type == integer){    //expression can be retyped 
                         push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,walking_expression->identifier),strcpy_alloc(data,walking_expression->identifier),NULL));
                     }
                     else{
@@ -575,20 +575,20 @@ bool st_list(parser_data_t *data){
                         return false;
                     }
                 }
-                lenght = snprintf(NULL,0,"LF@$%zu",return_counter) + 1;
+                lenght = snprintf(NULL,0,"LF@$%zu",return_counter) + 1;     //setup place for moving value from expression
                 return_name = calloc(lenght,sizeof(char));
                 if(return_name == NULL){
                     set_errno(data,INTERNAL_ERROR);
                     return false;
                 }
                 snprintf(return_name,0,"LF@$%zu",return_counter);
-                push_instruction(data,create_instruction(MOVE,return_name,walking_expression->identifier,NULL));
+                push_instruction(data,create_instruction(MOVE,return_name,walking_expression->identifier,NULL));    //move expression value to return place
                 walking_expression->identifier = NULL;
                 walking_return = walking_return->next;
                 walking_expression = walking_expression->next;
                 return_counter++;
             }
-            if(walking_expression != NULL && walking_return == NULL){
+            if(walking_expression != NULL && walking_return == NULL){       // too much expressions for return, if number of expressions is lower than return list, nil is returned, which was setup in function calll
                 set_errno(data,SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
                 fprintf(stderr,"Too much expressions in return statement, function %s\n",data->actual_function);
                 return false;
@@ -618,19 +618,19 @@ bool statement(parser_data_t *data){
             set_errno(data,SYNTAX_ERROR);
             return false;
         }
-        htab_item *variable = htab_find(data->global_symtable,data->token->data.str);
-        if(variable != NULL){
+        htab_item *variable = htab_find(data->global_symtable,data->token->data.str);       //variable name can not be same as name of function
+        if(variable != NULL){   
             fprintf(stderr,"trying create variable name same as function identifier %s\n",variable->key);
             set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
             return false;
         }
-        variable =  htab_lookup_add(data->local_symtable,data->token->data.str);
+        variable =  htab_lookup_add(data->local_symtable,data->token->data.str);        //add variable to first level of local symtable stack
         if(variable == NULL){
             fprintf(stderr,"trying to redefine variable %s\n",data->token->data.str);
             set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
             return false;
         }
-        variable->frame_ID = data->frame_counter;
+        variable->frame_ID = data->frame_counter;       //set actual frame identifier
 
         get_token(data);
         if(!is_token(data,token_type_colon)){
@@ -640,7 +640,7 @@ bool statement(parser_data_t *data){
         }
         get_token(data);
 
-        bool ret_val = type(data);
+        bool ret_val = type(data);      //setup on data->param_list type of variable
         if(!ret_val){
             return false;
         }
@@ -650,16 +650,16 @@ bool statement(parser_data_t *data){
         free_data_token(data->param_list);
         data->param_list = NULL;
         char *var_name = variable->key;
-        variable->key = "$$"; //renaming temporary var, because we cannot call function with it
-        ret_val = init(data);
+        variable->key = "$$"; //renaming temporary var, because we cannot call function with it, because we are defininf it now
+        ret_val = init(data);       //setup init values 
         if(!ret_val){
             return false;
         } 
         variable->key = var_name;   //changing name back
         if(data->return_list != NULL){
-            //init from function call
-            if(variable->type != data->return_list->data_type){
-                if(variable->type == number && data->return_list->data_type == integer){
+            //init from function call, data are passed directly from temporary frame to var, but type controll needed, return list of called function is stored on data->return_list
+            if(variable->type != data->return_list->data_type){     //type control
+                if(variable->type == number && data->return_list->data_type == integer){            //can be retyped
                     push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,"TF@$1"),strcpy_alloc(data,"TF@$1"),NULL));
                 }
                 else{
@@ -668,13 +668,13 @@ bool statement(parser_data_t *data){
                     return false;
                 }
             }
-            push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),strcpy_alloc(data,"TF@$1"),NULL));
+            push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),strcpy_alloc(data,"TF@$1"),NULL));      //storing value to variable
             data->return_list = NULL;
         }
-        else if(data->expression_list != NULL){            
-            //init from expression
-            if(variable->type != data->expression_list->data_type){
-                if(variable->type == number && data->expression_list->data_type == integer){
+        else if(data->expression_list != NULL){             
+            //init from expression  
+            if(variable->type != data->expression_list->data_type){     //control type
+                if(variable->type == number && data->expression_list->data_type == integer){    //can be retepyde
                     push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,data->expression_list->identifier),strcpy_alloc(data,data->expression_list->identifier),NULL));
                 }
                 else{
@@ -683,7 +683,7 @@ bool statement(parser_data_t *data){
                     return false;
                 }
             }
-            push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),data->expression_list->identifier,NULL));
+            push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),data->expression_list->identifier,NULL));   //move value from expression to variable
             //todo free expression token
             data->expression_list = NULL;
         }
@@ -704,32 +704,33 @@ bool statement(parser_data_t *data){
             return false;
         } 
         if(data->identif_list == NULL){
-            //function was called
+            //function was called,
             return true;
         }
-        if(data->return_list != NULL){
+        //we continued in creating identifier list and we assign values to them
+        if(data->return_list != NULL){          //function was called after =
             //assignment from function call
             size_t ret_val_counter = 1;
             data_token_t *walking_identif = data->identif_list;
             data_token_t *walking_return = data->return_list;
             size_t lenght;
             char *return_place;
-            while(walking_identif != NULL && walking_return != NULL){
-                htab_item *variable = htab_find_variable(data->local_symtable,walking_identif->key);
+            while(walking_identif != NULL && walking_return != NULL){       // assign to specific identif
+                htab_item *variable = htab_find_variable(data->local_symtable,walking_identif->key);    //control of existence identif
                 if(variable == NULL){
                     fprintf(stderr,"undefined variable %s used in assignment\n",walking_identif->key);
                     set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
                     return false;
                 }
-                lenght = snprintf(NULL,0,"TF@$%zu",ret_val_counter) + 1;
+                lenght = snprintf(NULL,0,"TF@$%zu",ret_val_counter) + 1;    //setup name for place, where is return value on temporary frame
                 return_place = calloc(lenght,sizeof(char));
                 if(return_place == NULL){
                     set_errno(data,INTERNAL_ERROR);
                     return false;
                 }
                 snprintf(return_place,lenght,"TF@$%zu",ret_val_counter);
-                if(variable->type != walking_return->data_type){
-                    if(variable->type == number && walking_return->data_type == integer){
+                if(variable->type != walking_return->data_type){    //type control
+                    if(variable->type == number && walking_return->data_type == integer){   //return value can be retyped
                         push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,return_place),strcpy_alloc(data,return_place),NULL));
                     }
                     else{
@@ -738,13 +739,13 @@ bool statement(parser_data_t *data){
                         return false;
                     }
                 }
-                push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),return_place,NULL));
+                push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),return_place,NULL));    //assign value to variable
                 ret_val_counter++;
                 walking_identif = walking_identif->next;
                 walking_return = walking_return->next;
             }
-            if(walking_identif != NULL && walking_return == NULL){
-                set_errno(data,SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
+            if(walking_identif != NULL && walking_return == NULL){      //must assign to all identifiers
+                set_errno(data,SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);  
                 fprintf(stderr,"wrong number of return values for assingment\n");
                 return false;
             }
@@ -752,21 +753,21 @@ bool statement(parser_data_t *data){
             data->identif_list = NULL;
             data->return_list = NULL; 
         }
-        else{
+        else{   
             //assignment from expression
             data_token_t *walking_identif = data->identif_list;
             precedence_token_t *walking_expression = data->expression_list;
             size_t lenght;
             char *return_place;
             while(walking_identif != NULL && walking_expression != NULL){
-                htab_item *variable = htab_find_variable(data->local_symtable,walking_identif->key);
+                htab_item *variable = htab_find_variable(data->local_symtable,walking_identif->key);    //identifier must be defined
                 if(variable == NULL){
                     fprintf(stderr,"undefined variable %s used in assignment\n",walking_identif->key);
                     set_errno(data,SEM_ERROR_REDEFINE_UNDEFINE_VAR);
                     return false;
                 }
-                if(variable->type != walking_expression->data_type){
-                    if(variable->type == number && walking_expression->data_type == integer){
+                if(variable->type != walking_expression->data_type){    //type control
+                    if(variable->type == number && walking_expression->data_type == integer){   //can be retyped
                         push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,walking_expression->identifier),strcpy_alloc(data,walking_expression->identifier),NULL));
                     }
                     else{
@@ -775,12 +776,12 @@ bool statement(parser_data_t *data){
                         return false;
                     }
                 }
-                push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),walking_expression->identifier,NULL));
+                push_instruction(data,create_instruction(MOVE,allocate_var_name_3AC("LF@",variable),walking_expression->identifier,NULL));  //assign value from expression to variable
                 walking_expression->identifier = NULL;
                 walking_identif = walking_identif->next;
                 walking_expression = walking_expression->next;
             }
-            if(walking_identif != NULL && walking_expression == NULL){
+            if((walking_identif != NULL && walking_expression == NULL) || (walking_identif == NULL && walking_expression != NULL)){     //wron numbers of identifier/expressions
                 set_errno(data,SEM_ERROR_ASSIGN_COMMAND);
                 fprintf(stderr,"wrong number of return values for assingment\n");
                 return false;
@@ -819,7 +820,7 @@ bool statement(parser_data_t *data){
         if(!st_list(data)){
             return false;
         }
-        htab_clear(data->local_symtable);
+        htab_clear(data->local_symtable);   //"new" symtable level for else 
         push_instruction(data,create_instruction(JUMP,label_generator(data->actual_function,"endif",actual_if),NULL,NULL));
         data->frame_counter++;
         if(!is_token(data,kw_else)){
@@ -848,10 +849,10 @@ bool statement(parser_data_t *data){
     }
     else if(is_token(data,kw_while)){
         //grammar rule 39
-        if(data->while_counter == 0){
+        if(data->while_counter == 0){       //setup place where should be def war from inside loop
             data->before_while = data->last_instruction;
         }
-        data->while_counter++;
+        data->while_counter++;  // counter > 0 indicates we are in loop, def_var_3AC place defvar instructions on correct place
         data->frame_counter++;
         size_t actual_while = data->frame_counter;
         push_instruction(data,create_instruction(LABEL,label_generator(data->actual_function,"while_before_exp",actual_while),NULL,NULL));
@@ -1295,20 +1296,20 @@ void prepare_build_in_functions(parser_data_t *data){
 }
 
 void generate_function_call(parser_data_t *data,htab_item *function){
-    push_instruction(data,create_instruction(CREATEFRAME,NULL,NULL,NULL));
+    push_instruction(data,create_instruction(CREATEFRAME,NULL,NULL,NULL));  //future LF of function
     size_t param_counter = 1;
     data_token_t *walking_item_function = function->param_list;
     data_token_t *walking_item = data->param_list;
     size_t lenght;
     char *param_def;
     char *param;
-    if(strcmp(function->key,"write") == 0){
+    if(strcmp(function->key,"write") == 0){     //write function have another call, no type control
         data_token_t *delete = NULL;
-        reverse_list(&(data->param_list));
+        reverse_list(&(data->param_list));      //passing argument by stack and in frame only count of parameters
         param_counter = 0;
-        while(data->param_list != NULL){
-            if(walking_item->data_type == identifier){
-                htab_item *variable = htab_find_variable(data->local_symtable,walking_item->key);
+        while(data->param_list != NULL){        //while end of param list
+            if(walking_item->data_type == identifier){          //if param is identifier
+                htab_item *variable = htab_find_variable(data->local_symtable,walking_item->key);       //find, if variable exists
                 if(variable == NULL){
                     free_parser_data(data);
                     exit(SEM_ERROR_REDEFINE_UNDEFINE_VAR);
@@ -1316,7 +1317,7 @@ void generate_function_call(parser_data_t *data,htab_item *function){
                 push_instruction(data,create_instruction(PUSHS,allocate_var_name_3AC("LF@",variable),NULL,NULL));
             }
             else{
-                push_instruction(data,create_instruction(PUSHS,strcpy_alloc(data,data->param_list->key),NULL,NULL));                
+                push_instruction(data,create_instruction(PUSHS,strcpy_alloc(data,data->param_list->key),NULL,NULL));     //another term push immedietly on stack      
             }
             delete = data->param_list;
             data->param_list = data->param_list->next;
@@ -1324,7 +1325,7 @@ void generate_function_call(parser_data_t *data,htab_item *function){
             param_counter++;
         }
 
-        push_instruction(data,create_instruction(DEFVAR,strcpy_alloc(data,"TF@%1"),NULL,NULL));
+        push_instruction(data,create_instruction(DEFVAR,strcpy_alloc(data,"TF@%1"),NULL,NULL));     //store param counter to the frame
         lenght = snprintf(NULL,0,"int@%zu",param_counter) + 1;
         param_def = calloc(lenght,sizeof(char));
         if(param_def == NULL){
@@ -1338,37 +1339,37 @@ void generate_function_call(parser_data_t *data,htab_item *function){
         data->param_list = NULL;
         return;
     }
-    while(walking_item_function != NULL && walking_item != NULL){
+    while(walking_item_function != NULL && walking_item != NULL){       //param control and setup for all 
         if(walking_item->data_type == identifier){  //TODO otestovat
-            htab_item *variable = htab_find_variable(data->local_symtable,walking_item->key);
+            htab_item *variable = htab_find_variable(data->local_symtable,walking_item->key);   //find variable
             if(variable == NULL){
                 free_parser_data(data);
                 exit(SEM_ERROR_REDEFINE_UNDEFINE_VAR);
             }
-            if(variable->type != walking_item_function->data_type){
-                if(walking_item_function->data_type == number && variable->type == integer){
+            if(variable->type != walking_item_function->data_type){     //type control
+                if(walking_item_function->data_type == number && variable->type == integer){        //if can be retyped
                     char *tmp = allocate_new_tmp_name(data,"TF@");
                     defvar_3AC(data,strcpy_alloc(data,tmp));
-                    push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,tmp),allocate_var_name_3AC("LF@",variable),NULL));
+                    push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,tmp),allocate_var_name_3AC("LF@",variable),NULL));     //prepare one operand
                     param = tmp;
                 }
                 else{
-                    free_parser_data(data);
+                    free_parser_data(data);     //type incompability
                     fprintf(stderr,"wrong data type of parametr in function call %s\n",function->key);
                     exit(SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);            }
                 }                
             else{
-                param = allocate_var_name_3AC("LF@",variable);
+                param = allocate_var_name_3AC("LF@",variable);      //prepare one operand
             }           
         }
         else{
-            if(walking_item->data_type != walking_item_function->data_type){
-                if(walking_item_function->data_type == number && walking_item->data_type == integer){
-                    char *tmp = allocate_new_tmp_name(data,"TF@");
+            if(walking_item->data_type != walking_item_function->data_type){    //type control
+                if(walking_item_function->data_type == number && walking_item->data_type == integer){       //if can be retyped
+                    char *tmp = allocate_new_tmp_name(data,"TF@");  
                     defvar_3AC(data,strcpy_alloc(data,tmp));
                     push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,tmp),walking_item->key,NULL));
                     walking_item->key = NULL;
-                    param = tmp;
+                    param = tmp;        //one operand setup
                 }
                 else{
                     free_parser_data(data);
@@ -1377,32 +1378,32 @@ void generate_function_call(parser_data_t *data,htab_item *function){
                 }                
             }
             else{
-                param = walking_item->key;
+                param = walking_item->key;      //one operand setup
                 walking_item->key = NULL;
             }            
         }        
-        lenght = snprintf(NULL,0,"TF@%%%zu",param_counter) + 1;
+        lenght = snprintf(NULL,0,"TF@%%%zu",param_counter) + 1;     
         param_def = calloc(lenght,sizeof(char));
         if(param == NULL){
             free_parser_data(data);
             exit(INTERNAL_ERROR);
         }
-        snprintf(param_def,lenght,"TF@%%%zu",param_counter);
+        snprintf(param_def,lenght,"TF@%%%zu",param_counter);        //setup place, where is operand stored
         defvar_3AC(data,strcpy_alloc(data,param_def));
         
-        push_instruction(data,create_instruction(MOVE,param_def,param,NULL));
+        push_instruction(data,create_instruction(MOVE,param_def,param,NULL));       //set data for call
         walking_item_function = walking_item_function->next;
         walking_item = walking_item->next;
         param_counter++;
     }
-    if(walking_item_function != walking_item){
+    if(walking_item_function != walking_item){      
         fprintf(stderr,"wrong number of parametrs in function call %s\n",function->key);
         exit(SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
     }
     free_data_token_list(&(data->param_list));
     data->param_list = NULL;
     param_counter = 1;
-    walking_item_function = function->return_list;
+    walking_item_function = function->return_list;  //setup return values on nil
     while(walking_item_function != NULL){
         lenght = snprintf(NULL,0,"TF@$%zu",param_counter) + 1;
         param_def = calloc(lenght,sizeof(char));
