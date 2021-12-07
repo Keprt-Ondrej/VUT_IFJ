@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
-\usepackage[czech]{babel}
-\usepackage[a4paper, left=0.5cm,top=2.5cm,textwidth=20cm]{geometry}
+%\usepackage[czech]{babel}
+\usepackage[a4paper, left=1.0cm,top=2.5cm,right=1.0cm]{geometry}
 \usepackage[IL2]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{times}
@@ -35,15 +35,20 @@
 \begin{titlepage}
     \begin{center}
         \includegraphics[scale=0.8]{pics/fitlogo.pdf} \\
-    
-        \textsc{\Huge Projektová dokumentace}\\
+        \vspace{\stretch{0.200}}
+        \textsc{\Huge Project documentation}\\
         
         \vspace{\stretch{0.382}}
         \LARGE
-            Implementace překladače IFJ21
+            Implementation of compiler IFJ21    \\
+            Team 132, variant II.
         \vspace{\stretch{0.618}}  
     \end{center}
-    
+
+    \noindent\textbf{Ondřej Keprt, xkeprt03: 40\%}\\
+    Oleg Trofimov, xtrofi00: 25\%    \\
+    Maxim Gerasimov, xgeras00: 35\%  \\
+    Sláma Ondřej, xslama32: 0\%   \hfill    \today
 
 \end{titlepage}
 
@@ -53,13 +58,38 @@
 \newpage
 \setcounter{page}{1}
 
-%end of uvod, write sections here:
+%end of introduction, write sections here:
 
-\section*{Úvod}
-Tohle je uvod
+\section*{Introduction}
+This project should test students teoretical knowledge about finite automats, languages and compilers and their application to practice. Project goal was implementation of compiler
+for language IFJ21, which is subset of language Teal/Lua, to three adress code IFJcode21.
+
+\section{Lexical anylisis}
+
+\section{Parser}
+Parser functions were implemented in three files:\\ \texttt{parser.c, parser\_recursive\_descent.c, parser\_precedence.c} \\
+For expressions were assigned precedence analisis. All other constructions were processed by recursive descent.
+In \texttt{parser.*} are defined functions and data structures, which are used in both approaches.
+
+Comunication between parser parts, was implemented by passing pointer on data structure \texttt{parser\_data\_t}, 
+where were stored all information about analisis state and loaded data. Lexical analyzator was called with function \texttt{read\_token},
+which returned pointer on structure of token, which was on standart input.
+
+\subsection{Recursive descent}
+
+\subsection{Precedence}
+
+\section{Table of symbols}
+Our task was implement table of symbols as hash table. Hash table contains one type of structure, which is same for functions and local variables, but data, which contains are different.
+Item which represents function, contains key, pointer on list of parameters, pointer on list of return types.
+type (declared/defined) and pointer on next item in list of items. Item, whch represents local variable, contains key, data type (string,number,integer),
+ There are two hash tables pointers in \texttt{parser\_data\_t}
 
 
-\section{LL gramatika}
+\section{Work in team}
+
+
+\section{LL grammar}
 \begin{enumerate}
     {\color{red}}
     \item \texttt{<intro>\arrow{}<prolog> <prog> }  
@@ -118,10 +148,15 @@ Tohle je uvod
 \end{enumerate}
 
 \begin{landscape}
+    \section{LL\ --\ table}
     \begin{figure}[ht]
-        \includegraphics[scale=1.89]{LL_tabulka.eps} %TODO opravit otazniky v obazku u intra
+        \includegraphics[scale=1.89]{LL_tabulka.eps} 
+        \caption{LL\,--\,table  created from LL(1) grammar}
     \end{figure}
 \end{landscape}
+
+
+%insert something here
 
 
 \end{document} 
