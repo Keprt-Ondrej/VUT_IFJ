@@ -17,7 +17,8 @@ void set_errno(parser_data_t *data,int errno){
 void get_token(parser_data_t *data){
     Token *token = read_token();
     if(token == NULL){
-        fprintf(stderr,"Lexical error\n");
+        fprintf(stderr,"Lexical error\n");  //TODO comment 
+        free_parser_data(data);
         exit(LEX_ERROR);
     }    
     //print_token(token);
@@ -33,8 +34,28 @@ bool is_token(parser_data_t *data,Token_type type){
 }
 
 void free_parser_data(parser_data_t *data){
-    //TODO free
-    htab_free(data->global_symtable);
+    if(data->local_symtable != NULL) htab_free(data->local_symtable);
+    if(data->global_symtable != NULL) htab_free(data->global_symtable);
+    free(data->actual_function);
+    while(data->token_list_first != NULL){
+        Token *delete = data->token_list_first;
+        data->token_list_first = data->token_list_first->next;
+        delete_token(delete);
+    }
+    //todo precedence free
+    free_data_token_list(&(data->param_list));
+    free_data_token_list(&(data->return_list));
+    free_data_token_list(&(data->identif_list));
+    while(data->program != NULL){
+        instruction_t *delete = data->program;
+        data->program = data->program->next;
+        free_instruction(delete);
+    }
+    while(data->function_calls != NULL){
+        instruction_t *delete = data->function_calls;
+        data->function_calls = data->function_calls->next;
+        free_instruction(delete);
+    } 
     return;
 }
 
@@ -55,7 +76,7 @@ void push_precedence_token(parser_data_t *data, precedence_token_t *token){
 }
 
 void push_instruction(parser_data_t *data, instruction_t *instruction){
-    if(data->actual_function == NULL){
+    if(data->actual_function == NULL){      //decide if we are processing function definition or we are calling function between definitions and declarations
         data->last_call->next = instruction;
         data->last_call = instruction;
     }
@@ -65,7 +86,6 @@ void push_instruction(parser_data_t *data, instruction_t *instruction){
     }
 }
 
-//TODO switcher
 void push_data_token(parser_data_t *data, data_token_t *token){
     if (data->param_list == NULL){
         data->param_list = token;
@@ -79,7 +99,7 @@ void push_data_token(parser_data_t *data, data_token_t *token){
 
 void defvar_3AC(parser_data_t *data,char *key){
     instruction_t *instruction = create_instruction(DEFVAR,key,NULL,NULL);
-    if(data->while_counter == 0){
+    if(data->while_counter == 0){       //decide if insert before while or on last item
         push_instruction(data,instruction);
     }
     else{
@@ -99,59 +119,60 @@ char *strcpy_alloc(parser_data_t *data, const char *str){
 }
 
 char *allocate_new_tmp_name(parser_data_t *data,const char *frame){
-    size_t lenght = snprintf(NULL,0,"%s$_tmp_var_$%zu",frame,data->tmp_counter);
+    size_t lenght = snprintf(NULL,0,"%s$_tmp_var_$%zu",frame,data->tmp_counter)+1;
     char *name = calloc(lenght,sizeof(char));
     if(name == NULL){
         free_parser_data(data);
         exit(INTERNAL_ERROR);
     }
     snprintf(name,lenght,"%s$_tmp_var_$%zu",frame,data->tmp_counter);
-    data->tmp_counter++;
+    data->tmp_counter++;    //new tmp var must have another serial number
     return name;
 }
 
 int print_token(Token *token){
     Token_data data_token = token->data;
     Token_type type = token->type;
-    printf("%3d: ", type);
+    fprintf(stderr,"%3d: ", type);
     if(type == token_type_identifier || type == token_type_string)
-        printf("%s\n", data_token.str);
+        fprintf(stderr,"%s\n", data_token.str);
     else if(type == token_type_integer)
-        printf("%d\n", data_token.type_integer);
+        fprintf(stderr,"%d\n", data_token.type_integer);
     else if(type == token_type_number)
-        printf("%f\n", data_token.type_double);
+        fprintf(stderr,"%f\n", data_token.type_double);
     else if(type == token_type_EOF)//if EOF
         return 0;
     else {
-        if(token_type_length == type)                   printf("#\n");
-        if(token_type_mul == type)                      printf("*\n");
-        if(token_type_div == type)                      printf("/\n");
-        if(token_type_floor_div == type)                printf("//\n");
-        if(token_type_plus == type)                     printf("+\n");
-        if(token_type_minus == type)                    printf("-\n");
-        if(token_type_concat == type)                   printf("..\n");
-        if(token_type_lth == type)                      printf("<\n");
-        if(token_type_leq == type)                      printf("<=\n");
-        if(token_type_gth == type)                      printf(">\n");
-        if(token_type_geq == type)                      printf(">=\n");
-        if(token_type_equal == type)                    printf("==\n");
-        if(token_type_ineq == type)                     printf("~=\n");
-        if(token_type_assign == type)                   printf("=\n");
-        if(token_type_left_bracket == type)             printf("(\n");
-        if(token_type_right_bracket == type)            printf(")\n");
-        if(token_type_square_left_bracket == type)      printf("[\n");
-        if(token_type_square_right_bracket == type)     printf("]\n");
-        if(token_type_colon == type)                    printf(":\n");
-        if(token_type_comma == type)                    printf(",\n");
-        if(token_type_$ == type)                        printf("empty\n");
-        if(token_type_E == type)                        printf("E\n");
-        if(token_type_shift == type)                    printf("<\n");
+        if(token_type_length == type)                   fprintf(stderr,"#\n");
+        if(token_type_mul == type)                      fprintf(stderr,"*\n");
+        if(token_type_div == type)                      fprintf(stderr,"/\n");
+        if(token_type_floor_div == type)                fprintf(stderr,"//\n");
+        if(token_type_plus == type)                     fprintf(stderr,"+\n");
+        if(token_type_minus == type)                    fprintf(stderr,"-\n");
+        if(token_type_concat == type)                   fprintf(stderr,"..\n");
+        if(token_type_lth == type)                      fprintf(stderr,"<\n");
+        if(token_type_leq == type)                      fprintf(stderr,"<=\n");
+        if(token_type_gth == type)                      fprintf(stderr,">\n");
+        if(token_type_geq == type)                      fprintf(stderr,">=\n");
+        if(token_type_equal == type)                    fprintf(stderr,"==\n");
+        if(token_type_ineq == type)                     fprintf(stderr,"~=\n");
+        if(token_type_assign == type)                   fprintf(stderr,"=\n");
+        if(token_type_left_bracket == type)             fprintf(stderr,"(\n");
+        if(token_type_right_bracket == type)            fprintf(stderr,")\n");
+        if(token_type_square_left_bracket == type)      fprintf(stderr,"[\n");
+        if(token_type_square_right_bracket == type)     fprintf(stderr,"]\n");
+        if(token_type_colon == type)                    fprintf(stderr,":\n");
+        if(token_type_comma == type)                    fprintf(stderr,",\n");
+        if(token_type_$ == type)                        fprintf(stderr,"empty\n");
+        if(token_type_E == type)                        fprintf(stderr,"E\n");
+        if(token_type_shift == type)                    fprintf(stderr,"<\n");
     }
     return 1;
 }
 
-bool expression(parser_data_t *data){
-    //return fake_expression(data);
 
-    return precedence(data);
+bool expression(parser_data_t *data){
+    return fake_expression(data);
+
+    //return precedence(data);
 }

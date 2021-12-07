@@ -8,6 +8,7 @@
 #ifndef __SCANNER_H__
 #define __SCANNER_H__
 #include "ErrLib.h"
+//#include "errno.h"
 
 
 /**
@@ -19,17 +20,13 @@ typedef struct {
 	int alloc_size; // number of chars alocated for string
 } String;
 
-int str_init(String *s);
+bool str_init(String *s);
 
 void str_free(String *s);
 
 String* extend_buffer(String *s);
 
-void str_clear(String *s);
-
-int str_add_char(String *s, char c);
-
-char str_del_char(String *s);
+bool str_add_char(String *s, char c);
 
 /**
  * @enum Type of token.
@@ -158,11 +155,14 @@ typedef enum {
     string_loop,                    //34
     string_end,                     //35
     escape_seq,                     //36
+    escape_seq_end                  //37
 } FSM_state;
 
 Token* create_token(); // Alocate memory for token
 
-void add_str_to_token(String buffer, Token *token);
+bool add_str_to_token(String buffer, Token *token);
+
+void delete_token(Token* token);
 
 Token* read_token();
 
