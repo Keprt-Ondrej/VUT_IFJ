@@ -7,7 +7,7 @@
 
 #include "scanner.h"
 
-#define size_of_length 30
+#define size_of_length 100
 
 bool str_init(String *s) {
     s->string = (char *) malloc(size_of_length);
@@ -77,6 +77,7 @@ Token* read_token() {
     FSM_state state = start;
     char *endptr;
     char c;
+    char a;
     bool succes;
     while(true) {
         switch(state) {
@@ -564,6 +565,14 @@ Token* read_token() {
                 else if(c == '\\') {                
                     state = escape_seq;
                 }
+                else if(c == 32) {
+                    a = 32;
+                    state = escape_seq_end;
+                }                
+                else if(c == 35) {
+                    a = 35;
+                    state = escape_seq_end;
+                }
                 else if(c == EOF || c == '\n') {
                     delete_token(token);     
                     return NULL;
@@ -574,7 +583,7 @@ Token* read_token() {
                         delete_token(token);
                         return NULL;
                     }
-                    state = string_loop;  
+                    state = string_loop;    
                 }        
             break;
 
@@ -599,32 +608,78 @@ Token* read_token() {
                     state = string_loop;
                 }
                 else if (c == '\\') {
-                    succes = str_add_char(&buffer, '\\');
-                    if (!succes) {
-                        delete_token(token);
-                        return NULL;
-                    }
-                    state = string_loop;
+                    a = '\\';
+                    state = escape_seq_end;
                 }
                 else if (c == 't') {
-                    succes = str_add_char(&buffer, '\t');
-                    if (!succes) {
-                        delete_token(token);
-                        return NULL;
-                    }
-                    state = string_loop;
+                    a = '\t';
+                    state = escape_seq_end;
                 } 
                 else if (c == 'n') {
-                    succes = str_add_char(&buffer, '\n');
-                    if (!succes) {
-                        delete_token(token);
-                        return NULL;
-                    }
-                    state = string_loop;    
+                    a = '\n';
+                    state = escape_seq_end;    
                 }
                 else {
                     delete_token(token);
                     return NULL;   
+                }
+            break;
+
+            case escape_seq_end:
+                if(a == 9) { // a = '\t'
+                    succes = str_add_char(&buffer, '\\'); 
+                    succes = str_add_char(&buffer, '0'); 
+                    succes = str_add_char(&buffer, '0'); 
+                    succes = str_add_char(&buffer, '9'); 
+                    if (!succes) {
+                        delete_token(token);
+                        return NULL;
+                    }  
+                    state = string_loop;                                                                             
+                }
+                else if(a == 10) { // a = '\n'
+                    succes = str_add_char(&buffer, '\\'); 
+                    succes = str_add_char(&buffer, '0'); 
+                    succes = str_add_char(&buffer, '1'); 
+                    succes = str_add_char(&buffer, '0'); 
+                    if (!succes) {
+                        delete_token(token);
+                        return NULL;
+                    }            
+                    state = string_loop;                                                                   
+                }
+                else if(a == 32) { // a = ' '
+                    succes = str_add_char(&buffer, '\\'); 
+                    succes = str_add_char(&buffer, '0'); 
+                    succes = str_add_char(&buffer, '3'); 
+                    succes = str_add_char(&buffer, '2');     
+                    if (!succes) {
+                        delete_token(token);
+                        return NULL;
+                    }               
+                    state = string_loop;                      
+                }          
+                else if(a == 35) { // a = '#'
+                    succes = str_add_char(&buffer, '\\'); 
+                    succes = str_add_char(&buffer, '0'); 
+                    succes = str_add_char(&buffer, '3'); 
+                    succes = str_add_char(&buffer, '5');     
+                    if (!succes) {
+                        delete_token(token);
+                        return NULL;
+                    }               
+                    state = string_loop;                      
+                }                      
+                else if(a == 92) { // a = '\\'
+                    succes = str_add_char(&buffer, '\\'); 
+                    succes = str_add_char(&buffer, '0'); 
+                    succes = str_add_char(&buffer, '9'); 
+                    succes = str_add_char(&buffer, '2');     
+                    if (!succes) {
+                        delete_token(token);
+                        return NULL;
+                    }               
+                    state = string_loop;                                                         
                 }
             break;
 
