@@ -7,7 +7,7 @@
 
 #include "scanner.h"
 
-#define size_of_length 100
+#define size_of_length 30
 
 bool str_init(String *s) {
     s->string = (char *) malloc(size_of_length);
@@ -77,7 +77,7 @@ Token* read_token() {
     FSM_state state = start;
     char *endptr;
     char c;
-    bool succes = true;
+    bool succes;
     while(true) {
         switch(state) {
             case start: 
@@ -92,24 +92,24 @@ Token* read_token() {
                     state = start; 
                 }
                 else if(c >= '1' && c <= '9') {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }                    
                     state = int_number;
                 }    
                 else if(c == '0') {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
                     state = zero;
                 }
                 else if ((('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z')) || (c == '_')) {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }                    
@@ -173,24 +173,24 @@ Token* read_token() {
             case int_number:
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }  
                     state = int_number;
                 }   
                 else if(c == '.') {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }  
                     state = decimal_point;
                 }
                 else if((c == 'e') || (c == 'E')){
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }  
@@ -198,8 +198,8 @@ Token* read_token() {
                 }
                 else {
                     ungetc(c,stdin);
-                    str_add_char(&buffer, '\0');
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, '\0');
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }  
@@ -212,8 +212,8 @@ Token* read_token() {
             case zero:
                 c = getc(stdin);
                 if(c == '.') {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
@@ -230,8 +230,8 @@ Token* read_token() {
             case identif_and_kw:
                 c = getc(stdin);
                 if (isdigit(c) || (('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z')) || (c == '_')) {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }  
@@ -301,8 +301,8 @@ Token* read_token() {
                     }
                     else {
                         token->type = token_type_identifier;
-                        add_str_to_token(buffer, token);    
-                        if (succes == false){
+                        succes = add_str_to_token(buffer, token);    
+                        if (!succes){
                             delete_token(token);
                             return NULL;
                         }  
@@ -314,8 +314,8 @@ Token* read_token() {
             case decimal_point:
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
@@ -330,16 +330,16 @@ Token* read_token() {
             case double_point_value:
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
                     state = double_point_value;
                 }
                 else if((c == 'e') || (c == 'E')) {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
@@ -347,8 +347,8 @@ Token* read_token() {
                 }
                 else {
                     ungetc(c, stdin);
-                    str_add_char(&buffer, '\0');
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, '\0');
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
@@ -361,16 +361,16 @@ Token* read_token() {
             case double_exponent_begin:
                 c = getc(stdin);
                 if((c == '+') || (c == '-')) {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
                     state = double_exponent_sign;
                 }
                 else if(c >= '0' && c <= '9') {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
@@ -385,8 +385,8 @@ Token* read_token() {
             case double_exponent_sign:
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
@@ -401,8 +401,8 @@ Token* read_token() {
             case double_exponent_value:
                 c = getc(stdin);
                 if(c >= '0' && c <= '9') {
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
@@ -410,8 +410,8 @@ Token* read_token() {
                 }
                 else {
                     ungetc(c, stdin);
-                    str_add_char(&buffer, '\0');
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, '\0');
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
@@ -569,18 +569,18 @@ Token* read_token() {
                     return NULL;
                 }
                 else if(c > 31) {                            // specifikace zadani
-                    str_add_char(&buffer, c);
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
-                    state = string_loop;
-                }                 
+                    state = string_loop;  
+                }        
             break;
 
             case string_end:
-                add_str_to_token(buffer, token);
-                if (succes == false) {
+                succes = add_str_to_token(buffer, token);
+                if (!succes) {
                     delete_token(token);
                     return NULL;
                 }
@@ -589,34 +589,34 @@ Token* read_token() {
             break;
 
             case escape_seq:
-                c = getc(stdin);
+                c = getc(stdin);               
                 if(c == '"') {
-                    str_add_char(&buffer, '"');
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, '"');
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
                     state = string_loop;
                 }
                 else if (c == '\\') {
-                    str_add_char(&buffer, '\\');
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, '\\');
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
                     state = string_loop;
                 }
                 else if (c == 't') {
-                    str_add_char(&buffer, '\t');
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, '\t');
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
                     state = string_loop;
                 } 
                 else if (c == 'n') {
-                    str_add_char(&buffer, '\n');
-                    if (succes == false) {
+                    succes = str_add_char(&buffer, '\n');
+                    if (!succes) {
                         delete_token(token);
                         return NULL;
                     }
@@ -627,7 +627,7 @@ Token* read_token() {
                     return NULL;   
                 }
             break;
-            
+
             case minus_st:  
                 c = getc(stdin);
                 if(c == '-') {
@@ -671,8 +671,8 @@ Token* read_token() {
                 if(c == ']') {
                     state = block_comment_end;
                 }
-                else if (c == EOF) {
-                    state = end_of_file;        //UPRAVIT!!!
+                else if (c == EOF && c != ']') {
+                    state = end_of_file;        
                 }
                 else {
                     state = block_comment_loop;
@@ -684,8 +684,11 @@ Token* read_token() {
                 if(c == ']') {
                     state = start;
                 }
+                else if (c == EOF && c != ']') {
+                    state = end_of_file;        
+                }                
                 else {
-                    state = end_of_file;       //UPRAVIT!!!
+                    state = end_of_file;       
                 }  
             break;
 
