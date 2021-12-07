@@ -574,8 +574,8 @@ Token* read_token() {
                         delete_token(token);
                         return NULL;
                     }
-                    state = string_loop;
-                }                 
+                    state = string_loop;  
+                }        
             break;
 
             case string_end:
@@ -589,7 +589,7 @@ Token* read_token() {
             break;
 
             case escape_seq:
-                c = getc(stdin);
+                c = getc(stdin);               
                 if(c == '"') {
                     str_add_char(&buffer, '"');
                     if (succes == false) {
@@ -627,7 +627,7 @@ Token* read_token() {
                     return NULL;   
                 }
             break;
-            
+
             case minus_st:  
                 c = getc(stdin);
                 if(c == '-') {
@@ -671,8 +671,8 @@ Token* read_token() {
                 if(c == ']') {
                     state = block_comment_end;
                 }
-                else if (c == EOF) {
-                    state = end_of_file;        //UPRAVIT!!!
+                else if (c == EOF && c != ']') {
+                    state = end_of_file;        
                 }
                 else {
                     state = block_comment_loop;
@@ -684,8 +684,11 @@ Token* read_token() {
                 if(c == ']') {
                     state = start;
                 }
+                else if (c == EOF && c != ']') {
+                    state = end_of_file;        
+                }                
                 else {
-                    state = end_of_file;       //UPRAVIT!!!
+                    state = end_of_file;       
                 }  
             break;
 
