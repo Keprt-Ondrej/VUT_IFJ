@@ -153,6 +153,7 @@ typedef enum {
     string_loop,                    //34
     string_end,                     //35
     escape_seq,                     //36
+    escape_seq_end                  //37
 } FSM_state;
 
 Token* create_token(); // Alocate memory for token
