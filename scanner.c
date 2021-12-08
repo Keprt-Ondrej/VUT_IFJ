@@ -7,7 +7,7 @@
 
 #include "scanner.h"
 
-#define size_of_length 100
+#define size_of_length 30
 
 bool str_init(String *s) {
     s->string = (char *) malloc(size_of_length);
