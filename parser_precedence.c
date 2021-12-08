@@ -70,7 +70,7 @@ precedence_token_t * remake_token(parser_data_t *data){
     if(new_token == NULL){
         free_parser_data(data);
         printf("allocation failed");
-        exit(1);
+        exit(43);
     }
         
     new_token->type = data->token->type;
@@ -89,7 +89,10 @@ precedence_token_t * remake_token(parser_data_t *data){
         htab_item * temp = htab_find_variable(data->local_symtable, data->token->data.str);
         if(NULL == temp){
             temp = htab_find_variable(data->global_symtable, data->token->data.str);
-            if(NULL == temp) exit(1);
+            if(NULL == temp){
+
+                exit(42);
+            } 
             /*new_token->data_type = temp->type;
             new_token->identifier = temp->key;*/
             return new_token;
@@ -105,7 +108,7 @@ precedence_token_t * remake_token(parser_data_t *data){
 void expand_buffer(Buffer_for_token *buffer){
     buffer->token = (precedence_token_t **) realloc(buffer->token, buffer->current_length * buffer_expend_length);
     if(buffer->token == NULL){
-        exit(1);
+        exit(44);
     }
     buffer->current_length = buffer->current_length * buffer_expend_length;
 }
@@ -161,6 +164,7 @@ int precedence_compare(Buffer_for_token * buffer, precedence_token_t *token){
 }
 
 void reduse_fnc(Buffer_for_token *buffer, bool right_bracket, parser_data_t *data){
+    printf("reduction\n");
     precedence_token_t * new_token = malloc(sizeof(precedence_token_t));
     new_token->type = buffer->token[buffer->index]->type;
     new_token->redused = true;
@@ -181,13 +185,14 @@ void reduse_fnc(Buffer_for_token *buffer, bool right_bracket, parser_data_t *dat
     if(buffer->token[buffer->index]->shift == true){// E
 
         buffer->token[buffer->index]->redused = true;
-        //buffer->token[buffer->index]->shift = false;
+        buffer->token[buffer->index]->shift = false;
 
         //push_instruction(data, create_instruction(MOV, ))
 
         return;
     }
 
+    fprintf(stderr,"here\n");
     if(buffer->token[buffer->index]->shift != true && !buffer_is_empty(buffer)){// <E + E
     int opcode = 0;
         switch (buffer->token[buffer->index - 1]->type)
@@ -199,7 +204,7 @@ void reduse_fnc(Buffer_for_token *buffer, bool right_bracket, parser_data_t *dat
         default:
             break;
         }
-
+        fprintf(stderr,"there\n");
 
 
 
@@ -221,7 +226,7 @@ void reduse_fnc(Buffer_for_token *buffer, bool right_bracket, parser_data_t *dat
         return;
     }
 
-    exit(1);
+    exit(45);
 
 }
 
@@ -387,9 +392,12 @@ bool precedence(parser_data_t *data){
 //end_of_token_stream(new_token)
     bool flag = true;
      while(flag){
+         if(data->token->type == kw_end){
+             return true;
+         }
                 
         if(!check_rule(buffer.token[buffer.index]->type, new_token->type)){             
-            exit(1);
+            exit(50);
         }       
 
         switch (precedence_compare(&buffer, new_token))
@@ -409,7 +417,9 @@ bool precedence(parser_data_t *data){
             if(buffer.token[buffer.index]->type == token_type_right_bracket) right_bracket = true;
 
                 reduse_fnc(&buffer, right_bracket, data);
-            if(precedence_compare(&buffer, new_token) == R) reduse_fnc(&buffer, right_bracket, data);
+            if(precedence_compare(&buffer, new_token) == R){
+                reduse_fnc(&buffer, right_bracket, data);
+            } 
 
 
 
@@ -442,13 +452,13 @@ bool precedence(parser_data_t *data){
                 //flag = !flag;
                 break;    
         }//switch
-        
+        /*
         print_buffer(&buffer);
         printf("\n\n\n\n\n__________________________________\n");
         print_new_token(new_token, "input token");
         print_new_token(buffer.token[buffer.index-1], "buffer token");
         printf("__________________________________\n");
-       
+       */
                 get_token(data);
  new_token = remake_token(data);
 
