@@ -35,7 +35,6 @@ bool str_add_char(String *s, char c);   // saving read characters
 typedef enum {
 
     // Operators
-<<<<<<< HEAD
     token_type_length,                // (#)   length               21
     token_type_concat,                // (..)  concatenation        27
 
@@ -60,51 +59,18 @@ typedef enum {
 	token_type_number,                // Number         18
 	token_type_string,                // String         19
     token_type_nil,                   // Nil            20
-=======
-    token_type_length,                // (#)   length               0
-    token_type_mul,                   // (*)   multiplication       1
-    token_type_div,                   // (/)   division             2
-    token_type_floor_div,             // (//)  floor division       3
-	token_type_plus,                  // (+)   addition             4
-    token_type_minus,                 // (-)   subtraction          5   
-    token_type_concat,                // (..)  concatenation        6
-    token_type_lth,                   // (<)   less than            7
-    token_type_leq,                   // (<=)  less equal           8
-    token_type_gth,                   // (>)   greater than         9
-    token_type_geq,                   // (>=)  greater equal        10
-    token_type_equal,                 // (==)  equal                11
-    token_type_ineq,                  // (~=)  inequality           12
-    token_type_assign,                // (=)   assignment           13
-    token_type_left_bracket,          // (     left bracket         14
-    token_type_right_bracket,         //  )    right bracket        15
-
-
-    token_type_identifier,            // Identifier                 16
-    
-	token_type_integer,               // Integer                    17
-	token_type_number,                // Number                     18
-	token_type_string,                // String                     19
-    token_type_nil,                   // Nil                        20
->>>>>>> 3ede4a763421f4b2b71537a09e2b3a6433ceea10
 
     token_type_$,                     //                            21
     token_type_E,                     //                            22
     token_type_shift,                 //(<) shift in buffer         23
 
 
-<<<<<<< HEAD
 
     token_type_assign,                // (=)   assignment           34
     token_type_square_left_bracket,   // ([)   square left bracket  37
     token_type_square_right_bracket,  // (])   square right bracket 38
     token_type_colon,                 // (:)   colon                39
     token_type_comma,                 // (,)   comma                40
-=======
-    token_type_square_left_bracket,   // ([)   square left bracket  24
-    token_type_square_right_bracket,  // (])   square right bracket 25
-    token_type_colon,                 // (:)   colon                26
-    token_type_comma,                 // (,)   comma                27
->>>>>>> 3ede4a763421f4b2b71537a09e2b3a6433ceea10
     
     // Keywords
     kw_do,                            //28

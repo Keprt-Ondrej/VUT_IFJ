@@ -41,7 +41,6 @@ void free_parser_data(parser_data_t *data){
     
     while(walking_item != NULL){
         Token *delete = walking_item;
-        printf("%p\n",walking_item);
         if(walking_item == NULL){
             break;
         }
