@@ -5,7 +5,7 @@ team leader: xkeprt03
 
 Solvers:
 xkeprt03 Ondřej Keprt       - syntax and semantic analysis => recursive descent, hash table, code generating => prepared functions, design, generating program flow, function calls... 
-xcubin00 Pavol Cubinek      - lexical analysis
+xtrofi00 Oleg Trofimov      - lexical analysis
 xgeras00 Maxim Gerasimov    - syntax and semantic analysis => precedence, generating expressions
 xslama32 Sláma Ondřej       - not responding
 
