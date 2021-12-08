@@ -33,12 +33,11 @@
 
 
 \begin{document}
-\begin{titlepage}
-    \begin{center}
-        \vspace{\stretch{0.200}}
+	\begin{titlepage}
+		\begin{center}
+		\includegraphics[width=0.77\linewidth]{pics/fitlogo.pdf} \\
 
-        
-        \vspace{\stretch{0.382}}
+		\vspace{\stretch{0.382}}
         \textsc{\Huge Project documentation}\\
         \LARGE
             Implementation of compiler IFJ21    \\
@@ -89,6 +88,7 @@ The entire lexical analyzer is implemented in the form of a deterministic finite
 
 To process escape sequences in a string, an \texttt{array} of size 3 was created, which is sequentially filled with read numbers of type $'\setminus{ddd}'$ in the range 000-255, which we will later convert to a number corresponding to a character in an ASCII table.
 
+\newpage
 
 \section{Parser}
 Parser functions were implemented in three files:\\ \texttt{parser.c, parser\_recursive\_descent.c, parser\_precedence.c} \\
