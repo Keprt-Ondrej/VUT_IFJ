@@ -563,7 +563,7 @@ bool st_list(parser_data_t *data){
             size_t return_counter = 1;
             size_t lenght;
             char *return_name;
-            /*    TODO RUN THIS
+            
             while(walking_return != NULL && walking_expression != NULL){
                 if(walking_return->data_type != walking_expression->data_type){
                     if(walking_return->data_type == number && walking_expression->data_type == integer){    //expression can be retyped 
@@ -593,8 +593,6 @@ bool st_list(parser_data_t *data){
                 fprintf(stderr,"Too much expressions in return statement, function %s\n",data->actual_function);
                 return false;
             }     
-            */
-            //TODO free expression list
             data->expression_list = NULL;
             push_instruction(data,create_instruction(POPFRAME,NULL,NULL,NULL));
             push_instruction(data,create_instruction(RETURN,NULL,NULL,NULL));
@@ -813,8 +811,8 @@ bool statement(parser_data_t *data){
         if(!expression(data)){
             return false;
         }
-        //condition_re_type(data,actual_if);
-        push_instruction(data,create_instruction(JUMPIFNEQ,label_generator(data->actual_function,"else",actual_if),strcpy_alloc(data,bool_string_true),NULL));
+        condition_re_type(data,actual_if);
+        push_instruction(data,create_instruction(JUMPIFNEQ,label_generator(data->actual_function,"else",actual_if),strcpy_alloc(data,bool_string_true),strcpy_alloc(data,data->expression_list->identifier)));
         if(!is_token(data,kw_then)){
             fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
@@ -872,8 +870,8 @@ bool statement(parser_data_t *data){
         if(!expression(data)){
             return false;
         }
-        //condition_re_type(data,actual_while);
-        push_instruction(data,create_instruction(JUMPIFNEQ,label_generator(data->actual_function,"while_end",actual_while),strcpy_alloc(data,bool_string_true),NULL/*TODO data->expression_list->identifier*/));
+        condition_re_type(data,actual_while);
+        push_instruction(data,create_instruction(JUMPIFNEQ,label_generator(data->actual_function,"while_end",actual_while),strcpy_alloc(data,bool_string_true),strcpy_alloc(data,data->expression_list->identifier)));
         if(!is_token(data,kw_do)){
             fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
