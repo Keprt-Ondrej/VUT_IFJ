@@ -142,4 +142,13 @@ char *label_generator(char *function,char *what, size_t frame_counter);
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 void generate_function_call(parser_data_t *data,htab_item *function);
+
+/**
+ * @brief Generate retype before condition, from bool,int and string to bool@true
+ * 
+ * @param data parser data
+ * @param ID actual frame ID
+ * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
+*/
+void condition_re_type(parser_data_t *data,size_t ID);
 #endif

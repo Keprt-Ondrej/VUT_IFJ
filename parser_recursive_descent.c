@@ -677,6 +677,9 @@ bool statement(parser_data_t *data){
                 if(variable->type == number && data->expression_list->data_type == integer){    //can be retepyde
                     push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,data->expression_list->identifier),strcpy_alloc(data,data->expression_list->identifier),NULL));
                 }
+                else if(data->expression_list->data_type == nil){
+                    ; // normal assignment
+                }
                 else{
                     fprintf(stderr,"wrong types in defining variable %s from expression init\n",variable->key);
                     set_errno(data,SEM_ERROR_ASSIGN_COMMAND);
@@ -769,6 +772,9 @@ bool statement(parser_data_t *data){
                 if(variable->type != walking_expression->data_type){    //type control
                     if(variable->type == number && walking_expression->data_type == integer){   //can be retyped
                         push_instruction(data,create_instruction(INT2FLOAT,strcpy_alloc(data,walking_expression->identifier),strcpy_alloc(data,walking_expression->identifier),NULL));
+                    }
+                    else if(walking_expression->data_type == nil){
+                        ; //nothing, normal assignment
                     }
                     else{
                         fprintf(stderr,"wrong type of %s used in assignment\n",walking_identif->key);
@@ -1295,6 +1301,19 @@ void prepare_build_in_functions(parser_data_t *data){
     data->return_list = NULL;
 }
 
+void reverse_list(data_token_t **place){    //reverse list of data tokens
+    data_token_t *actual = *place;
+    data_token_t *next = NULL;
+    data_token_t *prev = NULL;
+    while(actual != NULL){
+        next = actual->next;
+        actual->next = prev;
+        prev = actual;
+        actual = next;
+    }
+    *place = prev;
+}
+
 void generate_function_call(parser_data_t *data,htab_item *function){
     push_instruction(data,create_instruction(CREATEFRAME,NULL,NULL,NULL));  //future LF of function
     size_t param_counter = 1;
@@ -1419,19 +1438,6 @@ void generate_function_call(parser_data_t *data,htab_item *function){
     }
     push_instruction(data,create_instruction(PUSHFRAME,NULL,NULL,NULL));
     push_instruction(data,create_instruction(CALL,label_generator(function->key,"",0),NULL,NULL));
-}
-
-void reverse_list(data_token_t **place){    //reverse list of data tokens
-    data_token_t *actual = *place;
-    data_token_t *next = NULL;
-    data_token_t *prev = NULL;
-    while(actual != NULL){
-        next = actual->next;
-        actual->next = prev;
-        prev = actual;
-        actual = next;
-    }
-    *place = prev;
 }
 
 void condition_re_type(parser_data_t *data,size_t ID){      //condition must convert number, integer and string on bool value

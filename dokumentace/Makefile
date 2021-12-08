@@ -5,7 +5,12 @@ all:
 	#dvips -t a4 $(PROJEKT).dvi
 	#ps2pdf $(PROJEKT).ps
 	
-	pdflatex dokumentace.tex
+	latex $(PROJEKT).tex
+	bibtex $(PROJEKT)
+	latex $(PROJEKT).tex
+	latex $(PROJEKT).tex
+	dvips -t a4 $(PROJEKT).dvi
+	ps2pdf $(PROJEKT).ps
 	mv dokumentace.pdf ../
 
 .PHONY: 

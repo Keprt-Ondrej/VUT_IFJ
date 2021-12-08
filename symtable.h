@@ -96,6 +96,8 @@ void free_htab_item(struct htab_item * item);
 /**
  * @brief hash function
  * 
+ * @note implemented from this source //http://www.cse.yorku.ca/~oz/hash.html SDBM 
+ * 
  * @param str name of symbol
  * @return hashed symbol
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)

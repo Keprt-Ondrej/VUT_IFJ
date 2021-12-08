@@ -1,5 +1,5 @@
 \documentclass[11pt]{article}
-%\usepackage[czech]{babel}
+\usepackage[english]{babel}
 \usepackage[a4paper, left=1.0cm,top=2.5cm,right=1.0cm]{geometry}
 \usepackage[IL2]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -34,7 +34,7 @@
 \begin{document}
 \begin{titlepage}
     \begin{center}
-        \includegraphics[scale=0.8]{pics/fitlogo.pdf} \\
+        %\includegraphics[scale=0.8]{pics/fitlogo.pdf} \\
         \vspace{\stretch{0.200}}
         \textsc{\Huge Project documentation}\\
         
@@ -80,10 +80,23 @@ which returned pointer on structure of token, which was on standart input.
 \subsection{Precedence}
 
 \section{Table of symbols}
-Our task was implement table of symbols as hash table. Hash table contains one type of structure, which is same for functions and local variables, but data, which contains are different.
-Item which represents function, contains key, pointer on list of parameters, pointer on list of return types.
-type (declared/defined) and pointer on next item in list of items. Item, whch represents local variable, contains key, data type (string,number,integer),
- There are two hash tables pointers in \texttt{parser\_data\_t}
+Our task was implement table of symbols as hash table. Our hash table was implemented as structure, which contains item counter (\texttt{size}), array of pointers on lists of synnonyms(\texttt{array}),
+array size(\texttt{arr\_size}) and pointer on next hash table. For deciding index, where item will be stored is used \texttt{sdbm} hash function, which is used in berkley database \cite{hash_function}. 
+
+There are two hash tables pointers in \texttt{parser\_data\_t}. One for global frame, where are stored data only about functions. Second, contains data about local variables. Table for local variables is implemented by
+stack hierarchy. For each scope is created new hash table and pushed on the top of the stack. When we are trying to add variable, we search only on top of stack, if there is variable with same name. When we are looking for variable, we search item in top level, 
+when we can not find it, we continue in lower level, until we are out of levels. When we are leaving from scope, we pops top level hash table.
+
+Hash table stores one type of structure in lists, which is same for functions and local variables, but data, which contains are different.
+
+Item which represents function, contains key, pointer on list of parameters, pointer on list of return types. This lists use datastructure \texttt{data\_token\_t}. When function
+is declared, parameter list contains only data types as return list. Defined function have parameter names stored in parameter list. Type of item is set to \texttt{function\_declared or function\_defined}.
+Item have pointer on next item or NULL, if there is none and \texttt{frame\_ID} is undefined value.
+
+Item which represents local variable have set key, data type (string, number, integer) and \texttt{frame\_ID}, where was defined. Pointers on lists are set on NULL.
+
+
+
 
 
 \section{Work in team}
@@ -157,6 +170,9 @@ type (declared/defined) and pointer on next item in list of items. Item, whch re
 
 
 %insert something here
+
+\bibliographystyle{unsrt}
+\bibliography{zdroje}
 
 
 \end{document} 

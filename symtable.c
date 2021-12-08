@@ -128,13 +128,17 @@ void htab_free(htab_t * t){
     free(t);
 }
 
+
+
+//http://www.cse.yorku.ca/~oz/hash.html SDBM implementation
 size_t htab_hash_function(char *str) {
-    uint32_t h=0; 
-    const unsigned char *p;
-    for(p=(const unsigned char*)str; *p!='\0'; p++){
-        h = 65599*h + *p;
-    }        
-    return h;
+    size_t hash = 0;
+    int c = *str++;
+    while(c != '\0'){
+        hash = c + (hash << 6) + (hash << 16) - hash;
+        c = *str++;
+    }
+    return hash;
 }
 
 
