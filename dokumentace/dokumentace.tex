@@ -96,18 +96,25 @@ For expressions were assigned precedence analysis. All other constructions were 
 In \texttt{parser.*} are defined functions and data structures, which are used in both approaches.
 
 Comunication between parser parts, was implemented by passing pointer on data structure \texttt{parser\_data\_t}, 
-where were stored all information about analysis state and loaded data. Lexical analyzator was called with function \texttt{read\_token},
+where were stored all information about analysis state and loaded data. Precedence analysis processed tokens dermined for expression, generated instructions for calculations
+and with function \texttt{push\_precedence\_token}  added precedence token at the end of \texttt{data->expression\_list}, and returned control to recursive descent.
+After that, recursive descent continued in program processing.
+
+Lexical analyzator was called with function \texttt{read\_token},
 which returned pointer on structure of token, which was on standart input.
 
 \subsection{Recursive descent}
 Recursive descent is implemented based on LL(1) grammar \ref{LL-grammar} and LL\,--\,table \ref{LL-table}. For each non\,--\,terminal was created function,
 which simulate that non\,--\,terminal. In this function is sequence of comparing lexical tokens from lexical analysis and deciding, which rule should be used for
-generating new non\,--\,terminals or terminals. Unfortunatelly, there are two cases, which we can not decide only by LL(1) grammar, it is when we got token representing identifier, when we are 
-in terminal <assignment> or <init2>. Identifier can be start of function call or identifier of local variable. In this case we used help of semantic analysis, so we search in global table 
+generating new non\,--\,terminals or terminals. Unfortunatelly, there are two cases, which we can not decide only by LL(1) grammar. It is when we got token representing identifier, when we are 
+in terminal \texttt{<assignment>} or \texttt{<init2>}. Identifier can be start of function call or identifier of local variable. In this case we used help of semantic analysis, we searched in global table 
 of symbols and if we find function, we generate function call. If we did not find, we generate non\,--\,terminal for expression.
-Alongside with that, there are semantics checks and semantics actions, such as generating instructions or type controls. All function return bool value, true means
-all is ok, false error occured.
-As parameter they all have pointer on structure \texttt{parset\_data\_t}, which contains all information needed for analysis. 
+
+Alongside with syntax analysis, there are semantics controls and semantics actions, such as generating instructions or type controls. All function return bool value, true means
+all is ok, false error occured. As parameter they all have pointer on structure \texttt{parset\_data\_t}, which contains all information needed for analysis. 
+
+
+
 
 \subsection{Precedence}
 
@@ -127,7 +134,13 @@ Item have pointer on next item or \texttt{NULL}, if there is none and \texttt{fr
 
 Item which represents local variable have set key, data type (string, number, integer) and \texttt{frame\_ID}, where was defined. Pointers on lists are set on \texttt{NULL}.
 
+\section{Code generating}
+At the beginnig of project we wanted implement only one\,--\,pass compiler, but there was problem with definitions of variables inside while loop. So we decided, that we 
+create list of instructions, which is stored inside \texttt{parset\_data\_t}. So we added instruction at the end of list, except variable definitions. If parser recognize, that
+on the input is loop construction, he made special pointer to the list, where was inserted all instructions for defining variable.
+In \texttt{parset\_data\_t} is another special list, which contains 
 
+At the end of analysis, parser called function \texttt{generate\_code}, which printed instructions and freed memory.
 
 \section{Work in team}
 As version system we were using Git, with hosting on Github. Every team member worked in own branch. When feature was created, branch was
