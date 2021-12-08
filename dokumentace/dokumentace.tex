@@ -65,16 +65,29 @@
 This project should test students teoretical knowledge about finite automats, languages and compilers and their application to practice. Project goal was implementation of compiler
 for language IFJ21, which is subset of language Teal/Lua, to three adress code IFJcode21.
 
-
 \section{Lexical anylisis}
 When creating a compiler, we started with the implementation of lexical analysis. Lexical analysis is implemented, including additional support functions and structures, in the source file \texttt{scanner.c}. 
 
-The main function of this analysis is \texttt {read\_token}, which reads character by character from the source file and passes this to the \texttt{token} structure. The \texttt{token} consists of types and data. Token types can be \textbf{keywords}, \textbf{identifiers}, \textbf{integers}, \textbf{floating point numbers}, \textbf{strings}, \textbf{operators}, \textbf{EOF}, and other characters that can be used in the language IFJ21. The \texttt{union} type is used to write \texttt{data}. If the token type is a string or an identifier, then the data will be stored as a string. If the token type is a number (integer or floating point) then the data will be stored as a number (integer or floating point). 
+The main function of this analysis is \texttt {read\_token}, which reads character by character from the source file and passes this to the \texttt{token} structure. For the correct operation of this function, which will be an automaton, the following functions will be used:
+    
+    \begin{itemize}
+        \item struct \texttt{String} for Representation of dynamic string
+        \item funkce \texttt{str\_init} for initialization of memory
+        \item funkce \texttt{str\_free} for freeing up memory
+        \item funkce \texttt{extend\_buffer} for memory expansion
+        \item funkce \texttt{str\_add\_char} for saving read characters
+        \item Token\_data \texttt{union} data, which token contains
+        \item struct \texttt{Token} contains data and type of \texttt{token}
+        \item funkce \texttt{create\_token} alocate memory for token
+        \item funkce \texttt{add\_str\_to\_token} add identif to data.str
+        \item funkce \texttt{delete\_token} freeing up memory data.str if was a mistake
+    \end{itemize}
+    
+The \texttt{token} consists of types and data. Token types can be \textit{keywords}, \textit{identifiers}, \textit{integers}, \textit{floating point numbers}, \textit{strings}, \textit{operators}, \textit{EOF}, and other characters that can be used in the language IFJ21. The \texttt{union} type is used to write \texttt{data}. If the token type is a string or an identifier, then the data will be stored as a string. If the token type is a number (integer or floating point) then the data will be stored as a number (integer or floating point). 
 
 The entire lexical analyzer is implemented in the form of a deterministic finite automaton. The state machine sequentially reads the symbol and, depending on the symbol, enters the corresponding state as indicated in the diagram \ref{lexical_automat}. If an incorrect character is read in this case, the program will terminate and give an error. Otherwise, we read the characters until we get a \texttt{token} that we will return and terminate the program.
 
-To process escape sequences in a string, an array of size 3 was created, which is sequentially filled with read numbers of type $'\setminus{ddd}'$ in the range 000-255, which we will later convert to a number corresponding to a character in an ASCII table.
-
+To process escape sequences in a string, an \texttt{array} of size 3 was created, which is sequentially filled with read numbers of type $'\setminus{ddd}'$ in the range 000-255, which we will later convert to a number corresponding to a character in an ASCII table.
 
 
 \section{Parser}
