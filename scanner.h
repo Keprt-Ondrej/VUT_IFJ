@@ -2,7 +2,6 @@
  * @file scanner.h
  * @author Oleg Trofimov (xtrofi00@stud.fit.vutbr.cz)
  * @brief 
- * 
 */
 
 #ifndef __SCANNER_H__

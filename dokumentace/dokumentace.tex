@@ -35,11 +35,12 @@
 \begin{document}
 \begin{titlepage}
     \begin{center}
-        %\includegraphics[scale=0.8]{pics/fitlogo.pdf} \\
+        \includegraphics[scale=0.8]{pics/fitlogo.pdf} \\
         \vspace{\stretch{0.200}}
-        \textsc{\Huge Project documentation}\\
+
         
         \vspace{\stretch{0.382}}
+        \textsc{\Huge Project documentation}\\
         \LARGE
             Implementation of compiler IFJ21    \\
             Team 132, variant II.
@@ -65,7 +66,16 @@
 This project should test students teoretical knowledge about finite automats, languages and compilers and their application to practice. Project goal was implementation of compiler
 for language IFJ21, which is subset of language Teal/Lua, to three adress code IFJcode21.
 
-\section{Lexical analysis}
+
+\section{Lexical anylisis}
+When creating a compiler, we started with the implementation of lexical analysis. Lexical analysis is implemented, including additional support functions and structures, in the source file \texttt{scanner.c}. 
+
+The main function of this analysis is \texttt {read\_token}, which reads character by character from the source file and passes this to the \texttt{token} structure. The \texttt{token} consists of types and data. Token types can be \textbf{keywords}, \textbf{identifiers}, \textbf{integers}, \textbf{floating point numbers}, \textbf{strings}, \textbf{operators}, \textbf{EOF}, and other characters that can be used in the language IFJ21. The \texttt{union} type is used to write \texttt{data}. If the token type is a string or an identifier, then the data will be stored as a string. If the token type is a number (integer or floating point) then the data will be stored as a number (integer or floating point). 
+
+The entire lexical analyzer is implemented in the form of a deterministic finite automaton. The state machine sequentially reads the symbol and, depending on the symbol, enters the corresponding state as indicated in the Figure \ref{figure:pics/Konecny_automat.pdf}. If an incorrect character is read in this case, the program will terminate and give an error. Otherwise, we read the characters until we get a \texttt{token} that we will return and terminate the program.
+
+To process escape sequences in a string, an array of size 3 was created, which is sequentially filled with read numbers of type $'\setminus{ddd}'$ in the range 000-255, which we will later convert to a number corresponding to a character in an ASCII table.
+
 
 \section{Parser}
 Parser functions were implemented in three files:\\ \texttt{parser.c, parser\_recursive\_descent.c, parser\_precedence.c} \\
@@ -100,9 +110,12 @@ Item have pointer on next item or \texttt{NULL}, if there is none and \texttt{fr
 
 Item which represents local variable have set key, data type (string, number, integer) and \texttt{frame\_ID}, where was defined. Pointers on lists are set on \texttt{NULL}.
 
-
-
-
+    \begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.95\linewidth]{pics/Konecny_automat.pdf}
+		\caption{Deterministic finite automaton}
+        \label{figure:pics/Konecny_automat.pdf}
+	\end{figure}
 
 \section{Work in team}
 As version system we were using Git, with hosting on Github. Every team member worked in own branch. When feature was created, branch was
@@ -222,4 +235,3 @@ other members.
     <expression>
     }   
     \end{comment}
-
