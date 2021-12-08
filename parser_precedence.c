@@ -9,47 +9,7 @@ bool buffer_is_empty(Buffer_for_token *buffer){
     if(buffer->index ==  0 || buffer->token[buffer->index]->type == token_type_$) return true;
     return false;
 }
-/*
 
-void print_new_token(precedence_token_t *token, char string[100]){
-    printf("%s \n", string);
-    Token_type type = token->type;
-    printf("printing token type %3d: ", type);
-    if(type == token_type_identifier || type == token_type_string)
-        printf("token_type_identifier\n");
-    else if(type == token_type_integer)
-        printf("token_type_integer\n");
-    else if(type == token_type_number)
-        printf("token_type_number\n");
-    else {
-        if(token_type_length == type)                   printf("#\n");
-        if(token_type_mul == type)                      printf("*\n");
-        if(token_type_div == type)                      printf("/\n");
-        if(token_type_floor_div == type)                printf("//\n");
-        if(token_type_plus == type)                     printf("+\n");
-        if(token_type_minus == type)                    printf("-\n");
-        if(token_type_concat == type)                   printf("..\n");
-        if(token_type_lth == type)                      printf("<\n");
-        if(token_type_leq == type)                      printf("<=\n");
-        if(token_type_gth == type)                      printf(">\n");
-        if(token_type_geq == type)                      printf(">=\n");
-        if(token_type_equal == type)                    printf("==\n");
-        if(token_type_ineq == type)                     printf("~=\n");
-        if(token_type_assign == type)                   printf("=\n");
-        if(token_type_left_bracket == type)             printf("(\n");
-        if(token_type_right_bracket == type)            printf(")\n");
-        if(token_type_square_left_bracket == type)      printf("[\n");
-        if(token_type_square_right_bracket == type)     printf("]\n");
-        if(token_type_colon == type)                    printf(":\n");
-        if(token_type_comma == type)                    printf(",\n");
-        if(token_type_$ == type)                        printf("empty\n");
-        if(token_type_E == type)                        printf("E\n");
-        if(token_type_shift == type)                    printf("<\n");
-    }
-
-    printf("shift %d\n", token->shift);
-    printf("redused %d\n\n", token->redused);
-}*/
 
 void buffer_init(Buffer_for_token *buffer){
     buffer->token = (precedence_token_t **) malloc(sizeof(precedence_token_t) + buffer_length);
@@ -170,20 +130,7 @@ int precedence_compare(Buffer_for_token * buffer, precedence_token_t *token){
 }
 
 void reduse_fnc(Buffer_for_token *buffer, bool right_bracket, parser_data_t *data){
-    
 
-    //konec zasobnik E +   /   -
-
-    /*if(right_bracket){ // ( E + E )
-        int temp = buffer->index;
-        while(buffer->token[temp]->type != token_type_left_bracket && !buffer_is_empty(buffer)){       
-            buffer_pop(buffer);
-            temp--;
-        }
-        buffer_pop(buffer);
-        buffer_push(buffer, new_token);
-        return;
-    }*/
 
     if(buffer->token[buffer->index]->shift == true ){// E
     
@@ -289,9 +236,7 @@ bool check_rule(Token_type left_type, Token_type right_type){
     if(right_type == kw_local || right_type == kw_if || right_type == kw_while || right_type == kw_return || right_type == kw_end || right_type == kw_end || right_type == kw_else || right_type == kw_then || right_type == kw_do || right_type == token_type_comma){
         return true;
     }
-//INT2FLOAT
-//vracet jeden token
-//
+
     int precedence_table[22][22] =
     {
 //  l     # | .. | * | / | // | + | - | < | <= | > | >= | == | ~= | ( | ) | id | int | num | str | nil | $       r
@@ -324,69 +269,11 @@ bool check_rule(Token_type left_type, Token_type right_type){
     return precedence_table[right_type][left_type];
 }
 
-/*void print_buffer(Buffer_for_token  * buffer){
-    precedence_token_t * token;
-    Token_type type;
-    printf("This is buffer\n");
-
-  
-    printf("|           |\n");
-    int i = buffer->index;
-    while(i != -1){
-        token = buffer->token[i];
-        type = token->type;
-        i--;
-        if(token->redused == true)
-            printf("|     E     |\n");
-        else if(type == token_type_string)
-            printf("|%6s     |\n", token->data.str);
-        else if(type == token_type_integer)
-            printf("|%6d     |\n", token->data.type_integer);
-        else if(type == token_type_number)
-            printf("|%6f     |\n", token->data.type_double);
-        else {
-            if(token_type_length == type)                   printf("|     #     |\n");
-            if(token_type_mul == type)                      printf("|     *     |\n");
-            if(token_type_div == type)                      printf("|     /     |\n");
-            if(token_type_floor_div == type)                printf("|     //    |\n");
-            if(token_type_plus == type)                     printf("|     +     |\n");
-            if(token_type_minus == type)                    printf("|     -     |\n");
-            if(token_type_concat == type)                   printf("|     ..    |\n");
-            if(token_type_lth == type)                      printf("|     <     |\n");
-            if(token_type_leq == type)                      printf("|     <=    |\n");
-            if(token_type_gth == type)                      printf("|     >     |\n");
-            if(token_type_geq == type)                      printf("|     >=    |\n");
-            if(token_type_equal == type)                    printf("|     ==    |\n");
-            if(token_type_ineq == type)                     printf("|     ~=    |\n");
-            if(token_type_assign == type)                   printf("|     =     |\n");
-            if(token_type_left_bracket == type)             printf("|     (     |\n");
-            if(token_type_right_bracket == type)            printf("|     )     |\n");
-            if(token_type_square_left_bracket == type)      printf("|     [     |\n");
-            if(token_type_square_right_bracket == type)     printf("|     ]     |\n");
-            if(token_type_colon == type)                    printf("|     :     |\n");
-            if(token_type_comma == type)                    printf("|     ,     |\n");
-            if(token_type_$ == type)                        printf("|   empty   |\n");
-            if(token_type_E == type)                        printf("|     E     |\n");
-            if(token_type_shift == type)                    printf("|     <     |\n");
-            if(token_type_identifier == type)               printf("|     id    |\n");
-        }
-
-        
-    }
-    printf("|___________|\n");
-
-
-}
-*/
 
 
 
 bool precedence(parser_data_t *data){
     precedence_token_t * new_token = remake_token(data);
-    // 3 + + syntax error
-    // 3 + string semantic error
-    // *htab_item temp = htab_find_variable(data->local_symtable, data->token->data.str);
-
 
     Buffer_for_token buffer;
     buffer_init(&buffer);
@@ -400,34 +287,28 @@ bool precedence(parser_data_t *data){
         switch (precedence_compare(&buffer, new_token))
         {
             case P:
-                /*if(is_operator(new_token->type)){
-                    buffer.token[buffer.index-1]->shift = true;
-                }else if(buffer.token[buffer.index]->type != token_type_left_bracket) */
+
                 new_token->shift = true;
 
-                //if(buffer.token[buffer.index]->type == token_type_left_bracket) buffer.left_bracket++;
-                //if(buffer.token[buffer.index]->type == token_type_right_bracket) buffer.right_bracket++;
-                
+         
                 buffer_push(&buffer, new_token);
 
                 break;
             case R:
-                //if(buffer.token[buffer.index]->type == token_type_right_bracket) right_bracket = true;
-
+          
                 reduse_fnc(&buffer, right_bracket, data);
                 if(precedence_compare(&buffer, new_token) == R) reduse_fnc(&buffer, right_bracket, data);
                 
-                //while(buffer.index != 1 && buffer.token[buffer.index] != token_type_left_bracket && precedence_compare(&buffer, new_token) == P &&  buffer.token[buffer.index-1]->type != token_type_$) reduse_fnc(&buffer, right_bracket, data);
                
                 buffer_push(&buffer, new_token);                    
                 break;
 
             case N:
-                //printf("NO PRECEDENCE\n");
+          
                 while(buffer.index !=1){
-                    //print_buffer(&buffer);
+
                     reduse_fnc(&buffer, right_bracket, data);
-                    //print_buffer(&buffer);
+
                 }
                 push_precedence_token(data, buffer.token[buffer.index]);
 
@@ -435,21 +316,12 @@ bool precedence(parser_data_t *data){
                 return true;
                 break;    
         }//switch
-        /*
-        print_buffer(&buffer);
-        printf("\n\n\n\n\n__________________________________\n");
-        print_new_token(new_token, "input token");
-        print_new_token(buffer.token[buffer.index-1], "buffer token");
-        printf("precedence %d\n",precedence_compare(&buffer, new_token));
-        printf("__________________________________\n");
-    */
+
             get_token(data);
             new_token = remake_token(data);
 
     }
     //while
 
-
-    //print_buffer(&buffer);
     return true;
 }
