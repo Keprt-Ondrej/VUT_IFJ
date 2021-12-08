@@ -2,9 +2,8 @@ https://wis.fit.vutbr.cz/FIT/st/cfs.php.cs?file=/course/IFJ-IT/projects/ifj2021.
 
 řešitelé:
 xkeprt03 Ondřej Keprt
-xcubin00 Pavol Cubinek
+xtrofi00 Oleg Trofimov
 xgeras00 Maxim Gerasimov
-????????
 
 TODO:
 projekt :D
