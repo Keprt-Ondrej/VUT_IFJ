@@ -78,6 +78,7 @@ Token* read_token() {
     char *endptr;
     char c;
     char a;
+    char array[3];
     bool succes;
     while(true) {
         switch(state) {
@@ -607,6 +608,18 @@ Token* read_token() {
                     }
                     state = string_loop;
                 }
+                else if (c == '0') {
+                    array[0] = c;
+                    state = escape_seq_zero;
+                }
+                else if (c == '1') {
+                    array[0] = c;
+                    state = escape_seq_one;
+                }
+                else if (c == '2') {
+                    array[0] = c;
+                    state = escape_seq_two;
+                }
                 else if (c == '\\') {
                     a = '\\';
                     state = escape_seq_end;
@@ -625,7 +638,7 @@ Token* read_token() {
                 }
             break;
 
-            case escape_seq_end:
+            case escape_seq_end:   
                 if(a == 9) { // a = '\t'
                     succes = str_add_char(&buffer, '\\'); 
                     succes = str_add_char(&buffer, '0'); 
@@ -680,6 +693,160 @@ Token* read_token() {
                         return NULL;
                     }               
                     state = string_loop;                                                         
+                }
+                else {
+                    delete_token(token);
+                    return NULL;
+                }
+            break;
+
+            case escape_seq_zero:
+                c = getc(stdin);
+                if(c == '0') {
+                    array[1] = c;
+                    state = escape_seq_zero_zero;
+                }
+
+                else if(isdigit(c) && c != '0') {
+                    array[1] = c;
+                    state = escape_seq_num;
+                }
+                else {
+                    delete_token(token);
+                    return NULL;
+                }
+            break;
+
+            case escape_seq_zero_zero:
+                c = getc(stdin);
+                if(isdigit(c) && c != '0') {
+                    array[2] = c;
+                    int tmp = (int)strtol(array, &endptr, 10);
+                    c = (char) tmp;
+                    succes = str_add_char(&buffer, c);
+                    if (!succes) {
+                        delete_token(token);
+                        return NULL;
+                    }      
+                    state = string_loop;
+                }
+                else {
+                    delete_token(token);
+                    return NULL;
+                }
+            break;
+
+            case escape_seq_one:
+                c = getc(stdin);
+                if(isdigit(c)) {
+                    array[1] = c;
+                    state = escape_seq_num;
+                }
+                else {
+                    delete_token(token);
+                    return NULL;
+                }                
+            break;
+
+            case escape_seq_two:
+                if(c == '0' || c == '1' || c == '2' || c == '3' || c == '4') {
+                    array[1] = c;
+                    state = escape_seq_num;
+                }
+                else if(c == '5') {
+                    array[1] = c;
+                    state = escape_seq_two_five;
+                }
+                else {
+                    delete_token(token);
+                    return NULL;
+                }
+            break;
+
+            case escape_seq_two_five:
+                if(c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5') {
+                    array[2] = c;
+                    state = escape_seq_num;
+                }    
+                else {
+                    delete_token(token);
+                    return NULL;
+                }
+            break;
+
+            case escape_seq_num:
+                c = getc(stdin);
+                if(isdigit(c)) {
+                    array[2] = c;
+                    int tmp = (int)strtol(array, &endptr, 10);
+                    c = (char) tmp;
+                    if(c == 9) { // c = '\t'
+                        succes = str_add_char(&buffer, '\\'); 
+                        succes = str_add_char(&buffer, '0'); 
+                        succes = str_add_char(&buffer, '0'); 
+                        succes = str_add_char(&buffer, '9'); 
+                        if (!succes) {
+                            delete_token(token);
+                            return NULL;
+                        }  
+                        state = string_loop;                                                                             
+                    }
+                    else if(c == 10) { // a = '\n'
+                        succes = str_add_char(&buffer, '\\'); 
+                        succes = str_add_char(&buffer, '0'); 
+                        succes = str_add_char(&buffer, '1'); 
+                        succes = str_add_char(&buffer, '0'); 
+                        if (!succes) {
+                            delete_token(token);
+                            return NULL;
+                        }            
+                        state = string_loop;                                                                   
+                    }
+                    else if(c == 32) { // c = ' '
+                        succes = str_add_char(&buffer, '\\'); 
+                        succes = str_add_char(&buffer, '0'); 
+                        succes = str_add_char(&buffer, '3'); 
+                        succes = str_add_char(&buffer, '2');     
+                        if (!succes) {
+                            delete_token(token);
+                            return NULL;
+                        }               
+                        state = string_loop;                      
+                    }          
+                    else if(c == 35) { // a = '#'
+                        succes = str_add_char(&buffer, '\\'); 
+                        succes = str_add_char(&buffer, '0'); 
+                        succes = str_add_char(&buffer, '3'); 
+                        succes = str_add_char(&buffer, '5');     
+                        if (!succes) {
+                            delete_token(token);
+                            return NULL;
+                        }               
+                        state = string_loop;                      
+                    }                      
+                    else if(c == 92) { // a = '\\'
+                        succes = str_add_char(&buffer, '\\'); 
+                        succes = str_add_char(&buffer, '0'); 
+                        succes = str_add_char(&buffer, '9'); 
+                        succes = str_add_char(&buffer, '2');     
+                        if (!succes) {
+                            delete_token(token);
+                            return NULL;
+                        }           
+                        state = string_loop;   
+                    }           
+                    else {
+                        succes = str_add_char(&buffer, c);  
+                        if (!succes) {
+                            delete_token(token);
+                            return NULL; 
+                        }
+                        state = string_loop;
+                    }
+                }    
+                else {
+                    delete_token(token);
+                    return NULL;
                 }
             break;
 
