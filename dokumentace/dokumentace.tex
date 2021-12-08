@@ -27,6 +27,7 @@
     colorlinks=true, %set true if you want colored links
     linktoc=all,     %set to all if you want both sections and subsections linked
     linkcolor=blue,  %choose some color if you want links to stand out
+    allcolors=blue
 }
 
 
@@ -64,24 +65,28 @@
 This project should test students teoretical knowledge about finite automats, languages and compilers and their application to practice. Project goal was implementation of compiler
 for language IFJ21, which is subset of language Teal/Lua, to three adress code IFJcode21.
 
-\section{Lexical anylisis}
+\section{Lexical analysis}
 
 \section{Parser}
 Parser functions were implemented in three files:\\ \texttt{parser.c, parser\_recursive\_descent.c, parser\_precedence.c} \\
-For expressions were assigned precedence analisis. All other constructions were processed by recursive descent.
+For expressions were assigned precedence analysis. All other constructions were processed by recursive descent.
 In \texttt{parser.*} are defined functions and data structures, which are used in both approaches.
 
 Comunication between parser parts, was implemented by passing pointer on data structure \texttt{parser\_data\_t}, 
-where were stored all information about analisis state and loaded data. Lexical analyzator was called with function \texttt{read\_token},
+where were stored all information about analysis state and loaded data. Lexical analyzator was called with function \texttt{read\_token},
 which returned pointer on structure of token, which was on standart input.
 
 \subsection{Recursive descent}
+Recursive descent is implemented based on LL(1) grammar \ref{LL-grammar} and LL\,--\,table \ref{LL-table}. For each non\,--\,terminal was created function,
+which simulate that non\,--\,terminal. In this function is sequence of comparing lexical tokens from lexical analysis and deciding, which rule should be used for generating new non\,--\,terminals or terminals.
+Alongside with that, there are semantics checks and semantics actions, such as generating instructions or type controls. All function return bool value, true means all is ok, false error occured.
+As parameter they all have pointer on structure \texttt{parset\_data\_t}, which contains all information needed for analysis. 
 
 \subsection{Precedence}
 
 \section{Table of symbols}
-Our task was implement table of symbols as hash table. Our hash table was implemented as structure, which contains item counter (\texttt{size}), array of pointers on lists of synnonyms(\texttt{array}),
-array size(\texttt{arr\_size}) and pointer on next hash table. For deciding index, where item will be stored is used \texttt{sdbm} hash function, which is used in berkley database \cite{hash_function}. 
+Our task was implement table of symbols as hash table. Our hash table was implemented as structure, which contains item counter (\texttt{size}), array of pointers on lists of synnonyms (\texttt{array}),
+array size (\texttt{arr\_size}) and pointer on next hash table. For deciding index, where item will be stored is used \texttt{sdbm} hash function, which is used in berkley database \cite{hash_function}. 
 
 There are two hash tables pointers in \texttt{parser\_data\_t}. One for global frame, where are stored data only about functions. Second, contains data about local variables. Table for local variables is implemented by
 stack hierarchy. For each scope is created new hash table and pushed on the top of the stack. When we are trying to add variable, we search only on top of stack, if there is variable with same name. When we are looking for variable, we search item in top level, 
@@ -91,18 +96,27 @@ Hash table stores one type of structure in lists, which is same for functions an
 
 Item which represents function, contains key, pointer on list of parameters, pointer on list of return types. This lists use datastructure \texttt{data\_token\_t}. When function
 is declared, parameter list contains only data types as return list. Defined function have parameter names stored in parameter list. Type of item is set to \texttt{function\_declared or function\_defined}.
-Item have pointer on next item or NULL, if there is none and \texttt{frame\_ID} is undefined value.
+Item have pointer on next item or \texttt{NULL}, if there is none and \texttt{frame\_ID} is undefined value.
 
-Item which represents local variable have set key, data type (string, number, integer) and \texttt{frame\_ID}, where was defined. Pointers on lists are set on NULL.
+Item which represents local variable have set key, data type (string, number, integer) and \texttt{frame\_ID}, where was defined. Pointers on lists are set on \texttt{NULL}.
 
 
 
 
 
 \section{Work in team}
+As version system we were using Git, with hosting on Github. Every team member worked in own branch. When feature was created, branch was
+pulled to main branch and used by others.
 
+For communication we used own Discord server with specialized chat thread for IFJ project. In case of some big problem, we used voice rooms for call and
+and solved problem with screen sharing.
+
+All team members had acces to this server, including Ondřej Sláma, but he did not respond. Team leader and other members send him some messages, with work to do, but he did not 
+show any effort or any work. In the end, 3.12.2021 he wrote message to team leader and offered help, but by this time, all work was almost done or devided to 
+other members. 
 
 \section{LL grammar}
+\label{LL-grammar}
 \begin{enumerate}
     {\color{red}}
     \item \texttt{<intro>\arrow{}<prolog> <prog> }  
@@ -164,17 +178,16 @@ Item which represents local variable have set key, data type (string, number, in
     \section{LL\ --\ table}
     \begin{figure}[ht]
         \includegraphics[scale=1.89]{LL_tabulka.eps} 
-        \caption{LL\,--\,table  created from LL(1) grammar}
+        \label{LL-table}
+        \caption{LL\,--\,table  created from LL(1) grammar\\There are 2 places, where we can not decide only on LL(1) grammar, here we use semantics check for help}
     \end{figure}
 \end{landscape}
 
 
 %insert something here
 
-\bibliographystyle{unsrt}
+\bibliographystyle{czechiso}
 \bibliography{zdroje}
-
-
 \end{document} 
 
 \begin{comment}
