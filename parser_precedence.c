@@ -72,13 +72,20 @@ precedence_token_t * remake_token(parser_data_t *data){
         printf("allocation failed");
         exit(43);
     }
-        
+    
+    new_token->identifier = strcpy_alloc(data,"Hello world");
     new_token->type = data->token->type;
     new_token->shift = false;
     new_token->redused = false;
     //////////////////experiment
-    if(new_token->type == token_type_integer) new_token->data.type_integer = data->token->data.type_integer;
-    if(new_token->type == token_type_number) new_token->data.type_double = data->token->data.type_double;
+    if(new_token->type == token_type_integer){
+        new_token->data.type_integer = data->token->data.type_integer;
+        new_token->identifier = int_to_string(data->token->data.type_integer);
+    } 
+    if(new_token->type == token_type_number){
+        new_token->identifier = int_to_string(data->token->data.type_double);
+        new_token->data.type_double = data->token->data.type_double;
+    }
     if(new_token->data.str != NULL) {
         new_token->data.str = malloc(50);
         new_token->data.str = data->token->data.str;
@@ -182,8 +189,9 @@ void reduse_fnc(Buffer_for_token *buffer, bool right_bracket, parser_data_t *dat
         return;
     }*/
 
-    if(buffer->token[buffer->index]->shift == true){// E
+    if(buffer->token[buffer->index]->shift == true ){// E        //< 9 * index == 1  // E * E -> E 
 
+        
         buffer->token[buffer->index]->redused = true;
         buffer->token[buffer->index]->shift = false;
 
@@ -200,6 +208,9 @@ void reduse_fnc(Buffer_for_token *buffer, bool right_bracket, parser_data_t *dat
         case token_type_mul:
             opcode = MUL;
             break;
+        case token_type_length:
+            opcode = STRLEN;
+        break;
         
         default:
             break;
@@ -210,11 +221,19 @@ void reduse_fnc(Buffer_for_token *buffer, bool right_bracket, parser_data_t *dat
 
 
         char * tmp_name = allocate_new_tmp_name(data, "LF@");
-        defvar_3AC(data, strcpy_alloc(data, tmp_name));//result
-        push_instruction( data, create_instruction(opcode, strcpy_alloc(data, tmp_name), strcpy_alloc(data, buffer->token[buffer->index-2]->identifier), strcpy_alloc(data, buffer->token[buffer->index]->identifier)));
-        new_token->identifier = strcpy_alloc(data, tmp_name);
+        printf("%s\n",tmp_name);
+        printf("before down1");
+        defvar_3AC(data,strcpy_alloc(data,tmp_name));
+        if(opcode == STRLEN){
 
-
+        }
+        else{
+            printf("before down");
+            printf("here op1 %s\n",buffer->token[buffer->index -2]->identifier);
+            printf(" op2 %s\n",buffer->token[buffer->index]->identifier);
+            push_instruction(data,create_instruction(MUL,strcpy_alloc(data,tmp_name),strcpy_alloc(data,buffer->token[buffer->index - 2]->identifier),strcpy_alloc(data,buffer->token[buffer->index]->identifier)));
+        }
+        
 
         int i = buffer->index;
         while(buffer->token[i]->shift != true && !buffer_is_empty(buffer)){  
@@ -251,6 +270,9 @@ bool is_operator(Token_type type){
 bool check_rule(Token_type left_type, Token_type right_type){
     bool F = false;
     bool T = true;
+    if(right_type = kw_end){
+        return true;
+    }
 
     int precedence_table[22][22] =
     {
@@ -391,10 +413,7 @@ bool precedence(parser_data_t *data){
     bool right_bracket = false;
 //end_of_token_stream(new_token)
     bool flag = true;
-     while(flag){
-         if(data->token->type == kw_end){
-             return true;
-         }
+     while(flag){        
                 
         if(!check_rule(buffer.token[buffer.index]->type, new_token->type)){             
             exit(50);
@@ -459,8 +478,14 @@ bool precedence(parser_data_t *data){
         print_new_token(buffer.token[buffer.index-1], "buffer token");
         printf("__________________________________\n");
        */
+
+       if(data->token->type == kw_end){
+           reduse_fnc(&buffer,right_bracket,data);
+           reduse_fnc(&buffer,right_bracket,data);
+             return true;
+         }
                 get_token(data);
- new_token = remake_token(data);
+    new_token = remake_token(data);
 
     }
     //while
