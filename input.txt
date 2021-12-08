@@ -3,7 +3,8 @@ global foo : function(string,number,integer) :string
 
 function main()
 local a: string
-local vysl: integer = 8 * 8
+local b: integer = 8
+local vysl: integer = 6 * 5 + #"hi"
 foo("to pojede kokos",42.5,8)
 a = foo("to pojede kokos",42.5,8)
 if a then foo("to pojede kokos",42.5,8) return

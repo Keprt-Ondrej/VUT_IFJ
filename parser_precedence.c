@@ -1,4 +1,3 @@
-
 #include "parser_precedence.h"
 #include "parser.h"
 #include "ErrLib.h"
@@ -10,7 +9,7 @@ bool buffer_is_empty(Buffer_for_token *buffer){
     if(buffer->index ==  0 || buffer->token[buffer->index]->type == token_type_$) return true;
     return false;
 }
-
+/*
 
 void print_new_token(precedence_token_t *token, char string[100]){
     printf("%s \n", string);
@@ -50,7 +49,7 @@ void print_new_token(precedence_token_t *token, char string[100]){
 
     printf("shift %d\n", token->shift);
     printf("redused %d\n\n", token->redused);
-}
+}*/
 
 void buffer_init(Buffer_for_token *buffer){
     buffer->token = (precedence_token_t **) malloc(sizeof(precedence_token_t) + buffer_length);
@@ -64,41 +63,38 @@ void buffer_init(Buffer_for_token *buffer){
 }
 
 precedence_token_t * remake_token(parser_data_t *data){
-//    char * tmp_name = allocate_new_tmp_name(data, "LF@");
-//    defvar_3AC(data,strcpy_alloc(data, tmp_name));
     precedence_token_t * new_token = malloc(sizeof(precedence_token_t));
     if(new_token == NULL){
         free_parser_data(data);
-        printf("allocation failed");
-        exit(43);
+        fprintf(stderr, "allocation failed");
+        exit(INTERNAL_ERROR);
     }
     
-    new_token->identifier = strcpy_alloc(data,"Hello world");
     new_token->type = data->token->type;
     new_token->shift = false;
     new_token->redused = false;
-    //////////////////experiment
+
     if(new_token->type == token_type_integer){
         new_token->data.type_integer = data->token->data.type_integer;
         new_token->identifier = int_to_string(data->token->data.type_integer);
+        new_token->data_type = integer;
     } 
     if(new_token->type == token_type_number){
         new_token->identifier = int_to_string(data->token->data.type_double);
         new_token->data.type_double = data->token->data.type_double;
+        new_token->data_type = number;
     }
-    if(new_token->data.str != NULL) {
-        new_token->data.str = malloc(50);
-        new_token->data.str = data->token->data.str;
+    if(new_token->type == token_type_string) {
+        new_token->identifier = string_to_string(data->token->data.str);
     }
-    /////////////////experiment
     
    if(data->token->type == token_type_identifier){
         htab_item * temp = htab_find_variable(data->local_symtable, data->token->data.str);
         if(NULL == temp){
             temp = htab_find_variable(data->global_symtable, data->token->data.str);
             if(NULL == temp){
-                exit(42);
-            } 
+                exit(SEM_ERROR_REDEFINE_UNDEFINE_VAR);
+            }
             return new_token;
         }else{
             new_token->identifier = allocate_var_name_3AC("LF@", temp);
@@ -111,7 +107,7 @@ precedence_token_t * remake_token(parser_data_t *data){
 void expand_buffer(Buffer_for_token *buffer){
     buffer->token = (precedence_token_t **) realloc(buffer->token, buffer->current_length * buffer_expend_length);
     if(buffer->token == NULL){
-        exit(44);
+        exit(INTERNAL_ERROR);
     }
     buffer->current_length = buffer->current_length * buffer_expend_length;
 }
@@ -123,6 +119,9 @@ void buffer_push(Buffer_for_token *buffer, precedence_token_t *token){
 }
 
 void buffer_pop(Buffer_for_token *buffer){
+    free(buffer->token[buffer->index]->identifier);
+    
+    free(buffer->token[buffer->index]);
     buffer->token[buffer->index] = NULL;
     buffer->index--;
 }
@@ -131,8 +130,6 @@ int precedence_compare(Buffer_for_token * buffer, precedence_token_t *token){
 
     Token_type left_type;
     Token_type right_type;
-
-
 
     int temp = buffer->index;
     if(buffer->token[buffer->index]->redused == true) temp = buffer->index-1;
@@ -147,11 +144,11 @@ int precedence_compare(Buffer_for_token * buffer, precedence_token_t *token){
     int precedence_table[22][22] =
     {
 //  l     # | .. | * | / | // | + | - | < | <= | > | >= | == | ~= | ( | ) | id | int | num | str | nil | $       r
-        { E ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , P , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // #
+        { P ,  P , P , P , P  , P , P , P , P  , P , P  , P  , P  , P , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // #
         { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , R , P  ,  N  ,  N  ,  R  ,  N  , P }, // ..
-        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // *
         { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // /
         { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // //
+        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // *
         { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // +
         { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // -
         { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // <
@@ -169,15 +166,13 @@ int precedence_compare(Buffer_for_token * buffer, precedence_token_t *token){
         { N ,  N , N , N , N  , N , N , N , N  , N , N  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // nil
         { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }  /// $
     };
-    //printf("%d = left_type\n %d = right_type", left_type, right_type);
     return precedence_table[right_type][left_type];
 }
 
 void reduse_fnc(Buffer_for_token *buffer, bool right_bracket, parser_data_t *data){
-    printf("reduction\n");
-    precedence_token_t * new_token = malloc(sizeof(precedence_token_t));
-    new_token->type = token_type_E;
     
+
+    //konec zasobnik E +   /   -
 
     /*if(right_bracket){ // ( E + E )
         int temp = buffer->index;
@@ -190,17 +185,20 @@ void reduse_fnc(Buffer_for_token *buffer, bool right_bracket, parser_data_t *dat
         return;
     }*/
 
-    if(buffer->token[buffer->index]->shift == true ){// E        //< 9 * index == 1  // E * E -> E 
-
-        
+    if(buffer->token[buffer->index]->shift == true ){// E
+    
         buffer->token[buffer->index]->redused = true;
         buffer->token[buffer->index]->shift = false;
-
-        //push_instruction(data, create_instruction(MOV, ))
-
         return;
     }
-    if(buffer->token[buffer->index]->shift != true && !buffer_is_empty(buffer)){// <E + E
+
+    
+    if(buffer->token[buffer->index]->shift == false && !buffer_is_empty(buffer) ){// <E + E
+
+    precedence_token_t * new_token = malloc(sizeof(precedence_token_t));
+    new_token->type = token_type_E;
+    new_token->shift =false;
+
     int opcode = 0;
         switch (buffer->token[buffer->index - 1]->type)
         {
@@ -222,38 +220,47 @@ void reduse_fnc(Buffer_for_token *buffer, bool right_bracket, parser_data_t *dat
             break;
         case token_type_minus:
             opcode = SUB;
-
-        
         default:
             break;
         }
 
         char * tmp_name = allocate_new_tmp_name(data, "LF@");
-        printf("%s\n",tmp_name);
-        printf("before down1");
+
         defvar_3AC(data,strcpy_alloc(data,tmp_name));
         if(opcode == STRLEN){
-
+            push_instruction(data, create_instruction(opcode, strcpy_alloc(data,tmp_name),strcpy_alloc(data,buffer->token[buffer->index]->identifier),NULL));
+            new_token->identifier = tmp_name;
+            new_token->data_type = integer;
+            buffer_pop(buffer);
+            buffer_pop(buffer);
         }
         else{
-            printf("before down");
-            printf("here op1 %s\n",buffer->token[buffer->index -2]->identifier);
-            printf("op2 %s\n",buffer->token[buffer->index]->identifier);
-            push_instruction(data,create_instruction(opcode, strcpy_alloc(data,tmp_name),strcpy_alloc(data,buffer->token[buffer->index - 2]->identifier),strcpy_alloc(data,buffer->token[buffer->index]->identifier)));
+            push_instruction(data, create_instruction(opcode, strcpy_alloc(data,tmp_name),strcpy_alloc(data,buffer->token[buffer->index - 2]->identifier),strcpy_alloc(data,buffer->token[buffer->index]->identifier)));
             new_token->identifier = tmp_name;
-            push_precedence_token(data, new_token);
+
+            if((buffer->token[buffer->index - 2]->data_type == number || buffer->token[buffer->index]->data_type == number) && (buffer->token[buffer->index - 2]->data_type == string || buffer->token[buffer->index]->data_type == string)){
+                new_token->data_type = number;
+            }
+            if(buffer->token[buffer->index - 2]->data_type == integer && buffer->token[buffer->index]->data_type == integer){
+                new_token->data_type = integer;
+            }else if(buffer->token[buffer->index - 2]->data_type == string && buffer->token[buffer->index]->data_type == string){
+                new_token->data_type = string;
+            }else{
+
+            }
+            buffer_pop(buffer);
+            buffer_pop(buffer);
+            buffer_pop(buffer);
         }
 
-        int i = buffer->index;
-        while(buffer->token[i]->shift != true && !buffer_is_empty(buffer)){  
-            buffer_pop(buffer);
-            i--;
-        }
+            
+
+
         buffer_push(buffer, new_token);
         return;
     }
-
-    exit(45);
+ //
+   
 
 }
 
@@ -282,7 +289,9 @@ bool check_rule(Token_type left_type, Token_type right_type){
     if(right_type == kw_local || right_type == kw_if || right_type == kw_while || right_type == kw_return || right_type == kw_end || right_type == kw_end || right_type == kw_else || right_type == kw_then || right_type == kw_do || right_type == token_type_comma){
         return true;
     }
-
+//INT2FLOAT
+//vracet jeden token
+//
     int precedence_table[22][22] =
     {
 //  l     # | .. | * | / | // | + | - | < | <= | > | >= | == | ~= | ( | ) | id | int | num | str | nil | $       r
@@ -309,12 +318,13 @@ bool check_rule(Token_type left_type, Token_type right_type){
         { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , F , F  ,  F  ,  F  ,  F  ,  F  , T }  /// $
     };
     
+    
     if(precedence_table[right_type][left_type] == N && (left_type == token_type_nil || right_type == token_type_nil)) exit(UNEXP_ZERO_VALUE_ERROR);
     
     return precedence_table[right_type][left_type];
 }
 
-void print_buffer(Buffer_for_token  * buffer){
+/*void print_buffer(Buffer_for_token  * buffer){
     precedence_token_t * token;
     Token_type type;
     printf("This is buffer\n");
@@ -367,13 +377,14 @@ void print_buffer(Buffer_for_token  * buffer){
 
 
 }
-
+*/
 
 
 
 bool precedence(parser_data_t *data){
     precedence_token_t * new_token = remake_token(data);
-
+    // 3 + + syntax error
+    // 3 + string semantic error
     // *htab_item temp = htab_find_variable(data->local_symtable, data->token->data.str);
 
 
@@ -381,17 +392,18 @@ bool precedence(parser_data_t *data){
     buffer_init(&buffer);
 
     bool right_bracket = false;
-    bool flag = true;
-     while(flag){        
+   
+     while(1){        
                 
-        if(!check_rule(buffer.token[buffer.index]->type, new_token->type))exit(50);
+        if(!check_rule(buffer.token[buffer.index]->type, new_token->type))exit(SYNTAX_ERROR);
 
         switch (precedence_compare(&buffer, new_token))
         {
             case P:
-                if(is_operator(new_token->type)){
+                /*if(is_operator(new_token->type)){
                     buffer.token[buffer.index-1]->shift = true;
-                }else if(buffer.token[buffer.index]->type != token_type_left_bracket) new_token->shift = true;
+                }else if(buffer.token[buffer.index]->type != token_type_left_bracket) */
+                new_token->shift = true;
 
                 //if(buffer.token[buffer.index]->type == token_type_left_bracket) buffer.left_bracket++;
                 //if(buffer.token[buffer.index]->type == token_type_right_bracket) buffer.right_bracket++;
@@ -403,40 +415,41 @@ bool precedence(parser_data_t *data){
                 //if(buffer.token[buffer.index]->type == token_type_right_bracket) right_bracket = true;
 
                 reduse_fnc(&buffer, right_bracket, data);
-                if(precedence_compare(&buffer, new_token) ==R) reduse_fnc(&buffer, right_bracket, data);
-
-        
+                if(precedence_compare(&buffer, new_token) == R) reduse_fnc(&buffer, right_bracket, data);
+                
+                //while(buffer.index != 1 && buffer.token[buffer.index] != token_type_left_bracket && precedence_compare(&buffer, new_token) == P &&  buffer.token[buffer.index-1]->type != token_type_$) reduse_fnc(&buffer, right_bracket, data);
+               
                 buffer_push(&buffer, new_token);                    
                 break;
-            case E:
 
-                break;
             case N:
-                printf("NO PRECEDENCE\n");
+                //printf("NO PRECEDENCE\n");
                 while(buffer.index !=1){
-                    print_buffer(&buffer);
+                    //print_buffer(&buffer);
                     reduse_fnc(&buffer, right_bracket, data);
-                    print_buffer(&buffer);
+                    //print_buffer(&buffer);
                 }
+                push_precedence_token(data, buffer.token[buffer.index]);
+
+
                 return true;
                 break;    
         }//switch
-        
+        /*
         print_buffer(&buffer);
         printf("\n\n\n\n\n__________________________________\n");
         print_new_token(new_token, "input token");
         print_new_token(buffer.token[buffer.index-1], "buffer token");
+        printf("precedence %d\n",precedence_compare(&buffer, new_token));
         printf("__________________________________\n");
-    
+    */
             get_token(data);
             new_token = remake_token(data);
 
     }
     //while
 
-    //if(buffer.left_bracket != buffer.right_bracket) exit(INTERNAL_ERROR);
 
-
-    print_buffer(&buffer);
+    //print_buffer(&buffer);
     return true;
 }

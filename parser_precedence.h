@@ -27,7 +27,6 @@ typedef struct{
 typedef enum{
     P,  //push
     R,  //reduse
-    E,  //equal
     N,  //no precedence
 }compare_result;
 
