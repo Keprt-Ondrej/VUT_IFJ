@@ -1,7 +1,10 @@
 /**
  * @file scanner.h
+ * @brief Scanner interface.
+ * 
+ * IFJ-2021 Compiler
+ * 
  * @author Oleg Trofimov (xtrofi00@stud.fit.vutbr.cz)
- * @brief 
 */
 
 #ifndef __SCANNER_H__

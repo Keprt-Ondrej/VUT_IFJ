@@ -143,15 +143,34 @@ In \texttt{parset\_data\_t} is another special list, which contains
 At the end of analysis, parser called function \texttt{generate\_code}, which printed instructions and freed memory.
 
 \section{Work in team}
+\subsection{Versioning system}
 As version system we were using Git, with hosting on Github. Every team member worked in own branch. When feature was created, branch was
 pulled to main branch and used by others.
-
+\subsection{Communication}
 For communication we used own Discord server with specialized chat thread for IFJ project. In case of some big problem, we used voice rooms for call and
 and solved problem with screen sharing.
 
-All team members had acces to this server, including Ondřej Sláma, but he did not respond. Team leader and other members send him some messages, with work to do, but he did not 
+All team members had access to this server, including Ondřej Sláma, but he did not respond. Team leader and other members send him some messages, with work to do, but he did not 
 show any effort or any work. In the end, 3.12.2021 he wrote message to team leader and offered help, but by this time, all work was almost done or devided to 
 other members. 
+
+\subsection{Distribution of points}
+We divided the work on the project taking into account its complexity and labor intensity. Thus, everyone received a percentage rating in the amount indicated in the table \ref{table:distribution_of_work}. 
+	\bigskip
+	\begin{table}[ht]
+		\centering
+		\begin{tabular}{| l | l |}
+			\hline
+			Team member & Accomplished work \\ \hline
+			\textbf{Ondřej Keprt, xkeprt03: 40\%} & \begin{tabular}{l} team management, organization of work, control over the execution of work,\\ consultation, project structure, target code generation, testing, documentation,\\
+			syntactic analysis, semantic analysis \end{tabular} \\
+			Oleg Trofimov, xtrofi00: 30\% & \begin{tabular}{l} lexical analysis, testing, documentation \end{tabular} \\
+			Maxim Gerasimov, xgeras00: 30\% & \begin{tabular}{l} syntactic analysis of the shipment, testing, documentation \end{tabular} \\
+			Sláma Ondřej, xslama32: 0\% & \begin{tabular}{l}  nothing is done \end{tabular} \\ \hline
+		\end{tabular}
+		\caption{Distribution of work in the team}
+		\label{table:distribution_of_work}
+	\end{table}
 
 \newpage
 \section{Deterministic finite automaton}
