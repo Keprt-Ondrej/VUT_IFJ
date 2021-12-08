@@ -601,6 +601,7 @@ bool st_list(parser_data_t *data){
             return true;
         break;
         default:
+            print_token(data->token);
             fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
@@ -610,6 +611,7 @@ bool st_list(parser_data_t *data){
 }
 
 bool statement(parser_data_t *data){
+    print_token(data->token);
     if(is_token(data,kw_local)){
         //grammar rule 22
         get_token(data);

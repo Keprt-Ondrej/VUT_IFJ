@@ -172,7 +172,7 @@ int print_token(Token *token){
 
 
 bool expression(parser_data_t *data){
-    return fake_expression(data);
+    //return fake_expression(data);
 
-    //return precedence(data);
+    return precedence(data);
 }

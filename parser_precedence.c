@@ -12,8 +12,6 @@ bool buffer_is_empty(Buffer_for_token *buffer){
 }
 
 
-
-
 void print_new_token(precedence_token_t *token, char string[100]){
     printf("%s \n", string);
     Token_type type = token->type;
@@ -66,6 +64,8 @@ void buffer_init(Buffer_for_token *buffer){
 }
 
 precedence_token_t * remake_token(parser_data_t *data){
+//    char * tmp_name = allocate_new_tmp_name(data, "LF@");
+//    defvar_3AC(data,strcpy_alloc(data, tmp_name));
     precedence_token_t * new_token = malloc(sizeof(precedence_token_t));
     if(new_token == NULL){
         free_parser_data(data);
@@ -85,20 +85,24 @@ precedence_token_t * remake_token(parser_data_t *data){
     }
     /////////////////experiment
     
-    if(data->token->type == token_type_identifier){
+   if(data->token->type == token_type_identifier){
         htab_item * temp = htab_find_variable(data->local_symtable, data->token->data.str);
         if(NULL == temp){
-            printf("here it is");
+            temp = htab_find_variable(data->global_symtable, data->token->data.str);
+            if(NULL == temp) exit(1);
+            /*new_token->data_type = temp->type;
+            new_token->identifier = temp->key;*/
+            return new_token;
+        }else{
+            new_token->identifier = allocate_var_name_3AC("LF@", temp);
+            //new_token->data_type = temp->type;
+            return new_token;
         }
-        new_token->data_type = temp->type;
-        new_token->identifier = temp->key;
-        //printf("data_type = %d\n", new_token->data_type);
     }
-
     return new_token;
 }
 
-void expend_buffer(Buffer_for_token *buffer){
+void expand_buffer(Buffer_for_token *buffer){
     buffer->token = (precedence_token_t **) realloc(buffer->token, buffer->current_length * buffer_expend_length);
     if(buffer->token == NULL){
         exit(1);
@@ -108,7 +112,7 @@ void expend_buffer(Buffer_for_token *buffer){
 
 void buffer_push(Buffer_for_token *buffer, precedence_token_t *token){
     buffer->index++;
-    if(buffer->index >= buffer->current_length) expend_buffer(buffer);
+    if(buffer->index >= buffer->current_length) expand_buffer(buffer);
     buffer->token[buffer->index] = token;
 }
 
@@ -131,48 +135,93 @@ int precedence_compare(Buffer_for_token * buffer, precedence_token_t *token){
     {
 //  l     # | .. | * | / | // | + | - | < | <= | > | >= | == | ~= | ( | ) | id | int | num | str | nil | $       r
         { E ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , P , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // #
-        { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , N , P  ,  N  ,  N  ,  R  ,  N  , P }, // ..
-        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , N , R  ,  R  ,  R  ,  R  ,  N  , P }, // *
-        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , N , R  ,  R  ,  R  ,  R  ,  N  , P }, // /
-        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , N , R  ,  R  ,  R  ,  R  ,  N  , P }, // //
-        { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , N , R  ,  R  ,  R  ,  R  ,  N  , P }, // +
-        { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , N , R  ,  R  ,  R  ,  R  ,  N  , P }, // -
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , N , R  ,  R  ,  R  ,  R  ,  R  , P }, // <
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , N , R  ,  R  ,  R  ,  R  ,  R  , P }, // <=
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , N , R  ,  R  ,  R  ,  R  ,  R  , P }, // >
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , N , R  ,  R  ,  R  ,  R  ,  R  , P }, // >=
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , N , R  ,  R  ,  R  ,  R  ,  R  , P }, // ==
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , N , R  ,  R  ,  R  ,  R  ,  R  , P }, // ~=
+        { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , R , P  ,  N  ,  N  ,  R  ,  N  , P }, // ..
+        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // *
+        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // /
+        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // //
+        { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // +
+        { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // -
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // <
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // <=
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // >
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // >=
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }, // ==
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }, // ~=
         { P ,  P , P , N , P  , P , P , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // (
-        { N ,  N , N , N , N  , N , N , N , N  , N , N  , N  , N  , N , P , R  ,  R  ,  R  ,  R  ,  R  , P }, // )
+        { N ,  N , N , N , N  , N , N , N , N  , N , N  , N  , N  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }, // )
         { P ,  P , P , P , P  , P , P , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // id
         { P ,  N , P , P , P  , P , P , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // int
         { P ,  N , P , P , P  , P , P , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // num
         { P ,  P , N , N , N  , N , N , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // str
-        { N ,  N , N , N , N  , N , N , P , P  , P , P  , P  , P  , P , R , N  ,  N  ,  N  ,  N  ,  N  , P }, // nil
+        { N ,  N , N , N , N  , N , N , N , N  , N , N  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // nil
         { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }  /// $
     };
     //printf("%d = left_type\n %d = right_type", left_type, right_type);
     return precedence_table[right_type][left_type];
 }
 
-void reduse_fnc(Buffer_for_token *buffer){
+void reduse_fnc(Buffer_for_token *buffer, bool right_bracket, parser_data_t *data){
     precedence_token_t * new_token = malloc(sizeof(precedence_token_t));
     new_token->type = buffer->token[buffer->index]->type;
-    if(buffer->token[buffer->index]->shift == true){
-        buffer_pop(buffer);
-        new_token->redused = true;
-        buffer_push(buffer, new_token);
-    }else{
+    new_token->redused = true;
+
+    
+
+    /*if(right_bracket){ // ( E + E )
         int temp = buffer->index;
-        while(buffer->token[temp]->shift != true && !buffer_is_empty(buffer)){       
+        while(buffer->token[temp]->type != token_type_left_bracket && !buffer_is_empty(buffer)){       
             buffer_pop(buffer);
             temp--;
         }
-        
-        new_token->redused = true;
-        buffer_push(buffer, new_token); 
+        buffer_pop(buffer);
+        buffer_push(buffer, new_token);
+        return;
+    }*/
+
+    if(buffer->token[buffer->index]->shift == true){// E
+
+        buffer->token[buffer->index]->redused = true;
+        //buffer->token[buffer->index]->shift = false;
+
+        //push_instruction(data, create_instruction(MOV, ))
+
+        return;
     }
+
+    if(buffer->token[buffer->index]->shift != true && !buffer_is_empty(buffer)){// <E + E
+    int opcode = 0;
+        switch (buffer->token[buffer->index - 1]->type)
+        {
+        case token_type_mul:
+            opcode = MUL;
+            break;
+        
+        default:
+            break;
+        }
+
+
+
+
+
+        char * tmp_name = allocate_new_tmp_name(data, "LF@");
+        defvar_3AC(data, strcpy_alloc(data, tmp_name));//result
+        push_instruction( data, create_instruction(opcode, strcpy_alloc(data, tmp_name), strcpy_alloc(data, buffer->token[buffer->index-2]->identifier), strcpy_alloc(data, buffer->token[buffer->index]->identifier)));
+        new_token->identifier = strcpy_alloc(data, tmp_name);
+
+
+
+        int i = buffer->index;
+        while(buffer->token[i]->shift != true && !buffer_is_empty(buffer)){  
+            printf("hi");
+            buffer_pop(buffer);
+            i--;
+        }
+        buffer_push(buffer, new_token);
+        return;
+    }
+
+    exit(1);
 
 }
 
@@ -203,15 +252,15 @@ bool check_rule(Token_type left_type, Token_type right_type){
 //  l     # | .. | * | / | // | + | - | < | <= | > | >= | == | ~= | ( | ) | id | int | num | str | nil | $       r
         { F ,  F , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , T  ,  F  ,  F  ,  F  ,  F  , T }, // #
         { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  F  ,  F  ,  T  ,  F  , T }, // ..
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // *
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // /
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // //
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // +
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // -
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // <
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // <=
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // >
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // >=
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // *
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // /
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // //
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // +
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // -
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // <
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // <=
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // >
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // >=
         { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // ==
         { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // ~=
         { T ,  T , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , F  ,  F  ,  F  ,  F  ,  F  , T }, // (
@@ -220,9 +269,10 @@ bool check_rule(Token_type left_type, Token_type right_type){
         { F ,  F , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // int
         { F ,  F , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // num
         { T ,  T , F , F , F  , F , F , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // str
-        { F ,  F , F , F , F  , F , F , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // nil
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // nil
         { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , F , F  ,  F  ,  F  ,  F  ,  F  , T }  /// $
     };
+    if(precedence_table[right_type][left_type] == N && (left_type == token_type_nil || right_type == token_type_nil)) exit(UNEXP_ZERO_VALUE_ERROR);
     return precedence_table[right_type][left_type];
 }
 
@@ -280,6 +330,7 @@ void print_buffer(Buffer_for_token  * buffer){
 
 }
 
+
 bool end_of_token_stream(precedence_token_t * token){
     if(token->type == token_type_identifier){
         
@@ -323,7 +374,6 @@ bool end_of_token_stream(precedence_token_t * token){
 }
 
 bool precedence(parser_data_t *data){
-
     precedence_token_t * new_token = remake_token(data);
     
 
@@ -333,38 +383,63 @@ bool precedence(parser_data_t *data){
     Buffer_for_token buffer;
     buffer_init(&buffer);
 
+    bool right_bracket = false;
+//end_of_token_stream(new_token)
     bool flag = true;
-     while(end_of_token_stream(new_token)){
-        
-            if(!check_rule(buffer.token[buffer.index]->type, new_token->type)) flag = !flag;      
+     while(flag){
+                
+        if(!check_rule(buffer.token[buffer.index]->type, new_token->type)){             
+            exit(1);
+        }       
 
         switch (precedence_compare(&buffer, new_token))
         {
             case P:
                 if(is_operator(new_token->type)){
                     buffer.token[buffer.index-1]->shift = true;
-                }else if(buffer.token[buffer.index]->type == token_type_left_bracket){
-                    buffer.token[buffer.index]->shift = true;
-                }else new_token->shift = true;
+                }else if(buffer.token[buffer.index]->type != token_type_left_bracket) new_token->shift = true;
 
                 if(buffer.token[buffer.index]->type == token_type_left_bracket) buffer.left_bracket++;
                 if(buffer.token[buffer.index]->type == token_type_right_bracket) buffer.right_bracket++;
+                
                 buffer_push(&buffer, new_token);
 
                 break;
             case R:
+            if(buffer.token[buffer.index]->type == token_type_right_bracket) right_bracket = true;
 
-                reduse_fnc(&buffer);         
-                //print_buffer(&buffer);       
-                if(precedence_compare(&buffer, new_token) == R) reduse_fnc(&buffer);
-                buffer_push(&buffer, new_token);
+                reduse_fnc(&buffer, right_bracket, data);
+            if(precedence_compare(&buffer, new_token) == R) reduse_fnc(&buffer, right_bracket, data);
+
+
+
+
+
+/*
+                token->identifier = strcpy_alloc(data, int_to_string(5)); //int@5
+                char * tmp_name = allocate_new_tmp_name(data, 'LF@');
+                defvar_3AC(data, strcpy_alloc(data, tmp_name));
+                push_instruction(data, create_instruction(ADD, tmp_name, token->identifier));
+                push_precedence_token(data, token);
+*/
+
+
+                if(!right_bracket) {
+                    buffer_push(&buffer, new_token);
+                    
+                }else{right_bracket = false;}
                 break;
             case E:
 
                 break;
             case N:
-            printf("NO PRECEDENCE\n");
-                flag = !flag;
+            
+                printf("NO PRECEDENCE\n");
+                    reduse_fnc(&buffer, right_bracket, data);
+                    reduse_fnc(&buffer, right_bracket, data);
+                    print_token(data->token);
+                return true;
+                //flag = !flag;
                 break;    
         }//switch
         
@@ -373,18 +448,16 @@ bool precedence(parser_data_t *data){
         print_new_token(new_token, "input token");
         print_new_token(buffer.token[buffer.index-1], "buffer token");
         printf("__________________________________\n");
-        
-        get_token(data);
+       
+                get_token(data);
+ new_token = remake_token(data);
 
-        new_token = remake_token(data);
-
-    }//while
-
-    if(buffer.left_bracket != buffer.right_bracket) flag = !flag;
-    printf("dsaf");
-
-    while(buffer.index != 1){
-        reduse_fnc(&buffer);
     }
+    //while
+
+    //if(buffer.left_bracket != buffer.right_bracket) exit(INTERNAL_ERROR);
+
+
+    print_buffer(&buffer);
     return true;
 }
