@@ -51,7 +51,8 @@ Token* create_token() {
     Token *token = calloc(1,sizeof(Token));
     if (NULL == token) {
         exit(INTERNAL_ERROR);
-    }    
+    } 
+    token->next = NULL;   
     return token;    
 }
 

@@ -21,7 +21,7 @@ void get_token(parser_data_t *data){
         free_parser_data(data);
         exit(LEX_ERROR);
     }    
-    print_token(token);
+    //print_token(token);
     data->token->next = token;
     data->token = token;
 }
@@ -36,8 +36,9 @@ bool is_token(parser_data_t *data,Token_type type){
 void free_parser_data(parser_data_t *data){
     if(data->local_symtable != NULL) htab_free(data->local_symtable);
     if(data->global_symtable != NULL) htab_free(data->global_symtable);
-    free(data->actual_function);   
-    Token *walking_item = data->token_list_first;    
+    free(data->actual_function);
+    Token *walking_item = data->token_list_first;
+    
     while(walking_item != NULL){
         Token *delete = walking_item;
         //printf("%p\n",walking_item);
@@ -47,6 +48,7 @@ void free_parser_data(parser_data_t *data){
         walking_item = walking_item->next;
         free(delete);
     }
+    
     //todo precedence free
     free_data_token_list(&(data->param_list));
     free_data_token_list(&(data->return_list));

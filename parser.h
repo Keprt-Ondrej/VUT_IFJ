@@ -14,16 +14,14 @@
 #include "symtable.h"
 #include "code_generator.h"
 
-/**
- * @brief Token used in precedence analysis and passing evaluated expression to recursive descent
- * 
- * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
-*/
 typedef struct prec_token{
     Token_type type;
+    Token_data data;
     char *identifier;
     data_type_t data_type;
     struct prec_token *next;
+    bool shift;
+    bool redused;    
 }
 precedence_token_t;
 
@@ -106,9 +104,7 @@ int print_token(Token *token);
  * @author Ondřej Keprt (xkeprt03@stud.fit.vutbr.cz)
 */
 bool expression(parser_data_t *data);
-
-//TODO
-int precedence(parser_data_t *data);
+bool precedence(parser_data_t *data);
 
 
 /**

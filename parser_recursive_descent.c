@@ -46,7 +46,7 @@ int parser(){
     printf(".IFJcode21\n");
     generate_code(&(data.function_calls));
     generate_code(&(data.program));
-    genetate_build_in_functions();
+    //genetate_build_in_functions();
     free_parser_data(&data);
     return SUCCESS;
 }
@@ -599,6 +599,7 @@ bool st_list(parser_data_t *data){
             return true;
         break;
         default:
+            print_token(data->token);
             fprintf(stderr,"syntax error in: %s\n",__func__);
             set_errno(data,SYNTAX_ERROR);
             return false;
