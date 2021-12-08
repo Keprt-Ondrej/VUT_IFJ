@@ -40,7 +40,7 @@ void free_parser_data(parser_data_t *data){
     Token *walking_item = data->token_list_first;    
     while(walking_item != NULL){
         Token *delete = walking_item;
-        printf("%p\n",walking_item);
+        //printf("%p\n",walking_item);
         if(walking_item == NULL){
             break;
         }
@@ -178,7 +178,7 @@ int print_token(Token *token){
 
 
 bool expression(parser_data_t *data){
-    return fake_expression(data);
+    //return fake_expression(data);
 
-    //return precedence(data);
+    return precedence(data);
 }
