@@ -1,7 +1,8 @@
 /**
  * @file scanner.c
+ * @brief Scanner implementation.
+ * IFJ-2021 Compiler
  * @author Oleg Trofimov (xtrofi00@stud.fit.vutbr.cz)
- * @brief 
 */
 
 #include "scanner.h"
