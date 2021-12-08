@@ -37,11 +37,18 @@ void free_parser_data(parser_data_t *data){
     if(data->local_symtable != NULL) htab_free(data->local_symtable);
     if(data->global_symtable != NULL) htab_free(data->global_symtable);
     free(data->actual_function);
-    while(data->token_list_first != NULL){
-        Token *delete = data->token_list_first;
-        data->token_list_first = data->token_list_first->next;
-        delete_token(delete);
+    Token *walking_item = data->token_list_first;
+    
+    while(walking_item != NULL){
+        Token *delete = walking_item;
+        printf("%p\n",walking_item);
+        if(walking_item == NULL){
+            break;
+        }
+        walking_item = walking_item->next;
+        free(delete);
     }
+    
     //todo precedence free
     free_data_token_list(&(data->param_list));
     free_data_token_list(&(data->return_list));
