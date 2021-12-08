@@ -1,18 +1,21 @@
 require "ifj21"
-global foo : function(string,number,integer) : string
+global foo : function(string,number,integer) :string
 
 function main()
 local a: string
-local b: string
-local c: string
-local vysl: integer = 9 * 6
-foo("zadej cislo pro faktorial\n", 42.5, 8)
-a = foo("zadej cislo pro faktorial\n", 42.5, 8)
-if a then foo("zadej cislo pro faktorial\n", 42.5, 8) return
+local vysl: integer = 8 * 8
+foo("to pojede kokos",42.5,8)
+a = foo("to pojede kokos",42.5,8)
+if a then foo("to pojede kokos",42.5,8) return
 else
-foo("zadej cislo pro faktorial\n", 42.5, 8)
+foo("to pojede kokos",42.5,8)
 end
 return
 end
 
 main()
+
+function foo(str:string,cislo:number,cislo2:integer): string
+
+return str
+end

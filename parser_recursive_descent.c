@@ -611,7 +611,6 @@ bool st_list(parser_data_t *data){
 }
 
 bool statement(parser_data_t *data){
-    print_token(data->token);
     if(is_token(data,kw_local)){
         //grammar rule 22
         get_token(data);
