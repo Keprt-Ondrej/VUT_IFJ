@@ -47,8 +47,8 @@
     \end{center}
 
     \noindent\textbf{Ondřej Keprt, xkeprt03: 40\%}\\
-    Oleg Trofimov, xtrofi00: 25\%    \\
-    Maxim Gerasimov, xgeras00: 35\%  \\
+    Oleg Trofimov, xtrofi00: 30\%    \\
+    Maxim Gerasimov, xgeras00: 30\%  \\
     Sláma Ondřej, xslama32: 0\%   \hfill    \today
 
 \end{titlepage}
@@ -88,8 +88,12 @@ which returned pointer on structure of token, which was on standart input.
 
 \subsection{Recursive descent}
 Recursive descent is implemented based on LL(1) grammar \ref{LL-grammar} and LL\,--\,table \ref{LL-table}. For each non\,--\,terminal was created function,
-which simulate that non\,--\,terminal. In this function is sequence of comparing lexical tokens from lexical analysis and deciding, which rule should be used for generating new non\,--\,terminals or terminals.
-Alongside with that, there are semantics checks and semantics actions, such as generating instructions or type controls. All function return bool value, true means all is ok, false error occured.
+which simulate that non\,--\,terminal. In this function is sequence of comparing lexical tokens from lexical analysis and deciding, which rule should be used for
+generating new non\,--\,terminals or terminals. Unfortunatelly, there are two cases, which we can not decide only by LL(1) grammar, it is when we got token representing identifier, when we are 
+in terminal <assignment> or <init2>. Identifier can be start of function call or identifier of local variable. In this case we used help of semantic analysis, so we search in global table 
+of symbols and if we find function, we generate function call. If we did not find, we generate non\,--\,terminal for expression.
+Alongside with that, there are semantics checks and semantics actions, such as generating instructions or type controls. All function return bool value, true means
+all is ok, false error occured.
 As parameter they all have pointer on structure \texttt{parset\_data\_t}, which contains all information needed for analysis. 
 
 \subsection{Precedence}
@@ -122,6 +126,17 @@ and solved problem with screen sharing.
 All team members had acces to this server, including Ondřej Sláma, but he did not respond. Team leader and other members send him some messages, with work to do, but he did not 
 show any effort or any work. In the end, 3.12.2021 he wrote message to team leader and offered help, but by this time, all work was almost done or devided to 
 other members. 
+
+\newpage
+\section{Deterministic finite automaton}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.95\linewidth]{finite_lexical_automat.eps}
+    \caption{Deterministic finite automaton}
+    \label{lexical_automat}
+\end{figure}
+
+\newpage
 
 \section{LL grammar}
 \label{LL-grammar}
@@ -191,17 +206,6 @@ other members.
     \end{figure}
 \end{landscape}
 
-\newpage
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.95\linewidth]{finite_lexical_automat.eps}
-    \caption{Deterministic finite automaton}
-    \label{lexical_automat}
-\end{figure}
-
-%insert something here
-
 \bibliographystyle{czechiso}
 \bibliography{zdroje}
 \end{document} 
@@ -237,4 +241,4 @@ other members.
     <assignment> \\  
     <expression>
     }   
-    \end{comment}
+\end{comment}
