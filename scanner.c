@@ -2,7 +2,6 @@
  * @file scanner.c
  * @author Oleg Trofimov (xtrofi00@stud.fit.vutbr.cz)
  * @brief 
- * 
 */
 
 #include "scanner.h"
