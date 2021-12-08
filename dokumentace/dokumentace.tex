@@ -1,5 +1,5 @@
 \documentclass[11pt]{article}
-%\usepackage[czech]{babel}
+\usepackage[english]{babel}
 \usepackage[a4paper, left=1.0cm,top=2.5cm,right=1.0cm]{geometry}
 \usepackage[IL2]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -27,18 +27,18 @@
     colorlinks=true, %set true if you want colored links
     linktoc=all,     %set to all if you want both sections and subsections linked
     linkcolor=blue,  %choose some color if you want links to stand out
+    allcolors=blue
 }
 
 
 
 \begin{document}
-\begin{titlepage}
-    \begin{center}
-        \includegraphics[scale=0.8]{pics/fitlogo.pdf} \\
-        \vspace{\stretch{0.200}}
+	\begin{titlepage}
+		\begin{center}
+		\includegraphics[width=0.77\linewidth]{pics/fitlogo.pdf} \\
+
+		\vspace{\stretch{0.382}}
         \textsc{\Huge Project documentation}\\
-        
-        \vspace{\stretch{0.382}}
         \LARGE
             Implementation of compiler IFJ21    \\
             Team 132, variant II.
@@ -46,8 +46,8 @@
     \end{center}
 
     \noindent\textbf{Ondřej Keprt, xkeprt03: 40\%}\\
-    Oleg Trofimov, xtrofi00: 25\%    \\
-    Maxim Gerasimov, xgeras00: 35\%  \\
+    Oleg Trofimov, xtrofi00: 30\%    \\
+    Maxim Gerasimov, xgeras00: 30\%  \\
     Sláma Ondřej, xslama32: 0\%   \hfill    \today
 
 \end{titlepage}
@@ -65,31 +65,125 @@ This project should test students teoretical knowledge about finite automats, la
 for language IFJ21, which is subset of language Teal/Lua, to three adress code IFJcode21.
 
 \section{Lexical anylisis}
+When creating a compiler, we started with the implementation of lexical analysis. Lexical analysis is implemented, including additional support functions and structures, in the source file \texttt{scanner.c}. 
+
+The main function of this analysis is \texttt {read\_token}, which reads character by character from the source file and passes this to the \texttt{token} structure. For the correct operation of this function, which will be an automaton, the following functions will be used:
+    
+    \begin{itemize}
+        \item struct \texttt{String} for Representation of dynamic string
+        \item funkce \texttt{str\_init} for initialization of memory
+        \item funkce \texttt{str\_free} for freeing up memory
+        \item funkce \texttt{extend\_buffer} for memory expansion
+        \item funkce \texttt{str\_add\_char} for saving read characters
+        \item Token\_data \texttt{union} data, which token contains
+        \item struct \texttt{Token} contains data and type of \texttt{token}
+        \item funkce \texttt{create\_token} alocate memory for token
+        \item funkce \texttt{add\_str\_to\_token} add identif to data.str
+        \item funkce \texttt{delete\_token} freeing up memory data.str if was a mistake
+    \end{itemize}
+    
+The \texttt{token} consists of types and data. Token types can be \textit{keywords}, \textit{identifiers}, \textit{integers}, \textit{floating point numbers}, \textit{strings}, \textit{operators}, \textit{EOF}, and other characters that can be used in the language IFJ21. The \texttt{union} type is used to write \texttt{data}. If the token type is a string or an identifier, then the data will be stored as a string. If the token type is a number (integer or floating point) then the data will be stored as a number (integer or floating point). 
+
+The entire lexical analyzer is implemented in the form of a deterministic finite automaton. The state machine sequentially reads the symbol and, depending on the symbol, enters the corresponding state as indicated in the diagram \ref{lexical_automat}. If an incorrect character is read in this case, the program will terminate and give an error. Otherwise, we read the characters until we get a \texttt{token} that we will return and terminate the program.
+
+To process escape sequences in a string, an \texttt{array} of size 3 was created, which is sequentially filled with read numbers of type $'\setminus{ddd}'$ in the range 000-255, which we will later convert to a number corresponding to a character in an ASCII table.
+
+\newpage
 
 \section{Parser}
 Parser functions were implemented in three files:\\ \texttt{parser.c, parser\_recursive\_descent.c, parser\_precedence.c} \\
-For expressions were assigned precedence analisis. All other constructions were processed by recursive descent.
+For expressions were assigned precedence analysis. All other constructions were processed by recursive descent.
 In \texttt{parser.*} are defined functions and data structures, which are used in both approaches.
 
 Comunication between parser parts, was implemented by passing pointer on data structure \texttt{parser\_data\_t}, 
-where were stored all information about analisis state and loaded data. Lexical analyzator was called with function \texttt{read\_token},
+where were stored all information about analysis state and loaded data. Precedence analysis processed tokens dermined for expression, generated instructions for calculations
+and with function \texttt{push\_precedence\_token}  added precedence token at the end of \texttt{data->expression\_list}, and returned control to recursive descent.
+After that, recursive descent continued in program processing.
+
+Lexical analyzator was called with function \texttt{read\_token},
 which returned pointer on structure of token, which was on standart input.
 
 \subsection{Recursive descent}
+Recursive descent is implemented based on LL(1) grammar \ref{LL-grammar} and LL\,--\,table \ref{LL-table}. For each non\,--\,terminal was created function,
+which simulate that non\,--\,terminal. In this function is sequence of comparing lexical tokens from lexical analysis and deciding, which rule should be used for
+generating new non\,--\,terminals or terminals. Unfortunatelly, there are two cases, which we can not decide only by LL(1) grammar. It is when we got token representing identifier, when we are 
+in terminal \texttt{<assignment>} or \texttt{<init2>}. Identifier can be start of function call or identifier of local variable. In this case we used help of semantic analysis, we searched in global table 
+of symbols and if we find function, we generate function call. If we did not find, we generate non\,--\,terminal for expression.
+
+Alongside with syntax analysis, there are semantics controls and semantics actions, such as generating instructions or type controls. All function return bool value, true means
+all is ok, false error occured. As parameter they all have pointer on structure \texttt{parset\_data\_t}, which contains all information needed for analysis. 
+
+
+
 
 \subsection{Precedence}
 
 \section{Table of symbols}
-Our task was implement table of symbols as hash table. Hash table contains one type of structure, which is same for functions and local variables, but data, which contains are different.
-Item which represents function, contains key, pointer on list of parameters, pointer on list of return types.
-type (declared/defined) and pointer on next item in list of items. Item, whch represents local variable, contains key, data type (string,number,integer),
- There are two hash tables pointers in \texttt{parser\_data\_t}
+Our task was implement table of symbols as hash table. Our hash table was implemented as structure, which contains item counter (\texttt{size}), array of pointers on lists of synnonyms (\texttt{array}),
+array size (\texttt{arr\_size}) and pointer on next hash table. For deciding index, where item will be stored is used \texttt{sdbm} hash function, which is used in berkley database \cite{hash_function}. 
 
+There are two hash tables pointers in \texttt{parser\_data\_t}. One for global frame, where are stored data only about functions. Second, contains data about local variables. Table for local variables is implemented by
+stack hierarchy. For each scope is created new hash table and pushed on the top of the stack. When we are trying to add variable, we search only on top of stack, if there is variable with same name. When we are looking for variable, we search item in top level, 
+when we can not find it, we continue in lower level, until we are out of levels. When we are leaving from scope, we pops top level hash table.
+
+Hash table stores one type of structure in lists, which is same for functions and local variables, but data, which contains are different.
+
+Item which represents function, contains key, pointer on list of parameters, pointer on list of return types. This lists use datastructure \texttt{data\_token\_t}. When function
+is declared, parameter list contains only data types as return list. Defined function have parameter names stored in parameter list. Type of item is set to \texttt{function\_declared or function\_defined}.
+Item have pointer on next item or \texttt{NULL}, if there is none and \texttt{frame\_ID} is undefined value.
+
+Item which represents local variable have set key, data type (string, number, integer) and \texttt{frame\_ID}, where was defined. Pointers on lists are set on \texttt{NULL}.
+
+\section{Code generating}
+At the beginnig of project we wanted implement only one\,--\,pass compiler, but there was problem with definitions of variables inside while loop. So we decided, that we 
+create list of instructions, which is stored inside \texttt{parset\_data\_t}. So we added instruction at the end of list, except variable definitions. If parser recognize, that
+on the input is loop construction, he made special pointer to the list, where was inserted all instructions for defining variable.
+In \texttt{parset\_data\_t} is another special list, which contains 
+
+At the end of analysis, parser called function \texttt{generate\_code}, which printed instructions and freed memory.
 
 \section{Work in team}
+\subsection{Versioning system}
+As version system we were using Git, with hosting on Github. Every team member worked in own branch. When feature was created, branch was
+pulled to main branch and used by others.
+\subsection{Communication}
+For communication we used own Discord server with specialized chat thread for IFJ project. In case of some big problem, we used voice rooms for call and
+and solved problem with screen sharing.
 
+All team members had access to this server, including Ondřej Sláma, but he did not respond. Team leader and other members send him some messages, with work to do, but he did not 
+show any effort or any work. In the end, 3.12.2021 he wrote message to team leader and offered help, but by this time, all work was almost done or devided to 
+other members. 
+
+\subsection{Distribution of points}
+We divided the work on the project taking into account its complexity and labor intensity. Thus, everyone received a percentage rating in the amount indicated in the table \ref{table:distribution_of_work}. 
+	\bigskip
+	\begin{table}[ht]
+		\centering
+		\begin{tabular}{| l | l |}
+			\hline
+			Team member & Accomplished work \\ \hline
+			\textbf{Ondřej Keprt, xkeprt03: 40\%} & \begin{tabular}{l} team management, organization of work, control over the execution of work,\\ consultation, project structure, testing, documentation, \\ syntax and semantic analysis $\Rightarrow$ recursive descent, hash table, code generating $\Rightarrow$ \\ prepared functions, design, generating program flow, function calls... \\ \end{tabular} \\
+			Oleg Trofimov, xtrofi00: 30\% & \begin{tabular}{l} lexical analysis, testing, documentation \end{tabular} \\
+			Maxim Gerasimov, xgeras00: 30\% & \begin{tabular}{l} syntax and semantic analysis $\Rightarrow$ precedence, generating expressions, \\ testing, documentation \end{tabular} \\
+			Sláma Ondřej, xslama32: 0\% & \begin{tabular}{l}  nothing is done \end{tabular} \\ \hline
+		\end{tabular}
+		\caption{Distribution of work in the team}
+		\label{table:distribution_of_work}
+	\end{table}
+
+\newpage
+\section{Deterministic finite automaton}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.95\linewidth]{finite_lexical_automat.eps}
+    \caption{Deterministic finite automaton}
+    \label{lexical_automat}
+\end{figure}
+
+\newpage
 
 \section{LL grammar}
+\label{LL-grammar}
 \begin{enumerate}
     {\color{red}}
     \item \texttt{<intro>\arrow{}<prolog> <prog> }  
@@ -151,14 +245,13 @@ type (declared/defined) and pointer on next item in list of items. Item, whch re
     \section{LL\ --\ table}
     \begin{figure}[ht]
         \includegraphics[scale=1.89]{LL_tabulka.eps} 
-        \caption{LL\,--\,table  created from LL(1) grammar}
+        \label{LL-table}
+        \caption{LL\,--\,table  created from LL(1) grammar\\There are 2 places, where we can not decide only on LL(1) grammar, here we use semantics check for help}
     \end{figure}
 \end{landscape}
 
-
-%insert something here
-
-
+\bibliographystyle{czechiso}
+\bibliography{zdroje}
 \end{document} 
 
 \begin{comment}
@@ -192,5 +285,4 @@ type (declared/defined) and pointer on next item in list of items. Item, whch re
     <assignment> \\  
     <expression>
     }   
-    \end{comment}
-
+\end{comment}
