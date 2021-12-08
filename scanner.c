@@ -5,6 +5,7 @@
  * IFJ-2021 Compiler
  *
  * @author Oleg Trofimov (xtrofi00@stud.fit.vutbr.cz)
+ *
 */
 
 #include "scanner.h"
