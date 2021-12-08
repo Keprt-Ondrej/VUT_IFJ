@@ -48,7 +48,7 @@ bool str_add_char(String *s, char c) {
 }    
 
 Token* create_token() {
-    Token *token = malloc(sizeof(Token));
+    Token *token = calloc(1,sizeof(Token));
     if (NULL == token) {
         exit(INTERNAL_ERROR);
     }    
