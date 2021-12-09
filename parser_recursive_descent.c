@@ -702,6 +702,8 @@ bool statement(parser_data_t *data){
         token->key = strcpy_alloc(data,data->token->data.str);
         data->identif_list = token;   
         get_token(data);
+        data->return_list = NULL;
+        data->expression_list = NULL;
         bool ret_val = after_id(data);
         if(!ret_val){
             return false;
@@ -755,6 +757,7 @@ bool statement(parser_data_t *data){
             free_data_token_list(&(data->identif_list));
             data->identif_list = NULL;
             data->return_list = NULL; 
+            data->expression_list = NULL;
         }
         else{   
             //assignment from expression
@@ -1017,7 +1020,7 @@ bool assignment(parser_data_t *data){
 
     if(is_expression_start(data->token)){   //assignment from expression
         //grammar rule 32
-        return expression(data);
+        return expression(data) && expression_list2(data);
     }
     fprintf(stderr,"syntax error in: %s\n",__func__);
     set_errno(data,SYNTAX_ERROR);
@@ -1325,8 +1328,9 @@ void generate_function_call(parser_data_t *data,htab_item *function){
     if(strcmp(function->key,"write") == 0){     //write function have another call, no type control
         data_token_t *delete = NULL;
         reverse_list(&(data->param_list));      //passing argument by stack and in frame only count of parameters
+        walking_item = data->param_list;
         param_counter = 0;
-        while(data->param_list != NULL){        //while end of param list
+        while(walking_item != NULL){        //while end of param list
             if(walking_item->data_type == identifier){          //if param is identifier
                 htab_item *variable = htab_find_variable(data->local_symtable,walking_item->key);       //find, if variable exists
                 if(variable == NULL){
@@ -1336,10 +1340,10 @@ void generate_function_call(parser_data_t *data,htab_item *function){
                 push_instruction(data,create_instruction(PUSHS,allocate_var_name_3AC("LF@",variable),NULL,NULL));
             }
             else{
-                push_instruction(data,create_instruction(PUSHS,strcpy_alloc(data,data->param_list->key),NULL,NULL));     //another term push immedietly on stack      
+                push_instruction(data,create_instruction(PUSHS,strcpy_alloc(data,walking_item->key),NULL,NULL));     //another term push immedietly on stack      
             }
-            delete = data->param_list;
-            data->param_list = data->param_list->next;
+            delete = walking_item;
+            walking_item = walking_item->next;
             free_data_token(delete);
             param_counter++;
         }
@@ -1442,7 +1446,7 @@ void generate_function_call(parser_data_t *data,htab_item *function){
 
 void condition_re_type(parser_data_t *data,size_t ID){      //condition must convert number, integer and string on bool value
     char * tmp_name = allocate_new_tmp_name(data,"LF@");
-    push_instruction(data,create_instruction(DEFVAR,strcpy_alloc(data,tmp_name),NULL,NULL));
+    defvar_3AC(data,strcpy_alloc(data,tmp_name));
     push_instruction(data,create_instruction(TYPE,strcpy_alloc(data,tmp_name),strcpy_alloc(data,data->expression_list->identifier),NULL));
     push_instruction(data,create_instruction(JUMPIFEQ,label_generator(data->actual_function,"before_if",ID),strcpy_alloc(data,tmp_name),string_to_string("nil")));
     push_instruction(data,create_instruction(JUMPIFEQ,label_generator(data->actual_function,"before_if",ID),strcpy_alloc(data,tmp_name),string_to_string("bool")));

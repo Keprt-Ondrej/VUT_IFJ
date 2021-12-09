@@ -165,13 +165,17 @@ void reduse_fnc(Buffer_for_token *buffer, parser_data_t *data){
             opcode = ADD;
             break;
         case token_type_minus:
-            opcode = SUB;        
+            opcode = SUB; 
+            break;       
         case token_type_equal:
             opcode = EQ;
+            break;
         case token_type_lth:
             opcode = LT;
+        break;
         case token_type_gth:
             opcode = GT;
+        break;
         default:
             break;
         }
