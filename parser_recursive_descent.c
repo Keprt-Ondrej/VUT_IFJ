@@ -46,7 +46,7 @@ int parser(){
     printf(".IFJcode21\n");
     generate_code(&(data.function_calls));
     generate_code(&(data.program));
-    //genetate_build_in_functions();
+    genetate_build_in_functions();
     free_parser_data(&data);
     return SUCCESS;
 }
@@ -548,6 +548,7 @@ bool st_list(parser_data_t *data){
         //grammar rule 40
         case kw_return:     //generate return on oned of statement list
             get_token(data);
+            data->expression_list = NULL;
             bool ret_val = expression_list(data);      //setup return values on data->expression_list
             if(!ret_val){
                 return false;
@@ -581,7 +582,7 @@ bool st_list(parser_data_t *data){
                     set_errno(data,INTERNAL_ERROR);
                     return false;
                 }
-                snprintf(return_name,0,"LF@$%zu",return_counter);
+                snprintf(return_name,lenght,"LF@$%zu",return_counter);
                 push_instruction(data,create_instruction(MOVE,return_name,walking_expression->identifier,NULL));    //move expression value to return place
                 walking_expression->identifier = NULL;
                 walking_return = walking_return->next;
@@ -590,7 +591,7 @@ bool st_list(parser_data_t *data){
             }
             if(walking_expression != NULL && walking_return == NULL){       // too much expressions for return, if number of expressions is lower than return list, nil is returned, which was setup in function calll
                 set_errno(data,SEM_ERROR_TYPE_NUMBER_PARAM_RET_INCORRECT);
-                fprintf(stderr,"Too much expressions in return statement, function %s\n",data->actual_function);
+                fprintf(stderr,"THIS Too much expressions in return statement, function %s\n",data->actual_function);
                 return false;
             }     
             data->expression_list = NULL;

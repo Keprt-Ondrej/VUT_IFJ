@@ -1,0 +1,196 @@
+.IFJcode21
+label	__$IFJ_code_21$__$KEPY$__&START&__	
+createframe	
+pushframe	
+call	$_main__0	
+exit	int@0	
+	
+label	$_main__0	
+defvar	LF@a_$0	
+move	LF@a_$0	nil@nil	
+defvar	LF@b_$0	
+move	LF@b_$0	int@8	
+defvar	LF@vysl_$0	
+defvar	LF@$_tmp_var_$0	
+mul	LF@$_tmp_var_$0	int@6	int@5
+defvar	LF@$_tmp_var_$1	
+strlen	LF@$_tmp_var_$1	string@hi	
+defvar	LF@$_tmp_var_$2	
+add	LF@$_tmp_var_$2	LF@$_tmp_var_$0	LF@$_tmp_var_$1
+move	LF@vysl_$0	LF@$_tmp_var_$2	
+createframe	
+defvar	TF@%1	
+move	TF@%1	string@karel	
+defvar	TF@$_tmp_var_$3	
+int2float	TF@$_tmp_var_$3	int@42	
+defvar	TF@%2	
+move	TF@%2	TF@$_tmp_var_$3	
+defvar	TF@%3	
+move	TF@%3	int@5	
+defvar	TF@$1	
+move	TF@$1	nil@nil	
+defvar	TF@$2	
+move	TF@$2	nil@nil	
+pushframe	
+call	$_foo__0	
+popframe	
+return	
+	
+label	$_foo__0	
+defvar	LF@str_$0	
+move	LF@str_$0	LF@%1	
+defvar	LF@cislo_$0	
+move	LF@cislo_$0	LF@%2	
+defvar	LF@cislo2_$0	
+move	LF@cislo2_$0	LF@%3	
+defvar	LF@a_$0	
+move	LF@a_$0	int@5	
+defvar	LF@$_tmp_var_$0	
+type	LF@$_tmp_var_$0	LF@a_$0	
+jumpifeq	$_foo_before_if_1	LF@$_tmp_var_$0	string@nil
+jumpifeq	$_foo_before_if_1	LF@$_tmp_var_$0	string@bool
+move	LF@a_$0	bool@true	
+label	$_foo_before_if_1	
+jumpifneq	$_foo_else_1	bool@true	LF@a_$0
+createframe	
+pushs	int@42	
+defvar	TF@%1	
+move	TF@%1	int@1	
+pushframe	
+call	$_write__0	
+jump	$_foo_endif_1	
+label	$_foo_else_1	
+label	$_foo_endif_1	
+move	LF@$1	string@ahoj	
+move	LF@$2	int@5	
+popframe	
+return	
+popframe	
+return	
+	
+
+label	$_substr__0
+defvar LF@result
+eq LF@result LF@%1 nil@nil
+jumpifeq $_nil_exception__0 LF@result bool@true
+eq LF@result LF@%2 nil@nil
+jumpifeq $_nil_exception__0 LF@result bool@true
+eq LF@result LF@%3 nil@nil
+jumpifeq $_nil_exception__0 LF@result bool@true
+
+lt LF@result LF@%2 float@0x1p+0
+jumpifeq $$_substr_return_empty_0 LF@result bool@true
+defvar LF@lenght
+strlen LF@lenght LF@%1
+int2float LF@lenght LF@lenght
+gt LF@result LF@%3 LF@lenght
+jumpifeq $$_substr_return_empty_0 LF@result bool@true
+gt LF@result LF@%2 LF@lenght
+jumpifeq $$_substr_return_empty_0 LF@result bool@true
+gt LF@result LF@%2 LF@%3
+jumpifeq $$_substr_return_empty_0 LF@result bool@true
+float2int LF@%2 LF@%2
+float2int LF@%3 LF@%3
+defvar LF@_char
+SUB LF@%2 LF@%2 int@1
+move LF@$1 string@
+label $$_substr_loop_0
+lt LF@result LF@%2 LF@%3
+jumpifneq $$_substr_return_0 LF@result bool@true
+getchar LF@_char LF@%1 LF@%2
+concat LF@$1 LF@$1 LF@_char
+add LF@%2 LF@%2 int@1
+jump $$_substr_loop_0
+label $$_substr_return_0
+popframe
+return
+label $$_substr_return_empty_0
+move LF@$1 string@
+popframe
+return
+
+label $_ord__0
+defvar LF@result
+eq LF@result LF@%1 nil@nil
+jumpifeq $_nil_exception__0 LF@result bool@true
+eq LF@result LF@%2 nil@nil
+jumpifeq $_nil_exception__0 LF@result bool@true
+lt LF@result LF@%2 int@1
+jumpifeq $$_ord_ret_nil_0 LF@result bool@true
+defvar LF@lenght
+strlen LF@lenght LF@%1
+gt LF@result LF@%2 LF@lenght
+jumpifeq $$_ord_ret_nil_0 LF@result bool@true
+sub LF@%2 LF@%2 int@1
+stri2int LF@$1 LF@%1 LF@%2
+popframe
+return
+label $$_ord_ret_nil_0
+move LF@$1 nil@nil
+popframe
+return
+
+label $_chr__0
+defvar LF@result
+eq LF@result LF@%1 nil@nil
+jumpifeq $_nil_exception__0 LF@result bool@true
+lt LF@result LF@%1 int@0
+jumpifeq $$_chr_ret_nil_0 LF@result bool@true
+gt LF@result LF@%1 int@255
+jumpifeq $$_chr_ret_nil_0 LF@result bool@true
+int2char LF@$1 LF@%1
+popframe
+return
+label $$_chr_ret_nil_0
+move LF@$1 nil@nil
+popframe
+return
+
+label $_tointeger__0
+defvar LF@result
+eq LF@result LF@%1 nil@nil
+jumpifeq $$_tointeger_ret_nil_0 LF@result bool@true
+float2int LF@$1 LF@%1
+popframe
+return
+label $$_tointeger_ret_nil_0
+move LF@$1 nil@nil
+popframe
+return
+
+label $_reads__0
+read LF@$1 string
+popframe
+return
+
+label $_readi__0
+read LF@$1 int
+popframe
+return
+
+label $_readn__0
+read LF@$1 float
+popframe
+return
+
+label $_write__0
+defvar LF@tmp
+defvar LF@result
+label $_write_loop_start_0
+lt LF@result LF@%1 int@1
+jumpifeq $_write_end_printing_0 LF@result bool@true
+sub LF@%1 LF@%1 int@1
+pops LF@tmp
+eq LF@result LF@tmp nil@nil
+jumpifeq $_write_write_nil_0 LF@result bool@true
+write LF@tmp
+jump $_write_loop_start_0
+label $_write_write_nil_0
+write string@nil
+jump $_write_loop_start_0
+label $_write_end_printing_0
+popframe
+return
+
+label $_nil_exception__0
+exit int@8

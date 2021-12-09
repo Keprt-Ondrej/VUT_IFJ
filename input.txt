@@ -1,5 +1,5 @@
 require "ifj21"
-global foo : function(string,number,integer) :string
+global foo : function(string,number,integer) :string,integer
 
 function main()
 local a: string
@@ -16,7 +16,11 @@ end
 
 main()
 
-function foo(str:string,cislo:number,cislo2:integer): string
-
-return str
+function foo(str:string,cislo:number,cislo2:integer): string, integer
+local a: integer = 5
+    if a then
+        write(42)
+    else
+    end
+return "ahoj",5
 end

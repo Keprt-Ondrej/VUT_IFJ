@@ -44,6 +44,7 @@ precedence_token_t * remake_token(parser_data_t *data){
     }
     if(new_token->type == token_type_string) {
         new_token->identifier = string_to_string(data->token->data.str);
+        new_token->data_type = string;
     }
     
    if(data->token->type == token_type_identifier){
@@ -52,10 +53,11 @@ precedence_token_t * remake_token(parser_data_t *data){
             temp = htab_find_variable(data->global_symtable, data->token->data.str);
             if(NULL == temp){
                 exit(SEM_ERROR_REDEFINE_UNDEFINE_VAR);
-            }
+            }            
             return new_token;
         }else{
             new_token->identifier = allocate_var_name_3AC("LF@", temp);
+            new_token->data_type = temp->type;
             return new_token;
         }
     }
@@ -305,6 +307,7 @@ bool precedence(parser_data_t *data){
                     reduse_fnc(&buffer, data);
 
                 }
+                buffer.token[buffer.index]->next = NULL;
                 push_precedence_token(data, buffer.token[buffer.index]);
 
 
