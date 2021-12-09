@@ -2,7 +2,7 @@
 #include "parser.h"
 #include "ErrLib.h"
 
-#define buffer_length 25
+#define buffer_length 10
 #define buffer_expend_length 2
 void print_buffer(Buffer_for_token  * buffer){
     precedence_token_t * token;
@@ -160,7 +160,8 @@ precedence_token_t * remake_token(parser_data_t *data){
 }
 
 void expand_buffer(Buffer_for_token *buffer){
-    buffer->token = (precedence_token_t **) realloc(buffer->token, buffer->current_length * buffer_expend_length);
+    fprintf(stderr,"resizing\n");
+    buffer->token = (precedence_token_t **) realloc(buffer->token, buffer->current_length * buffer_expend_length * sizeof(precedence_token_t *));
     if(buffer->token == NULL){
         exit(INTERNAL_ERROR);
     }
@@ -169,7 +170,10 @@ void expand_buffer(Buffer_for_token *buffer){
 
 void buffer_push(Buffer_for_token *buffer, precedence_token_t *token){
     buffer->index++;
-    if(buffer->index >= buffer->current_length) expand_buffer(buffer);
+    fprintf(stderr," index: %d, delka %d\n",buffer->index,buffer->current_length);
+    if(buffer->index >= buffer->current_length){
+        expand_buffer(buffer);
+    } 
     buffer->token[buffer->index] = token;
 }
 
