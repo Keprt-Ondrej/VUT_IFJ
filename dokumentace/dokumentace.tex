@@ -117,6 +117,13 @@ all is ok, false error occured. As parameter they all have pointer on structure 
 
 
 \subsection{Precedence}
+Main body of precedence evaluating is in \texttt{parser\_precedence.c}, mainly function precedence.
+
+After initialized buffer, precedence table and rule table. Three main functions are \texttt{check\_rule}, \texttt{precedence\_compare} and \texttt{reduce\_fnc}. 
+
+Firstly \texttt{check\_rule} controles if such combination of tokens exists. Secondly, depending on what precedence is, \texttt{precedence\_compare} returns commands: push, reduce or no precedence. And last \texttt{reduce\_fnc} creates instruction for code generator and popping out reduced tokens.
+
+My actions are writen in table \ref{Precedence_table}
 
 \section{Table of symbols}
 Our task was implement table of symbols as hash table. Our hash table was implemented as structure, which contains item counter (\texttt{size}), array of pointers on lists of synnonyms (\texttt{array}),
@@ -181,6 +188,15 @@ We divided the work on the project taking into account its complexity and labor 
 \end{figure}
 
 \newpage
+
+\newpage
+\section{Precedence table}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.95\linewidth]{Precedence_table.pdf}
+    \caption{Precedence table}
+    \label{Precedence_table}
+\end{figure}
 
 \section{LL grammar}
 \label{LL-grammar}
