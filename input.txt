@@ -1,22 +1,21 @@
 require "ifj21"
-global foo : function(string,number,integer) :string
+global foo : function(string,number,integer) :string,integer
 
 function main()
 local a: string
 local b: integer = 8
 local vysl: integer = 6 * 5 + #"hi"
-foo("to pojede kokos",42.5,8)
-a = foo("to pojede kokos",42.5,8)
-if a then foo("to pojede kokos",42.5,8) return
-else
-foo("to pojede kokos",42.5,8)
-end
-return
+
+foo("karel",42,5)
 end
 
 main()
 
-function foo(str:string,cislo:number,cislo2:integer): string
-
-return str
+function foo(str:string,cislo:number,cislo2:integer): string, integer
+local a: integer = 5
+    if a then
+        write(42)
+    else
+    end
+return "ahoj",5
 end
