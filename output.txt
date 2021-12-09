@@ -18,21 +18,50 @@ strlen	LF@$_tmp_var_$1	string@hi
 defvar	LF@$_tmp_var_$2	
 add	LF@$_tmp_var_$2	LF@$_tmp_var_$0	LF@$_tmp_var_$1
 move	LF@vysl_$0	LF@$_tmp_var_$2	
+move	LF@a_$0	string@hi	
+move	LF@b_$0	int@45	
+createframe	
+pushs	int@45	
+pushs	string@karel\032sral\010	
+pushs	LF@a_$0	
+defvar	TF@%1	
+move	TF@%1	int@3	
+pushframe	
+call	$_write__0	
 createframe	
 defvar	TF@%1	
-move	TF@%1	string@karel	
+move	TF@%1	string@nwm	
 defvar	TF@$_tmp_var_$3	
-int2float	TF@$_tmp_var_$3	int@42	
+int2float	TF@$_tmp_var_$3	int@45	
 defvar	TF@%2	
 move	TF@%2	TF@$_tmp_var_$3	
 defvar	TF@%3	
-move	TF@%3	int@5	
+move	TF@%3	int@42	
 defvar	TF@$1	
 move	TF@$1	nil@nil	
 defvar	TF@$2	
 move	TF@$2	nil@nil	
 pushframe	
 call	$_foo__0	
+move	LF@a_$0	TF@$1	
+move	LF@b_$0	TF@$2	
+createframe	
+defvar	TF@%1	
+move	TF@%1	LF@a_$0	
+defvar	TF@%2	
+move	TF@%2	int@20	
+defvar	TF@$1	
+move	TF@$1	nil@nil	
+pushframe	
+call	$_ord__0	
+move	LF@b_$0	TF@$1	
+createframe	
+pushs	LF@b_$0	
+pushs	LF@a_$0	
+defvar	TF@%1	
+move	TF@%1	int@2	
+pushframe	
+call	$_write__0	
 popframe	
 return	
 	
@@ -43,26 +72,8 @@ defvar	LF@cislo_$0
 move	LF@cislo_$0	LF@%2	
 defvar	LF@cislo2_$0	
 move	LF@cislo2_$0	LF@%3	
-defvar	LF@a_$0	
-move	LF@a_$0	int@5	
-defvar	LF@$_tmp_var_$0	
-type	LF@$_tmp_var_$0	LF@a_$0	
-jumpifeq	$_foo_before_if_1	LF@$_tmp_var_$0	string@nil
-jumpifeq	$_foo_before_if_1	LF@$_tmp_var_$0	string@bool
-move	LF@a_$0	bool@true	
-label	$_foo_before_if_1	
-jumpifneq	$_foo_else_1	bool@true	LF@a_$0
-createframe	
-pushs	int@42	
-defvar	TF@%1	
-move	TF@%1	int@1	
-pushframe	
-call	$_write__0	
-jump	$_foo_endif_1	
-label	$_foo_else_1	
-label	$_foo_endif_1	
-move	LF@$1	string@ahoj	
-move	LF@$2	int@5	
+move	LF@$1	LF@str_$0	
+move	LF@$2	LF@cislo2_$0	
 popframe	
 return	
 popframe	
