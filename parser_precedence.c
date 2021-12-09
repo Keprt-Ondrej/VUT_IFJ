@@ -4,6 +4,100 @@
 
 #define buffer_length 25
 #define buffer_expend_length 2
+void print_buffer(Buffer_for_token  * buffer){
+    precedence_token_t * token;
+    Token_type type;
+    printf("This is buffer\n");
+  
+    printf("|           |\n");
+    int i = buffer->index;
+    while(i != -1){
+        token = buffer->token[i];
+        type = token->type;
+        i--;
+        if(token->redused == true)
+            printf("|     E     |\n");
+        else if(type == token_type_string)
+            printf("|%6s     |\n", token->data.str);
+        else if(type == token_type_integer)
+            printf("|%6d     |\n", token->data.type_integer);
+        else if(type == token_type_number)
+            printf("|%6f     |\n", token->data.type_double);
+        else {
+            if(token_type_length == type)                   printf("|     #     |\n");
+            if(token_type_mul == type)                      printf("|     *     |\n");
+            if(token_type_div == type)                      printf("|     /     |\n");
+            if(token_type_floor_div == type)                printf("|     //    |\n");
+            if(token_type_plus == type)                     printf("|     +     |\n");
+            if(token_type_minus == type)                    printf("|     -     |\n");
+            if(token_type_concat == type)                   printf("|     ..    |\n");
+            if(token_type_lth == type)                      printf("|     <     |\n");
+            if(token_type_leq == type)                      printf("|     <=    |\n");
+            if(token_type_gth == type)                      printf("|     >     |\n");
+            if(token_type_geq == type)                      printf("|     >=    |\n");
+            if(token_type_equal == type)                    printf("|     ==    |\n");
+            if(token_type_ineq == type)                     printf("|     ~=    |\n");
+            if(token_type_assign == type)                   printf("|     =     |\n");
+            if(token_type_left_bracket == type)             printf("|     (     |\n");
+            if(token_type_right_bracket == type)            printf("|     )     |\n");
+            if(token_type_square_left_bracket == type)      printf("|     [     |\n");
+            if(token_type_square_right_bracket == type)     printf("|     ]     |\n");
+            if(token_type_colon == type)                    printf("|     :     |\n");
+            if(token_type_comma == type)                    printf("|     ,     |\n");
+            if(token_type_$ == type)                        printf("|   empty   |\n");
+            if(token_type_E == type)                        printf("|     E     |\n");
+            if(token_type_shift == type)                    printf("|     <     |\n");
+            if(token_type_identifier == type)               printf("|     id    |\n");
+        }
+        
+    }
+    printf("|___________|\n");
+}
+
+
+void print_new_token(precedence_token_t *token, char string[100]){
+    printf("%s \n", string);
+    Token_type type = token->type;
+    printf("printing token type %3d: ", type);
+    if(type == token_type_identifier || type == token_type_string)
+        printf("token_type_identifier\n");
+    else if(type == token_type_integer)
+        printf("token_type_integer\n");
+    else if(type == token_type_number)
+        printf("token_type_number\n");
+    else {
+        if(token_type_length == type)                   printf("#\n");
+        if(token_type_mul == type)                      printf("*\n");
+        if(token_type_div == type)                      printf("/\n");
+        if(token_type_floor_div == type)                printf("//\n");
+        if(token_type_plus == type)                     printf("+\n");
+        if(token_type_minus == type)                    printf("-\n");
+        if(token_type_concat == type)                   printf("..\n");
+        if(token_type_lth == type)                      printf("<\n");
+        if(token_type_leq == type)                      printf("<=\n");
+        if(token_type_gth == type)                      printf(">\n");
+        if(token_type_geq == type)                      printf(">=\n");
+        if(token_type_equal == type)                    printf("==\n");
+        if(token_type_ineq == type)                     printf("~=\n");
+        if(token_type_assign == type)                   printf("=\n");
+        if(token_type_left_bracket == type)             printf("(\n");
+        if(token_type_right_bracket == type)            printf(")\n");
+        if(token_type_square_left_bracket == type)      printf("[\n");
+        if(token_type_square_right_bracket == type)     printf("]\n");
+        if(token_type_colon == type)                    printf(":\n");
+        if(token_type_comma == type)                    printf(",\n");
+        if(token_type_$ == type)                        printf("empty\n");
+        if(token_type_E == type)                        printf("E\n");
+        if(token_type_shift == type)                    printf("<\n");
+    }
+    printf("shift %d\n", token->shift);
+    printf("redused %d\n\n", token->redused);
+}
+
+
+
+
+
 
 bool buffer_is_empty(Buffer_for_token *buffer){
     if(buffer->index ==  0 || buffer->token[buffer->index]->type == token_type_$) return true;
@@ -165,15 +259,19 @@ void reduse_fnc(Buffer_for_token *buffer, parser_data_t *data){
             opcode = ADD;
             break;
         case token_type_minus:
-            opcode = SUB;        
+            opcode = SUB;  
+        break;      
         case token_type_equal:
             opcode = EQ;
+        break;
         case token_type_lth:
             opcode = LT;
+        break;
         case token_type_gth:
             opcode = GT;
+        break;
         default:
-            break;
+        break;
         }
 
         char * tmp_name = allocate_new_tmp_name(data, "LF@");
@@ -252,12 +350,12 @@ bool check_rule(Token_type left_type, Token_type right_type){
         { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // //
         { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // +
         { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // -
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // <
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // <=
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // >
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // >=
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // ==
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  T  , T }, // ~=
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // <
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // <=
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // >
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // >=
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  T  , T }, // ==
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  T  , T }, // ~=
         { T ,  T , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , F  ,  F  ,  F  ,  F  ,  F  , T }, // (
         { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  T  , T }, // )
         { T ,  T , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // id
@@ -286,7 +384,7 @@ bool precedence(parser_data_t *data){
         switch (precedence_compare(&buffer, new_token))
         {
             case P:
-
+            //is oper
                 new_token->shift = true;
 
                 buffer_push(&buffer, new_token);
@@ -294,14 +392,17 @@ bool precedence(parser_data_t *data){
                 break;
             case R:
           
-                reduse_fnc(&buffer, data);
-                if(precedence_compare(&buffer, new_token) == R) reduse_fnc(&buffer, data);
+                reduse_fnc(&buffer, data);// E -> id
+                while(precedence_compare(&buffer, new_token) == R) {
+                    reduse_fnc(&buffer, data);
+                    if(buffer.index == 3) {
+                        reduse_fnc(&buffer, data);
+                    }
+                }
                 
-                buffer_push(&buffer, new_token);                    
+                buffer_push(&buffer, new_token);
                 break;
-
             case N:
-          
                 while(buffer.index !=1){
 
                     reduse_fnc(&buffer, data);
@@ -314,7 +415,7 @@ bool precedence(parser_data_t *data){
                 return true;
                 break;    
         }//switch
-
+            print_buffer(&buffer);
             get_token(data);
             new_token = remake_token(data);
 

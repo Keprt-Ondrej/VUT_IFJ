@@ -4,7 +4,7 @@ global foo : function(string,number,integer) :string,integer
 function main()
 local a: string
 local b: integer = 8
-local vysl: integer = 
+local vysl: integer = 7 + b * b <  3 
 foo("to pojede kokos",42.5,8)
 a = foo("to pojede kokos",42.5,8)
 if a then foo("to pojede kokos",42.5,8) return
