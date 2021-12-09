@@ -12,6 +12,7 @@ write(a,"karel sral\n",45)
 a, b = foo("nwm",45,42)
 b = ord(a,20)
 write(a,b)
+
 end
 
 main()
