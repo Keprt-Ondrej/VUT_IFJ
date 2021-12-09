@@ -1,9 +1,73 @@
+/**
+ * @file parser_precedence.c
+ * 
+ * IFJ-2021 Compiler
+ * @note interface for evaluating precedence and cheking for errors
+ * @author Maxim Gerasimov (xgeras00@stud.fit.vutbr.cz)
+*/
+
 #include "parser_precedence.h"
 #include "parser.h"
 #include "ErrLib.h"
 
 #define buffer_length 25
 #define buffer_expend_length 2
+#define F false
+#define T true
+
+int precedence_table[22][22] =
+    {
+//  l     # | .. | * | / | // | + | - | < | <= | > | >= | == | ~= | ( | ) | id | int | num | str | nil | $       r
+        { P ,  P , P , P , P  , P , P , P , P  , P , P  , P  , P  , P , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // #
+        { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , R , P  ,  N  ,  N  ,  R  ,  N  , P }, // ..
+        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // /
+        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // //
+        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // *
+        { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // +
+        { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // -
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // <
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // <=
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // >
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // >=
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }, // ==
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }, // ~=
+        { P ,  P , P , N , P  , P , P , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // (
+        { N ,  N , N , N , N  , N , N , N , N  , N , N  , N  , N  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }, // )
+        { P ,  P , P , P , P  , P , P , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // id
+        { P ,  N , P , P , P  , P , P , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // int
+        { P ,  N , P , P , P  , P , P , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // num
+        { P ,  P , N , N , N  , N , N , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // str
+        { N ,  N , N , N , N  , N , N , N , N  , N , N  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // nil
+        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }  /// $
+    };
+
+int rule_table[22][22] =
+    {
+//  l     # | .. | * | / | // | + | - | < | <= | > | >= | == | ~= | ( | ) | id | int | num | str | nil | $       r
+        { F ,  F , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , T  ,  F  ,  F  ,  F  ,  F  , T }, // #
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  F  ,  F  ,  T  ,  F  , T }, // ..
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // /
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // //
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // *
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // +
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // -
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // <
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // <=
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // >
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // >=
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  T  , T }, // ==
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  T  , T }, // ~=
+        { T ,  T , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , F  ,  F  ,  F  ,  F  ,  F  , T }, // (
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  T  , T }, // )
+        { T ,  T , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // id
+        { F ,  F , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // int
+        { F ,  F , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // num
+        { T ,  T , F , F , F  , F , F , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // str
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // nil
+        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , F , F  ,  F  ,  F  ,  F  ,  F  , T }  /// $
+    };
+
+
 void print_buffer(Buffer_for_token  * buffer){
     precedence_token_t * token;
     Token_type type;
@@ -95,10 +159,6 @@ void print_new_token(precedence_token_t *token, char string[100]){
 }
 
 
-
-
-
-
 bool buffer_is_empty(Buffer_for_token *buffer){
     if(buffer->index ==  0 || buffer->token[buffer->index]->type == token_type_$) return true;
     return false;
@@ -112,7 +172,6 @@ void buffer_init(Buffer_for_token *buffer){
     precedence_token_t * temp = malloc(sizeof(precedence_token_t));
     temp->type = token_type_$;
     buffer->token[buffer->index] = temp;
-    buffer->active_index = 0;
 }
 
 precedence_token_t * remake_token(parser_data_t *data){
@@ -196,31 +255,7 @@ int precedence_compare(Buffer_for_token * buffer, precedence_token_t *token){
         return N;
     }
     
-    int precedence_table[22][22] =
-    {
-//  l     # | .. | * | / | // | + | - | < | <= | > | >= | == | ~= | ( | ) | id | int | num | str | nil | $       r
-        { P ,  P , P , P , P  , P , P , P , P  , P , P  , P  , P  , P , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // #
-        { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , R , P  ,  N  ,  N  ,  R  ,  N  , P }, // ..
-        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // /
-        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // //
-        { R ,  P , R , R , R  , P , P , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // *
-        { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // +
-        { R ,  P , R , R , R  , R , R , P , P  , P , P  , P  , P  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // -
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // <
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // <=
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // >
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  N  , P }, // >=
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }, // ==
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }, // ~=
-        { P ,  P , P , N , P  , P , P , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // (
-        { N ,  N , N , N , N  , N , N , N , N  , N , N  , N  , N  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }, // )
-        { P ,  P , P , P , P  , P , P , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // id
-        { P ,  N , P , P , P  , P , P , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // int
-        { P ,  N , P , P , P  , P , P , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // num
-        { P ,  P , N , N , N  , N , N , P , P  , P , P  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // str
-        { N ,  N , N , N , N  , N , N , N , N  , N , N  , P  , P  , P , N , N  ,  N  ,  N  ,  N  ,  N  , P }, // nil
-        { R ,  R , R , R , R  , R , R , R , R  , R , R  , R  , R  , N , R , R  ,  R  ,  R  ,  R  ,  R  , P }  /// $
-    };
+
     return precedence_table[right_type][left_type];
 }
 
@@ -334,43 +369,18 @@ bool is_operator(Token_type type){
 }
 
 bool check_rule(Token_type left_type, Token_type right_type){
-    bool F = false;
-    bool T = true;
+
     
     if(right_type == kw_local || right_type == kw_if || right_type == kw_while || right_type == kw_return || right_type == kw_end || right_type == kw_end || right_type == kw_else || right_type == kw_then || right_type == kw_do || right_type == token_type_comma){
         return true;
     }
 
-    int precedence_table[22][22] =
-    {
-//  l     # | .. | * | / | // | + | - | < | <= | > | >= | == | ~= | ( | ) | id | int | num | str | nil | $       r
-        { F ,  F , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , T  ,  F  ,  F  ,  F  ,  F  , T }, // #
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  F  ,  F  ,  T  ,  F  , T }, // ..
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // *
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // /
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // //
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // +
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  F  ,  F  , T }, // -
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // <
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // <=
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // >
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  F  , T }, // >=
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  T  , T }, // ==
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  T  , T }, // ~=
-        { T ,  T , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , F  ,  F  ,  F  ,  F  ,  F  , T }, // (
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , T , T  ,  T  ,  T  ,  T  ,  T  , T }, // )
-        { T ,  T , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // id
-        { F ,  F , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // int
-        { F ,  F , T , T , T  , T , T , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // num
-        { T ,  T , F , F , F  , F , F , T , T  , T , T  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // str
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , T  , T  , T , F , T  ,  T  ,  T  ,  T  ,  T  , T }, // nil
-        { F ,  F , F , F , F  , F , F , F , F  , F , F  , F  , F  , F , F , F  ,  F  ,  F  ,  F  ,  F  , T }  /// $
-    };
     
     
-    if(precedence_table[right_type][left_type] == N && (left_type == token_type_nil || right_type == token_type_nil)) exit(UNEXP_ZERO_VALUE_ERROR);
     
-    return precedence_table[right_type][left_type];
+    if(rule_table[right_type][left_type] == N && (left_type == token_type_nil || right_type == token_type_nil)) exit(UNEXP_ZERO_VALUE_ERROR);
+    
+    return rule_table[right_type][left_type];
 }
 
 bool precedence(parser_data_t *data){
