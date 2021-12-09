@@ -4,7 +4,7 @@ global foo : function(string,number,integer) :string,integer
 function main()
 local a: string
 local b: integer = 8
-local vysl: integer = 6 * 5 + #"hi"
+local vysl: integer = 6 * 5 + 8
 
 a,b = "hi", 45
 write(a,"karel sral\n",45)
