@@ -28,7 +28,7 @@ doxygen:
 pdf:
 	$(MAKE) -C dokumentace/
 
-pack: pdf	#zkuste to psat zvrchu dolu, jak to mate napr ve VS code at v tom neni bordel :D
+pack:	
 	zip $(LOGIN).zip doxyfile Makefile README.txt *.c *.h dokumentace.pdf rozdeleni
 
 clean:

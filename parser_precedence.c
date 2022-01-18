@@ -2,7 +2,7 @@
  * @file parser_precedence.c
  * 
  * IFJ-2021 Compiler
- * @note interface for evaluating precedence and cheking for errors
+ * @note implementation of precedence analysis
  * @author Maxim Gerasimov (xgeras00@stud.fit.vutbr.cz)
 */
 
@@ -219,7 +219,7 @@ precedence_token_t * remake_token(parser_data_t *data){
 }
 
 void expand_buffer(Buffer_for_token *buffer){
-    fprintf(stderr,"resizing\n");
+    //fprintf(stderr,"resizing\n");
     buffer->token = (precedence_token_t **) realloc(buffer->token, buffer->current_length * buffer_expend_length * sizeof(precedence_token_t *));
     if(buffer->token == NULL){
         exit(INTERNAL_ERROR);
@@ -229,7 +229,7 @@ void expand_buffer(Buffer_for_token *buffer){
 
 void buffer_push(Buffer_for_token *buffer, precedence_token_t *token){
     buffer->index++;
-    fprintf(stderr," index: %d, delka %d\n",buffer->index,buffer->current_length);
+    //fprintf(stderr," index: %d, delka %d\n",buffer->index,buffer->current_length);
     if(buffer->index >= buffer->current_length){
         expand_buffer(buffer);
     } 
@@ -430,7 +430,7 @@ bool precedence(parser_data_t *data){
                 return true;
                 break;    
         }//switch
-            print_buffer(&buffer);
+            //print_buffer(&buffer);
             get_token(data);
             new_token = remake_token(data);
 

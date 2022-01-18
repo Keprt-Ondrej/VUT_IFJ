@@ -1,22 +1,22 @@
-require "ifj21"
-global foo : function(string,number,integer) :string,integer
+    require "ifj21"
+    global foo : function(string,number,integer) :string,integer
 
-function main()
-local a: string
-local b: integer = 8
-local vysl: integer = 6 * 5 + #"hi"
+    function main()
+    local a: string
+    local b: integer = 8
+    local vysl: integer = 6 * 5 + #"hi"
 
-foo("karel",42,5)
-end
-
-main()
-
-function foo(str:string,cislo:number,cislo2:integer): string, integer
-local a: integer = 2
-    if a > 5 then
-        write("ano")
-    else
-    write("ne")
+    foo("karel",42,5)
     end
-return "ahoj",5
-end
+
+    main()
+
+    function foo(str:string,cislo:number,cislo2:integer): string, integer
+    local a: integer = 2
+        if a > 5 then
+            write("ano")
+        else
+        write("ne")
+        end
+    return "ahoj",5
+    end
